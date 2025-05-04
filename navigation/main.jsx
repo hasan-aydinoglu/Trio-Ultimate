@@ -9,7 +9,8 @@ function Main() {
     return (
         <NavigationContainer >
             <Stack.Navigator headerMode={false}>
-                <Stack.Screen name="Home" options={{ headerShown: false, headerBackTitle: 'Back', title:'Back' }} component={BottomNavigation} />
+                {/* Buradaki 'Home' ismini değiştirelim */}
+                <Stack.Screen name="HomeStack" options={{ headerShown: false, headerBackTitle: 'Back', title:'Back' }} component={BottomNavigation} />
                 <Stack.Screen name="game" component={Game} />
             </Stack.Navigator>
         </NavigationContainer>
