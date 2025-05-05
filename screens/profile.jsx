@@ -1,95 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
-import LottieView from 'lottie-react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, StyleSheet, Pressable, Image, ScrollView, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const Profile = ({ navigation }) => {
-  const [isLoading, setIsLoading] = useState(true);
+const Profile = () => {
+  const [fadeAnim] = useState(new Animated.Value(0)); // Animasyon state
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const timer = setTimeout(() => setIsLoading(false), 2500);
-      return () => clearTimeout(timer);
-    }, [])
-  );
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <LottieView
-          source={require('../assets/animations/loadingThree.json')}
-          autoPlay
-          loop
-          style={{ width: 200, height: 200 }}
-        />
-      </View>
-    );
-  }
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/men/1.jpg' }}
-          style={styles.profileImage}
-        />
-        <Text style={styles.username}>Hasan</Text>
-      </View>
+    <LinearGradient colors={['#1e1e3f', '#0a0a23']} style={styles.gradient}>
+      <Animated.ScrollView style={[styles.container, { opacity: fadeAnim }]}>
+        <View style={styles.profileHeader}>
+          <Image
+            source={{ uri: 'https://randomuser.me/api/portraits/men/1.jpg' }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.username}>Hasan</Text>
+        </View>
 
-      {/* Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>24</Text>
-          <Text style={styles.statLabel}>Gönderi</Text>
-        </View>
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>1.2K</Text>
-          <Text style={styles.statLabel}>Takipçi</Text>
-        </View>
-        <View style={styles.stat}>
-          <Text style={styles.statNumber}>130</Text>
-          <Text style={styles.statLabel}>Takip</Text>
-        </View>
-      </View>
-
-      {/* Story Section */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.storiesContainer}>
-        {[...Array(6)].map((_, i) => (
-          <View key={i} style={styles.story}>
-            <Image
-              source={{ uri: `https://randomuser.me/api/portraits/women/${i + 10}.jpg` }}
-              style={styles.storyImage}
-            />
-            <Text style={styles.storyText}>Story {i + 1}</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>24</Text>
+            <Text style={styles.statLabel}>Gönderi</Text>
           </View>
-        ))}
-      </ScrollView>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>1.2K</Text>
+            <Text style={styles.statLabel}>Takipçi</Text>
+          </View>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>130</Text>
+            <Text style={styles.statLabel}>Takip</Text>
+          </View>
+        </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonsContainer}>
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>Gönderiler</Text>
-        </Pressable>
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>Storyler</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+        <View style={styles.buttonsContainer}>
+          <Pressable style={styles.button}>
+            <Text style={styles.buttonText}>Gönderiler</Text>
+          </Pressable>
+          <Pressable style={styles.button}>
+            <Text style={styles.buttonText}>Oyunlar</Text>
+          </Pressable>
+        </View>
+      </Animated.ScrollView>
+    </LinearGradient>
   );
 };
 
 export default Profile;
 
 const styles = StyleSheet.create({
-  loaderContainer: {
+  gradient: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   container: {
     padding: 20,
-    backgroundColor: '#fff',
   },
   profileHeader: {
     alignItems: 'center',
@@ -104,8 +74,9 @@ const styles = StyleSheet.create({
   },
   username: {
     marginTop: 10,
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -118,27 +89,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#fff',
   },
   statLabel: {
-    color: '#888',
-  },
-  storiesContainer: {
-    marginVertical: 20,
-  },
-  story: {
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  storyImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 2,
-    borderColor: '#ff9800',
-  },
-  storyText: {
-    marginTop: 5,
-    fontSize: 12,
+    color: '#ccc',
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -146,7 +100,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    backgroundColor: '#2196f3',
+    backgroundColor: '#ff9800',
     paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 20,
