@@ -1,112 +1,130 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, ScrollView, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, Pressable, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient'; // Linear Gradient modülünü ekliyoruz
 
 const Profile = () => {
-  const [fadeAnim] = useState(new Animated.Value(0)); // Animasyon state
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1200,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  const [user, setUser] = useState({
+    name: 'Hasan',
+    username: '@hasan_aydinoglu',
+    followers: '1.2K',
+    following: '130',
+    posts: '24',
+    profilePic: 'https://randomuser.me/api/portraits/men/1.jpg',
+  });
 
   return (
-    <LinearGradient colors={['#1e1e3f', '#0a0a23']} style={styles.gradient}>
-      <Animated.ScrollView style={[styles.container, { opacity: fadeAnim }]}>
+    <LinearGradient
+      colors={['#2C3E50', '#34495E']} // Koyu tonlarda gradient arka plan
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Profil Başlık */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://randomuser.me/api/portraits/men/1.jpg' }}
+            source={{ uri: user.profilePic }}
             style={styles.profileImage}
           />
-          <Text style={styles.username}>Hasan</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.username}>{user.username}</Text>
         </View>
 
+        {/* İstatistikler */}
         <View style={styles.statsContainer}>
           <View style={styles.stat}>
-            <Text style={styles.statNumber}>24</Text>
+            <Text style={styles.statNumber}>{user.posts}</Text>
             <Text style={styles.statLabel}>Gönderi</Text>
           </View>
           <View style={styles.stat}>
-            <Text style={styles.statNumber}>1.2K</Text>
+            <Text style={styles.statNumber}>{user.followers}</Text>
             <Text style={styles.statLabel}>Takipçi</Text>
           </View>
           <View style={styles.stat}>
-            <Text style={styles.statNumber}>130</Text>
+            <Text style={styles.statNumber}>{user.following}</Text>
             <Text style={styles.statLabel}>Takip</Text>
           </View>
         </View>
 
+        {/* Buttons */}
         <View style={styles.buttonsContainer}>
           <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>Gönderiler</Text>
+            <Text style={styles.buttonText}>Profili Düzenle</Text>
           </Pressable>
           <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>Oyunlar</Text>
+            <Text style={styles.buttonText}>Mesaj Gönder</Text>
           </Pressable>
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
     </LinearGradient>
   );
 };
 
-export default Profile;
-
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
   container: {
+    flex: 1,
+    backgroundColor: '#2C3E50',
     padding: 20,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: '#f44336',
+    borderColor: '#fff',
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ecf0f1',
+    marginTop: 10,
   },
   username: {
-    marginTop: 10,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 16,
+    color: '#bdc3c7',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 15,
+    marginVertical: 30,
   },
   stat: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
   },
   statLabel: {
-    color: '#ccc',
+    fontSize: 14,
+    color: '#bdc3c7',
   },
   buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
+    marginTop: 40,
+    width: '100%',
+    alignItems: 'center',
   },
   button: {
-    backgroundColor: '#ff9800',
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 20,
+    backgroundColor: '#1abc9c',
+    paddingVertical: 15,
+    paddingHorizontal: 60,
+    borderRadius: 25,
+    marginBottom: 10,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
+
+export default Profile;

@@ -27,7 +27,8 @@
     "react-native-paper": "^5.14.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-table-component": "^1.2.2",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-vector-icons": "^10.2.0",
+    "expo-blur": "~14.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
