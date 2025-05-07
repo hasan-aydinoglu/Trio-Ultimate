@@ -1,9 +1,20 @@
-import BottomNavigation from './navigation/bottom-navigation';
-import Main from './navigation/main';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Home from './screens/home';
+import SignUp from './screens/SignUp'; // SignUp ekranını ekliyoruz
 
-export default function App() {
-  // ..
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
-      <Main />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="SignUp" component={SignUp} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
+
+export default App;
