@@ -1,23 +1,38 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Linear Gradient modülünü ekliyoruz
-import Icon from 'react-native-vector-icons/FontAwesome'; // Facebook ve Gmail ikonları için
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { auth } from '../firebase'; // Firebase bağlantısı
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 const Home = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
+
+  // Kullanıcıyı izleme
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSignIn = () => {
-    console.log('Sign in with email:', email, 'Password:', password);
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        Alert.alert('Giriş Başarılı', `Hoşgeldin ${userCredential.user.email}`);
+      })
+      .catch((error) => {
+        Alert.alert('Hata', error.message);
+      });
   };
 
   const handleSignUp = () => {
-    console.log('Navigate to Sign Up');
-    navigation.navigate('SignUp'); // Bu, Sign Up sayfasına yönlendirir
+    navigation.navigate('SignUp');
   };
 
   const handleFacebookSignIn = () => {
-    // Facebook sayfasına yönlendirme
     const facebookUrl = 'https://www.facebook.com';
     Linking.openURL(facebookUrl).catch(err => console.error('Error opening Facebook:', err));
   };
@@ -27,10 +42,7 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#2C3E50', '#34495E']} // Daha koyu tonlarda gradient arka plan
-      style={styles.container}
-    >
+    <LinearGradient colors={['#2C3E50', '#34495E']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>TRIO</Text>
 
@@ -54,17 +66,14 @@ const Home = ({ navigation }) => {
           onChangeText={setPassword}
         />
 
-        {/* Forgot Password */}
         <TouchableOpacity style={styles.forgotPassword}>
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        {/* Sign In Button */}
         <Pressable style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Sign In</Text>
         </Pressable>
 
-        {/* Sign Up Button */}
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Don't have an account?</Text>
           <TouchableOpacity onPress={handleSignUp}>
@@ -72,7 +81,6 @@ const Home = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Social Media Sign In */}
         <View style={styles.socialContainer}>
           <TouchableOpacity style={styles.socialButton} onPress={handleFacebookSignIn}>
             <Icon name="facebook" size={20} color="#3b5998" style={styles.icon} />
@@ -84,12 +92,19 @@ const Home = ({ navigation }) => {
             <Text style={styles.socialText}>Gmail</Text>
           </TouchableOpacity>
         </View>
+
+        {user && (
+          <View style={{ marginTop: 30, alignItems: 'center' }}>
+            <Text style={{ color: 'white' }}>Hoşgeldin, {user.email}</Text>
+          </View>
+        )}
       </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  // senin mevcut stillerin aynı şekilde
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -104,10 +119,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 60,
     fontWeight: 'bold',
-    color: '#ecf0f1', 
+    color: '#ecf0f1',
     marginBottom: 40,
     textAlign: 'center',
-    fontFamily: 'Poppins', 
+    fontFamily: 'Poppins',
     textShadowColor: '#2C3E50',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 5,
@@ -117,14 +132,14 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 10,
     borderRadius: 25,
-    backgroundColor: '#34495E', 
-    borderColor: '#7f8c8d', 
+    backgroundColor: '#34495E',
+    borderColor: '#7f8c8d',
     borderWidth: 1,
     fontSize: 16,
-    color: '#ecf0f1', 
+    color: '#ecf0f1',
   },
   button: {
-    backgroundColor: '#1abc9c', 
+    backgroundColor: '#1abc9c',
     paddingVertical: 15,
     borderRadius: 25,
     marginTop: 20,
@@ -141,7 +156,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   forgotPasswordText: {
-    color: '#1abc9c', 
+    color: '#1abc9c',
     fontSize: 14,
   },
   signUpContainer: {
@@ -150,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpText: {
-    color: '#ecf0f1', 
+    color: '#ecf0f1',
     fontSize: 14,
   },
   signUpLink: {
@@ -171,19 +186,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 30, 
-    backgroundColor: '#ecf0f1', 
-    width: '40%', 
+    borderRadius: 30,
+    backgroundColor: '#ecf0f1',
+    width: '40%',
     marginTop: 20,
   },
   socialText: {
     marginLeft: 10,
-    color: '#34495E', 
+    color: '#34495E',
     fontSize: 16,
     fontWeight: 'bold',
   },
   icon: {
-    borderRadius: 10, 
+    borderRadius: 10,
     padding: 10,
   },
 });

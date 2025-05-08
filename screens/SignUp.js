@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Linear Gradient modülünü ekliyoruz
 import Icon from 'react-native-vector-icons/FontAwesome'; // Facebook ve Gmail ikonları için
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Firebase import
+import { auth } from '../firebase'; // Firebase auth dosyasını import ediyoruz
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -10,9 +12,23 @@ const SignUp = ({ navigation }) => {
   const [password, setPassword] = useState('');
 
   const handleSignUp = () => {
-    // Burada kullanıcı kaydı yapılabilir
-    console.log('Sign up with:', { name, surname, email, password });
-    navigation.navigate('Home'); // Başarılı kayıt sonrası home sayfasına yönlendir
+    if (!name || !surname || !email || !password) {
+      Alert.alert('All fields are required!');
+      return;
+    }
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log('User registered:', user);
+        Alert.alert('Registration Successful');
+        navigation.navigate('Home'); // Başarılı kayıt sonrası home sayfasına yönlendir
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+        Alert.alert('Error', errorMessage);
+      });
   };
 
   const handleFacebookSignUp = () => {

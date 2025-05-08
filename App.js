@@ -1,20 +1,37 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import Home from './screens/home';
-import SignUp from './screens/SignUp'; // SignUp ekranını ekliyoruz
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button } from 'react-native';
+import { auth } from './firebase';  // Firebase yapılandırma dosyanızı içe aktarın
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
-const Stack = createStackNavigator();
+const Home = () => {
+  const [user, setUser] = useState(null);
 
-const App = () => {
+  useEffect(() => {
+    // Kullanıcıyı kontrol et
+    const unsubscribe = auth.onAuthStateChanged(setUser);
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = () => {
+    signInWithEmailAndPassword(auth, 'email@example.com', 'password123')
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log(user);
+      })
+      .catch((error) => {
+        console.error(error.message);
+      });
+  };
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="SignUp" component={SignUp} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <View>
+      {user ? (
+        <Text>Hoş geldiniz, {user.email}</Text>
+      ) : (
+        <Button title="Giriş Yap" onPress={handleLogin} />
+      )}
+    </View>
   );
 };
 
-export default App;
+export default Home;
