@@ -7,11 +7,10 @@ const Stack = createNativeStackNavigator();
 
 function Main() {
     return (
-        <NavigationContainer >
-            <Stack.Navigator headerMode={false}>
-                {/* Buradaki 'Home' ismini değiştirelim */}
-                <Stack.Screen name="HomeStack" options={{ headerShown: false, headerBackTitle: 'Back', title:'Back' }} component={BottomNavigation} />
-                <Stack.Screen name="game" component={Game} />
+        <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="HomeStack" component={BottomNavigation} />
+                <Stack.Screen name="Game" component={Game} />
             </Stack.Navigator>
         </NavigationContainer>
     );

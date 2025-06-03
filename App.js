@@ -1,37 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button } from 'react-native';
-import { auth } from './firebase';  // Firebase yapılandırma dosyanızı içe aktarın
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import { auth } from './firebase'; // Firebase yapılandırmanız
+import { onAuthStateChanged } from 'firebase/auth';
+import Home from './screens/home';
+import SignUp from './screens/SignUp';
 
-const Home = () => {
-  const [user, setUser] = useState(null);
+export default function App() {
+  const [isUserSignedIn, setIsUserSignedIn] = React.useState(false);
 
   useEffect(() => {
-    // Kullanıcıyı kontrol et
-    const unsubscribe = auth.onAuthStateChanged(setUser);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsUserSignedIn(true);
+        console.log('Kullanıcı oturum açtı:', user);
+      } else {
+        setIsUserSignedIn(false);
+        console.log('Kullanıcı çıkış yaptı.');
+      }
+    });
+
+    // Temizlik fonksiyonu
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = () => {
-    signInWithEmailAndPassword(auth, 'email@example.com', 'password123')
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-      })
-      .catch((error) => {
-        console.error(error.message);
-      });
-  };
-
   return (
-    <View>
-      {user ? (
-        <Text>Hoş geldiniz, {user.email}</Text>
-      ) : (
-        <Button title="Giriş Yap" onPress={handleLogin} />
-      )}
+    <View style={{ flex: 1 }}>
+      {isUserSignedIn &&
+        <Home />
+      }
+      {!isUserSignedIn &&
+        <SignUp />
+      }
     </View>
   );
-};
-
-export default Home;
+}
