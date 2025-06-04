@@ -1,36 +1,19 @@
-import React, { useEffect } from 'react';
-import { Text, View } from 'react-native';
-import { auth } from './firebase'; // Firebase yapılandırmanız
-import { onAuthStateChanged } from 'firebase/auth';
-import Home from './screens/home';
-import SignUp from './screens/SignUp';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import Home from './screens/home.jsx';
+import SignUp from './screens/SignUp.jsx';
+
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [isUserSignedIn, setIsUserSignedIn] = React.useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsUserSignedIn(true);
-        console.log('Kullanıcı oturum açtı:', user);
-      } else {
-        setIsUserSignedIn(false);
-        console.log('Kullanıcı çıkış yaptı.');
-      }
-    });
-
-    // Temizlik fonksiyonu
-    return () => unsubscribe();
-  }, []);
-
   return (
-    <View style={{ flex: 1 }}>
-      {isUserSignedIn &&
-        <Home />
-      }
-      {!isUserSignedIn &&
-        <SignUp />
-      }
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="SignUp" component={SignUp} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
