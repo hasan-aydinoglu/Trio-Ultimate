@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { auth } from '../firebase'; // Firebase bağlantısı
+import { auth } from '../firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 const Home = ({ navigation }) => {
@@ -10,7 +10,6 @@ const Home = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
 
-  // Kullanıcıyı izleme
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -46,7 +45,6 @@ const Home = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>TRIO</Text>
 
-        {/* Email Input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -56,7 +54,6 @@ const Home = ({ navigation }) => {
           onChangeText={setEmail}
         />
 
-        {/* Password Input */}
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -98,109 +95,48 @@ const Home = ({ navigation }) => {
             <Text style={{ color: 'white' }}>Hoşgeldin, {user.email}</Text>
           </View>
         )}
+
+        {/* 📌 GameScreen'e yönlendiren buton */}
+        <Pressable
+          style={[styles.button, { backgroundColor: '#3498db', marginTop: 30 }]}
+          onPress={() => navigation.navigate('GameScreen')}
+        >
+          <Text style={styles.buttonText}>Go to Game</Text>
+        </Pressable>
+
       </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  // senin mevcut stillerin aynı şekilde
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scrollContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 30 },
   title: {
-    fontSize: 60,
-    fontWeight: 'bold',
-    color: '#ecf0f1',
-    marginBottom: 40,
-    textAlign: 'center',
-    fontFamily: 'Poppins',
-    textShadowColor: '#2C3E50',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
+    fontSize: 60, fontWeight: 'bold', color: '#ecf0f1', marginBottom: 40, textAlign: 'center', fontFamily: 'Poppins',
+    textShadowColor: '#2C3E50', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 5,
   },
   input: {
-    width: '100%',
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#34495E',
-    borderColor: '#7f8c8d',
-    borderWidth: 1,
-    fontSize: 16,
-    color: '#ecf0f1',
+    width: '100%', padding: 15, marginVertical: 10, borderRadius: 25,
+    backgroundColor: '#34495E', borderColor: '#7f8c8d', borderWidth: 1, fontSize: 16, color: '#ecf0f1',
   },
   button: {
-    backgroundColor: '#1abc9c',
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#1abc9c', paddingVertical: 15, borderRadius: 25, marginTop: 20,
+    alignItems: 'center', justifyContent: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: 10,
-  },
-  forgotPasswordText: {
-    color: '#1abc9c',
-    fontSize: 14,
-  },
-  signUpContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-    justifyContent: 'center',
-  },
-  signUpText: {
-    color: '#ecf0f1',
-    fontSize: 14,
-  },
-  signUpLink: {
-    color: '#1abc9c',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 30,
-    width: '100%',
-  },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  forgotPassword: { alignSelf: 'flex-end', marginTop: 10 },
+  forgotPasswordText: { color: '#1abc9c', fontSize: 14 },
+  signUpContainer: { flexDirection: 'row', marginTop: 20, justifyContent: 'center' },
+  signUpText: { color: '#ecf0f1', fontSize: 14 },
+  signUpLink: { color: '#1abc9c', fontSize: 14, fontWeight: 'bold', marginLeft: 5 },
+  socialContainer: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30, width: '100%' },
   socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    backgroundColor: '#ecf0f1',
-    width: '40%',
-    marginTop: 20,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, paddingHorizontal: 20,
+    borderRadius: 30, backgroundColor: '#ecf0f1', width: '40%', marginTop: 20,
   },
-  socialText: {
-    marginLeft: 10,
-    color: '#34495E',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  icon: {
-    borderRadius: 10,
-    padding: 10,
-  },
+  socialText: { marginLeft: 10, color: '#34495E', fontSize: 16, fontWeight: 'bold' },
+  icon: { borderRadius: 10, padding: 10 },
 });
 
 export default Home;
