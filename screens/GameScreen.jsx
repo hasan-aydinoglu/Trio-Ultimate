@@ -1,105 +1,199 @@
 import React, { useState } from 'react';
-import { Animated } from 'react-native';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const gridData = [
-  [3, 7, 3, 5, 8, 4, 9],
-  [5, 1, 8, 6, 5, 2, 7],
-  [8, 6, 2, 4, 9, 1, 9],
-  [2, 6, 4, 7, 5, 5, 3],
-  [7, 4, 3, 2, 1, 6, 3],
-  [2, 1, 4, 8, 3, 9, 5],
-  [1, 8, 6, 7, 2, 4, 6],
+const tableData = [
+  [3, 5, 7],
+  [6, 2, 8],
+  [4, 9, 1],
 ];
 
-const getCellColor = (value) => {
-  switch (value) {
-    case 1: return '#8e44ad';
-    case 2: return '#9b59b6';
-    case 3: return '#e67e22';
-    case 4: return '#d35400';
-    case 5: return '#f39c12';
-    case 6: return '#c0392b';
-    case 7: return '#e84393';
-    case 8: return '#e74c3c';
-    case 9: return '#d63031';
-    default: return '#ecf0f1';
-  }
-};
-
-const GameScreen = () => {
+export default function GameScreen() {
   const [selectedCells, setSelectedCells] = useState([]);
+  const [randomNumber, setRandomNumber] = useState(null);
+  const [opacity] = useState(new Animated.Value(0));
 
   const handleCellPress = (rowIndex, colIndex, value) => {
     const cell = { row: rowIndex, col: colIndex, value };
-    setSelectedCells([...selectedCells, cell]);
-    checkForMatch([...selectedCells, cell]);
+    if (selectedCells.length < 3) {
+      setSelectedCells([...selectedCells, cell]);
+    }
   };
 
-  const checkForMatch = (cells) => {
-    if (cells.length < 3) return;
-    const lastThree = cells.slice(-3);
-    const allSameValue = lastThree.every(cell => cell.value === lastThree[0].value);
-    if (allSameValue) {
-      Alert.alert('TEBRİKLER 🎉', `3 aynı sayı: ${lastThree[0].value}`);
-      setSelectedCells([]);
+  const calculateResult = () => {
+    if (selectedCells.length !== 3) {
+      Alert.alert('Select 3 numbers!');
+      return;
+    }
+
+    const values = selectedCells.map(c => c.value);
+    let result = values[0];
+
+    // First: multiply and divide left to right
+    for (let i = 1; i < values.length; i++) {
+      result *= values[i];
+    }
+
+    // No division in this example; add if needed here
+
+    if (result === randomNumber) {
+      Alert.alert('CONGRATULATIONS 🎉', 'Result matches the target: ${randomNumber}');
+    } else {
+      Alert.alert('Not quite 😢', 'Result: ${result}, Target: ${randomNumber}');
+    }
+
+    setSelectedCells([]);
+  };
+
+  const generateRandomNumber = () => {
+    const number = Math.floor(Math.random() * 50) + 1;
+    setRandomNumber(number);
+
+    Animated.sequence([
+      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1, duration: 29000, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const getCellStyle = (value) => {
+    switch (value) {
+      case 1: return styles.cellColor1;
+      case 2: return styles.cellColor2;
+      case 3: return styles.cellColor3;
+      case 4: return styles.cellColor4;
+      case 5: return styles.cellColor5;
+      case 6: return styles.cellColor6;
+      case 7: return styles.cellColor7;
+      case 8: return styles.cellColor8;
+      case 9: return styles.cellColor9;
+      default: return styles.cellDefault;
     }
   };
 
   return (
-    <ImageBackground
-    source={require('../assets/trioabout.png')}
-    style={styles.background}
-    resizeMode="stretch"
-    imageStyle={{ left: -50 }} // 📌 Arka planı 50px sola kaydırdık
-  >
-  
-      <LinearGradient colors={['rgba(44,62,80,0.7)', 'rgba(52,73,94,0.8)']} style={styles.container}>
-        {gridData.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((cellValue, colIndex) => (
-              <TouchableOpacity
-                key={colIndex}
-                style={[
-                  styles.cell,
-                  { backgroundColor: getCellColor(cellValue) },
-                  selectedCells.find(c => c.row === rowIndex && c.col === colIndex)
-                    ? styles.selected : null
-                ]}
-                onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
-              >
-                <Text style={styles.cellText}>{cellValue}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
+    <ImageBackground source={require('../assets/trioabout.png')} style={styles.background}>
+      <LinearGradient colors={['rgba(44,62,80,0.8)', 'rgba(52,73,94,0.8)']} style={styles.overlay}>
+        <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
+          <Text style={styles.buttonText}>Get Random Number</Text>
+        </TouchableOpacity>
+
+        <View style={styles.table}>
+          {tableData.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.row}>
+              {row.map((cellValue, colIndex) => (
+                <TouchableOpacity
+                  key={colIndex}
+                  style={[
+                    styles.cell,
+                    getCellStyle(cellValue),
+                    selectedCells.find(c => c.row === rowIndex && c.col === colIndex)
+                      ? styles.selectedCell
+                      : null,
+                  ]}
+                  onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
+                >
+                  <Text style={styles.cellText}>{cellValue}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.calculateButton} onPress={calculateResult}>
+          <Text style={styles.buttonText}>Check Result</Text>
+        </TouchableOpacity>
+
+        {randomNumber !== null && (
+          <Animated.View style={[styles.randomNumberContainer, { opacity }]}>
+            <Text style={styles.randomNumber}>{randomNumber}</Text>
+          </Animated.View>
+        )}
       </LinearGradient>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  background: { flex: 1 },
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  row: { flexDirection: 'row' },
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  table: {
+    marginTop: 80,
+    marginBottom: 30,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
   cell: {
-    width: 50,
-    height: 50,
-    margin: 4,
+    width: 80,
+    height: 80,
+    margin: 5,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-  },
-  selected: {
-    borderWidth: 3,
-    borderColor: '#ffffff',
   },
   cellText: {
-    fontSize: 20,
+    fontSize: 28,
     color: '#fff',
     fontWeight: 'bold',
   },
-});
+  selectedCell: {
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  // Cell colors
+  cellColor1: { backgroundColor: '#3498db' },
+  cellColor2: { backgroundColor: '#e67e22' },
+  cellColor3: { backgroundColor: '#9b59b6' },
+  cellColor4: { backgroundColor: '#2ecc71' },
+  cellColor5: { backgroundColor: '#f1c40f' },
+  cellColor6: { backgroundColor: '#1abc9c' },
+  cellColor7: { backgroundColor: '#e74c3c' },
+  cellColor8: { backgroundColor: '#34495e' },
+  cellColor9: { backgroundColor: '#95a5a6' },
+  cellDefault: { backgroundColor: '#7f8c8d' },
 
-export default GameScreen;
+  randomButton: {
+    backgroundColor: '#2980b9',
+    paddingVertical: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
+  calculateButton: {
+    backgroundColor: '#27ae60',
+    paddingVertical: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#ecf0f1',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  randomNumberContainer: {
+    marginTop: 40,
+    alignSelf: 'center',
+    backgroundColor: '#2980b9',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  randomNumber: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+});
