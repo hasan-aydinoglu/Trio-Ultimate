@@ -1,17 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Tablodaki sabit sayılar (senin fotoğraftaki gibi)
 const tableData = [
-  [3, 5, 7],
-  [6, 2, 8],
-  [4, 9, 1],
+  [3, 7, 3, 5, 8, 4, 9],
+  [5, 1, 8, 6, 5, 2, 7],
+  [8, 6, 2, 4, 9, 1, 9],
+  [2, 6, 4, 7, 5, 5, 3],
+  [7, 4, 3, 2, 1, 6, 3],
+  [2, 1, 4, 8, 3, 9, 5],
+  [1, 8, 6, 7, 2, 4, 6],
 ];
 
-export default function GameScreen() {
+// Hücre renkleri — senin görselinle birebir aynı
+const cellColors = [
+  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
+  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#e67e22'],
+  ['#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#8e44ad', '#e67e22'],
+  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e84393', '#8e44ad', '#e84393'],
+  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
+  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#8e44ad'],
+  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e84393', '#e84393', '#e67e22'],
+];
+
+const GameScreen = () => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
-  const [opacity] = useState(new Animated.Value(0));
 
   const handleCellPress = (rowIndex, colIndex, value) => {
     const cell = { row: rowIndex, col: colIndex, value };
@@ -20,63 +35,49 @@ export default function GameScreen() {
     }
   };
 
-  const calculateResult = () => {
+  const checkResult = () => {
     if (selectedCells.length !== 3) {
-      Alert.alert('Select 3 numbers!');
+      Alert.alert('Pick 3 numbers to calculate!');
       return;
     }
 
     const values = selectedCells.map(c => c.value);
+
+    // Order of operations: × ÷ then + -
     let result = values[0];
+    if (values[1] !== 0) result = result * values[1];
+    if (values[2] !== 0) result = result / values[2];
 
-    // First: multiply and divide left to right
-    for (let i = 1; i < values.length; i++) {
-      result *= values[i];
+    if (randomNumber !== null) {
+      if (result === randomNumber) {
+        Alert.alert('🎉 CONGRATULATIONS!', 'Result matches the target: ${randomNumber}');
+      } else {
+        Alert.alert('❌ Not quite', 'Result: ${result}, Target: ${randomNumber}');
+      }
     }
-
-    // No division in this example; add if needed here
-
-    if (result === randomNumber) {
-      Alert.alert('CONGRATULATIONS 🎉', 'Result matches the target: ${randomNumber}');
-    } else {
-      Alert.alert('Not quite 😢', 'Result: ${result}, Target: ${randomNumber}');
-    }
-
     setSelectedCells([]);
   };
 
   const generateRandomNumber = () => {
     const number = Math.floor(Math.random() * 50) + 1;
     setRandomNumber(number);
-
-    Animated.sequence([
-      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 29000, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 0, duration: 500, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const getCellStyle = (value) => {
-    switch (value) {
-      case 1: return styles.cellColor1;
-      case 2: return styles.cellColor2;
-      case 3: return styles.cellColor3;
-      case 4: return styles.cellColor4;
-      case 5: return styles.cellColor5;
-      case 6: return styles.cellColor6;
-      case 7: return styles.cellColor7;
-      case 8: return styles.cellColor8;
-      case 9: return styles.cellColor9;
-      default: return styles.cellDefault;
-    }
+    setTimeout(() => {
+      setRandomNumber(null);
+    }, 30000);
   };
 
   return (
-    <ImageBackground source={require('../assets/trioabout.png')} style={styles.background}>
-      <LinearGradient colors={['rgba(44,62,80,0.8)', 'rgba(52,73,94,0.8)']} style={styles.overlay}>
+    <ImageBackground source={require('../assets/trioabout.png')} style={styles.backgroundImage}>
+      <LinearGradient colors={['#2C3E50AA', '#34495EAA']} style={styles.container}>
         <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
-          <Text style={styles.buttonText}>Get Random Number</Text>
+          <Text style={styles.buttonText}>🎲 Generate Number</Text>
         </TouchableOpacity>
+
+        {randomNumber !== null && (
+          <View style={styles.randomNumberBox}>
+            <Text style={styles.randomNumberText}>{randomNumber}</Text>
+          </View>
+        )}
 
         <View style={styles.table}>
           {tableData.map((row, rowIndex) => (
@@ -86,9 +87,9 @@ export default function GameScreen() {
                   key={colIndex}
                   style={[
                     styles.cell,
-                    getCellStyle(cellValue),
+                    { backgroundColor: cellColors[rowIndex][colIndex] },
                     selectedCells.find(c => c.row === rowIndex && c.col === colIndex)
-                      ? styles.selectedCell
+                      ? styles.selected
                       : null,
                   ]}
                   onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
@@ -100,100 +101,55 @@ export default function GameScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.calculateButton} onPress={calculateResult}>
-          <Text style={styles.buttonText}>Check Result</Text>
+        <TouchableOpacity style={styles.checkButton} onPress={checkResult}>
+          <Text style={styles.buttonText}>✅ Check Result</Text>
         </TouchableOpacity>
-
-        {randomNumber !== null && (
-          <Animated.View style={[styles.randomNumberContainer, { opacity }]}>
-            <Text style={styles.randomNumber}>{randomNumber}</Text>
-          </Animated.View>
-        )}
       </LinearGradient>
     </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  overlay: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  table: {
-    marginTop: 80,
-    marginBottom: 30,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  cell: {
-    width: 80,
-    height: 80,
-    margin: 5,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cellText: {
-    fontSize: 28,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  selectedCell: {
-    borderWidth: 3,
-    borderColor: '#fff',
-  },
-  // Cell colors
-  cellColor1: { backgroundColor: '#3498db' },
-  cellColor2: { backgroundColor: '#e67e22' },
-  cellColor3: { backgroundColor: '#9b59b6' },
-  cellColor4: { backgroundColor: '#2ecc71' },
-  cellColor5: { backgroundColor: '#f1c40f' },
-  cellColor6: { backgroundColor: '#1abc9c' },
-  cellColor7: { backgroundColor: '#e74c3c' },
-  cellColor8: { backgroundColor: '#34495e' },
-  cellColor9: { backgroundColor: '#95a5a6' },
-  cellDefault: { backgroundColor: '#7f8c8d' },
-
+  backgroundImage: { flex: 1, resizeMode: 'cover' },
+  container: { flex: 1, padding: 10, alignItems: 'center', justifyContent: 'center' },
   randomButton: {
-    backgroundColor: '#2980b9',
-    paddingVertical: 15,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginHorizontal: 20,
+    backgroundColor: '#3498db',
+    padding: 15,
+    borderRadius: 30,
+    marginBottom: 15,
   },
-  calculateButton: {
+  checkButton: {
     backgroundColor: '#27ae60',
-    paddingVertical: 15,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginHorizontal: 20,
+    padding: 15,
+    borderRadius: 30,
     marginTop: 20,
   },
-  buttonText: {
-    color: '#ecf0f1',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  randomNumberContainer: {
-    marginTop: 40,
-    alignSelf: 'center',
-    backgroundColor: '#2980b9',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  table: { marginVertical: 10 },
+  row: { flexDirection: 'row' },
+  cell: {
+    width: 45,
+    height: 45,
+    margin: 4,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  randomNumber: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: 'bold',
+  selected: {
+    borderWidth: 2,
+    borderColor: '#fff',
   },
+  cellText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+  randomNumberBox: {
+    backgroundColor: '#2980b9',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  randomNumberText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
 });
+
+export default GameScreen;
