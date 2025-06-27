@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Tablodaki sabit sayılar (senin fotoğraftaki gibi)
+// Table values — your image values
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
   [5, 1, 8, 6, 5, 2, 7],
@@ -13,7 +13,7 @@ const tableData = [
   [1, 8, 6, 7, 2, 4, 6],
 ];
 
-// Hücre renkleri — senin görselinle birebir aynı
+
 const cellColors = [
   ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
   ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#e67e22'],
@@ -37,24 +37,46 @@ const GameScreen = () => {
 
   const checkResult = () => {
     if (selectedCells.length !== 3) {
-      Alert.alert('Pick 3 numbers to calculate!');
+      Alert.alert('Pick 3 numbers first!');
       return;
     }
-
+  
     const values = selectedCells.map(c => c.value);
-
-    // Order of operations: × ÷ then + -
-    let result = values[0];
-    if (values[1] !== 0) result = result * values[1];
-    if (values[2] !== 0) result = result / values[2];
-
-    if (randomNumber !== null) {
-      if (result === randomNumber) {
-        Alert.alert('🎉 CONGRATULATIONS!', 'Result matches the target: ${randomNumber}');
-      } else {
-        Alert.alert('❌ Not quite', 'Result: ${result}, Target: ${randomNumber}');
+    let result;
+  
+    
+    if (values[1] !== 0) {
+      const multiply = values[0] * values[1];
+      const divide = values[0] / values[1];
+  
+      
+      const possibleResults = [];
+  
+     
+      possibleResults.push(multiply + values[2]);
+      possibleResults.push(multiply - values[2]);
+  
+     
+      if (Number.isFinite(divide)) {
+        possibleResults.push(divide + values[2]);
+        possibleResults.push(divide - values[2]);
       }
+  
+     
+      if (randomNumber !== null) {
+        if (possibleResults.includes(randomNumber)) {
+          Alert.alert('🎉 CONGRATULATIONS!', 'You reached the target: ${randomNumber}');
+        } else {
+          Alert.alert('❌ Not quite', 'Possible results: ${possibleResults.join(', ')} | Target: ${randomNumber}');
+        }
+      } else {
+        Alert.alert('Generate a number first!');
+      }
+  
+    } else {
+      Alert.alert('Error', 'Cannot divide by zero!');
     }
+  
     setSelectedCells([]);
   };
 
@@ -69,6 +91,7 @@ const GameScreen = () => {
   return (
     <ImageBackground source={require('../assets/trioabout.png')} style={styles.backgroundImage}>
       <LinearGradient colors={['#2C3E50AA', '#34495EAA']} style={styles.container}>
+        
         <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
           <Text style={styles.buttonText}>🎲 Generate Number</Text>
         </TouchableOpacity>
@@ -104,6 +127,7 @@ const GameScreen = () => {
         <TouchableOpacity style={styles.checkButton} onPress={checkResult}>
           <Text style={styles.buttonText}>✅ Check Result</Text>
         </TouchableOpacity>
+
       </LinearGradient>
     </ImageBackground>
   );
