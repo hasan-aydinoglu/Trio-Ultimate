@@ -1,30 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, Pressable, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  Pressable,
+  Alert,
+  Linking,
+  Modal,
+  TouchableOpacity
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
 const Settings = ({ navigation }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('English');
 
   const toggleNotifications = () => setNotificationsEnabled(!notificationsEnabled);
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  const handleChangePassword = () => {
-    Alert.alert('Info', 'Password change screen coming soon!');
-  };
-
   const handleLogout = () => {
     Alert.alert('Signed Out', 'See you soon!');
-    navigation.navigate('SignIn'); // or wherever you want to redirect
+    navigation.navigate('SignIn');
   };
 
+  const handlePrivacyPolicy = () => {
+    Linking.openURL('https://www.yourappwebsite.com/privacy-policy');
+  };
+
+  const handleContactSupport = () => {
+    Linking.openURL('mailto:support@yourapp.com');
+  };
+
+  const handleLanguageSelect = (language) => {
+    setSelectedLanguage(language);
+    setLanguageModalVisible(false);
+  };
+
+  const activeColors = darkMode
+    ? ['#000000', '#2c3e50']
+    : ['#2C3E50', '#34495E'];
+
   return (
-    <LinearGradient colors={['#2C3E50', '#34495E']} style={styles.container}>
+    <LinearGradient colors={activeColors} style={styles.container}>
       <Text style={styles.title}>Settings</Text>
 
       <View style={styles.settingItem}>
-        <Ionicons name="notifications" size={26} color="#fff" style={styles.icon} />
+        <Ionicons name="notifications" size={26} color="#fff" />
         <Text style={styles.label}>Notifications</Text>
         <Switch
           value={notificationsEnabled}
@@ -34,7 +59,7 @@ const Settings = ({ navigation }) => {
       </View>
 
       <View style={styles.settingItem}>
-        <Ionicons name="moon" size={26} color="#fff" style={styles.icon} />
+        <Ionicons name="moon" size={26} color="#fff" />
         <Text style={styles.label}>Dark Mode</Text>
         <Switch
           value={darkMode}
@@ -43,15 +68,60 @@ const Settings = ({ navigation }) => {
         />
       </View>
 
-      <Pressable style={styles.button} onPress={handleChangePassword}>
-        <Ionicons name="lock-closed" size={22} color="#fff" style={styles.icon} />
-        <Text style={styles.buttonText}>Change Password</Text>
+      <Pressable
+        style={styles.button}
+        onPress={() => setLanguageModalVisible(true)}
+      >
+        <Ionicons name="language" size={22} color="#fff" />
+        <Text style={styles.buttonText}>Language ({selectedLanguage})</Text>
       </Pressable>
 
-      <Pressable style={[styles.button, { backgroundColor: '#e74c3c' }]} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={22} color="#fff" style={styles.icon} />
+      <Pressable style={styles.button} onPress={handlePrivacyPolicy}>
+        <Ionicons name="document-text" size={22} color="#fff" />
+        <Text style={styles.buttonText}>Privacy Policy</Text>
+      </Pressable>
+
+      <Pressable style={styles.button} onPress={handleContactSupport}>
+        <Ionicons name="help-circle" size={22} color="#fff" />
+        <Text style={styles.buttonText}>Contact Support</Text>
+      </Pressable>
+
+      <Pressable
+        style={[styles.button, { backgroundColor: '#e74c3c' }]}
+        onPress={handleLogout}
+      >
+        <Ionicons name="log-out-outline" size={22} color="#fff" />
         <Text style={styles.buttonText}>Log Out</Text>
       </Pressable>
+
+      {/* Dil Seçimi Modal */}
+      <Modal
+        visible={languageModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Select Language</Text>
+            {['English', 'Türkçe', 'Deutsch', 'Français'].map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={styles.modalOption}
+                onPress={() => handleLanguageSelect(lang)}
+              >
+                <Text style={styles.modalOptionText}>{lang}</Text>
+              </TouchableOpacity>
+            ))}
+            <Pressable
+              style={[styles.button, { marginTop: 20 }]}
+              onPress={() => setLanguageModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -99,7 +169,37 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: 'bold',
   },
-  icon: { marginRight: 10 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: '#000000AA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#2C3E50',
+    borderRadius: 20,
+    padding: 25,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: '#ecf0f1',
+    fontSize: 22,
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  modalOption: {
+    backgroundColor: '#34495E',
+    padding: 15,
+    borderRadius: 15,
+    marginVertical: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalOptionText: {
+    color: '#ecf0f1',
+    fontSize: 18,
+  },
 });
 
 export default Settings;
