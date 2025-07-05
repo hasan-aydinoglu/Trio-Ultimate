@@ -15,7 +15,7 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.trio.app", 
+      "bundleIdentifier": "com.trio.app",
       "supportsTablet": true,
       "requireFullScreen": true
     },
@@ -35,7 +35,8 @@
           "initialOrientation": "landscape"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-localization"
     ],
     "entryPoint": "./node_modules/expo/AppEntry.js"
   }

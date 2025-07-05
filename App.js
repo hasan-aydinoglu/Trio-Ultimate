@@ -1,41 +1,57 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from './screens/home.jsx'; // 📌 Home ekranını ekliyoruz
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+
+import Home from './screens/home';
 import GameScreen from './screens/GameScreen';
 import Profile from './screens/profile';
 import Settings from './screens/settings';
-import { Ionicons } from '@expo/vector-icons';
-import MainMenu from './screens/MainMenu.jsx';
+import MainMenu from './screens/MainMenu';
+import Friends from './screens/Friends';
+import Messages from './screens/Messages';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
+// Alt menü
+function TabNavigator() {
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'Home') iconName = 'home';
+          else if (route.name === 'GameScreen') iconName = 'game-controller';
+          else if (route.name === 'Profile') iconName = 'person';
+          else if (route.name === 'Settings') iconName = 'settings';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#1abc9c',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="GameScreen" component={GameScreen} />
+      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Settings" component={Settings} />
+    </Tab.Navigator>
+  );
+}
+
+// Navigation stack
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        initialRouteName="Home" // 📌 açılışta Home açılsın
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            let iconName;
-            if (route.name === 'Home') iconName = 'home';
-            else if (route.name === 'Game') iconName = 'game-controller';
-            else if (route.name === 'Profile') iconName = 'person';
-            else if (route.name === 'Settings') iconName = 'settings';
-
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: '#1abc9c',
-          tabBarInactiveTintColor: 'gray',
-          headerShown: false,
-        })}
-      >
-        <Tab.Screen name="Home" component={Home} />
-        <Tab.Screen name="GameScreen" component={GameScreen} />
-        <Tab.Screen name="Profile" component={Profile} />
-        <Tab.Screen name="Settings" component={Settings} />
-        <Tab.Screen name="Menu" component={MainMenu} />
-      </Tab.Navigator>
+      <Stack.Navigator initialRouteName="TabNavigator" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="TabNavigator" component={TabNavigator} />
+        <Stack.Screen name="MainMenu" component={MainMenu} />
+        <Stack.Screen name="Friends" component={Friends} />
+        <Stack.Screen name="Messages" component={Messages} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
