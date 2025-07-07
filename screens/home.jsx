@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'; // Güncel ikon paketi
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
@@ -20,7 +20,7 @@ const Home = ({ navigation }) => {
   const handleSignIn = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        Alert.alert('Giriş Başarılı', `Hoşgeldin ${userCredential.user.email}`);
+        Alert.alert('Giriş Başarılı', 'Hoşgeldin ${userCredential.user.email}');
       })
       .catch((error) => {
         Alert.alert('Hata', error.message);
@@ -41,7 +41,7 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#2C3E50', '#34495E']} style={styles.container}>
+    <LinearGradient colors={['#00c6ff', '#0072ff', '#000']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>TRIO</Text>
 
@@ -80,13 +80,13 @@ const Home = ({ navigation }) => {
 
         <View style={styles.socialContainer}>
           <TouchableOpacity style={styles.socialButton} onPress={handleFacebookSignIn}>
-            <Icon name="facebook" size={20} color="#3b5998" style={styles.icon} />
-            <Text style={styles.socialText}>Facebook</Text>
+            <FontAwesome5 name="facebook-f" size={20} color="#3b5998" />
+            <Text style={styles.socialText}> Facebook</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.socialButton} onPress={handleGmailSignIn}>
-            <Icon name="google" size={20} color="#db4437" style={styles.icon} />
-            <Text style={styles.socialText}>Gmail</Text>
+            <FontAwesome5 name="google" size={20} color="#db4437" />
+            <Text style={styles.socialText}> Gmail</Text>
           </TouchableOpacity>
         </View>
 
@@ -96,14 +96,12 @@ const Home = ({ navigation }) => {
           </View>
         )}
 
-        {/* 📌 GameScreen'e yönlendiren buton */}
         <Pressable
           style={[styles.button, { backgroundColor: '#3498db', marginTop: 30 }]}
           onPress={() => navigation.navigate('GameScreen')}
         >
           <Text style={styles.buttonText}>Go to Game</Text>
         </Pressable>
-
       </ScrollView>
     </LinearGradient>
   );
@@ -113,8 +111,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scrollContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 30 },
   title: {
-    fontSize: 60, fontWeight: 'bold', color: '#ecf0f1', marginBottom: 40, textAlign: 'center', fontFamily: 'Poppins',
-    textShadowColor: '#2C3E50', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 5,
+    fontSize: 60,
+    fontWeight: 'bold',
+    color: '#ecf0f1',
+    marginBottom: 40,
+    textAlign: 'center',
+    fontFamily: 'pacifico', // 📌 El yazısı fontu (App.js'de yüklemen lazım)
+    textShadowColor: '#000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   input: {
     width: '100%', padding: 15, marginVertical: 10, borderRadius: 25,
@@ -132,11 +137,11 @@ const styles = StyleSheet.create({
   signUpLink: { color: '#1abc9c', fontSize: 14, fontWeight: 'bold', marginLeft: 5 },
   socialContainer: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30, width: '100%' },
   socialButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, paddingHorizontal: 20,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 15, paddingHorizontal: 20,
     borderRadius: 30, backgroundColor: '#ecf0f1', width: '40%', marginTop: 20,
   },
   socialText: { marginLeft: 10, color: '#34495E', fontSize: 16, fontWeight: 'bold' },
-  icon: { borderRadius: 10, padding: 10 },
 });
 
 export default Home;

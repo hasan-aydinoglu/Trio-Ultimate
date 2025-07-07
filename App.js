@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 import Home from './screens/home';
 import GameScreen from './screens/GameScreen';
@@ -15,7 +17,10 @@ import Messages from './screens/Messages';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// Alt menü
+const getFonts = () => Font.loadAsync({
+  'pacifico': require('./assets/fonts/Pacifico-Regular.ttf'), // 📌 fontu assets/fonts içine atmayı unutma
+});
+
 function TabNavigator() {
   return (
     <Tab.Navigator
@@ -42,8 +47,19 @@ function TabNavigator() {
   );
 }
 
-// Navigation stack
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  if (!fontsLoaded) {
+    return (
+      <AppLoading
+        startAsync={getFonts}
+        onFinish={() => setFontsLoaded(true)}
+        onError={console.warn}
+      />
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="TabNavigator" screenOptions={{ headerShown: false }}>
