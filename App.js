@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
-import AppLoading from 'expo-app-loading';
+import * as SplashScreen from 'expo-splash-screen';
 
 import Home from './screens/home';
 import GameScreen from './screens/GameScreen';
@@ -13,13 +13,12 @@ import Settings from './screens/settings';
 import MainMenu from './screens/MainMenu';
 import Friends from './screens/Friends';
 import Messages from './screens/Messages';
+import SplashIntro from './screens/SplashIntro';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const getFonts = () => Font.loadAsync({
-  'pacifico': require('./assets/fonts/Pacifico-Regular.ttf'), // 📌 fontu assets/fonts içine atmayı unutma
-});
+SplashScreen.preventAutoHideAsync(); // Splash ekranı app yüklenene kadar açık kalsın
 
 function TabNavigator() {
   return (
@@ -48,21 +47,39 @@ function TabNavigator() {
 }
 
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
 
-  if (!fontsLoaded) {
-    return (
-      <AppLoading
-        startAsync={getFonts}
-        onFinish={() => setFontsLoaded(true)}
-        onError={console.warn}
-      />
-    );
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Fontları yükle
+        await Font.loadAsync({
+          'pacifico': require('./assets/fonts/Pacifico-Regular.ttf'),
+        });
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Splash screen’i kapatmaya hazırız
+        setAppIsReady(true);
+      }
+    }
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null; // Henüz app yüklenmediğinde hiçbir şey render etme
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="TabNavigator" screenOptions={{ headerShown: false }}>
+    <NavigationContainer onReady={onLayoutRootView}>
+      <Stack.Navigator initialRouteName="SplashIntro" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="SplashIntro" component={SplashIntro} />
         <Stack.Screen name="TabNavigator" component={TabNavigator} />
         <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />

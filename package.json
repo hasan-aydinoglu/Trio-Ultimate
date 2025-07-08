@@ -22,6 +22,7 @@
     "expo-linear-gradient": "~14.1.4",
     "expo-localization": "~16.1.6",
     "expo-screen-orientation": "~8.1.6",
+    "expo-splash-screen": "^0.30.10",
     "expo-status-bar": "~2.2.3",
     "firebase": "^9.23.0",
     "i18n-js": "^4.5.1",
