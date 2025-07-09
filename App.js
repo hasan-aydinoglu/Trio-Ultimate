@@ -14,6 +14,7 @@ import MainMenu from './screens/MainMenu';
 import Friends from './screens/Friends';
 import Messages from './screens/Messages';
 import SplashIntro from './screens/SplashIntro';
+import EditProfile from './screens/EditProfile';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -84,6 +85,7 @@ export default function App() {
         <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="Messages" component={Messages} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
       </Stack.Navigator>
     </NavigationContainer>
   );
