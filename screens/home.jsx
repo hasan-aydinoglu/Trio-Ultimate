@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'; // Güncel ikon paketi
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
@@ -96,12 +96,6 @@ const Home = ({ navigation }) => {
           </View>
         )}
 
-        <Pressable
-          style={[styles.button, { backgroundColor: '#3498db', marginTop: 30 }]}
-          onPress={() => navigation.navigate('GameScreen')}
-        >
-          <Text style={styles.buttonText}>Go to Game</Text>
-        </Pressable>
       </ScrollView>
     </LinearGradient>
   );
@@ -116,7 +110,7 @@ const styles = StyleSheet.create({
     color: '#ecf0f1',
     marginBottom: 40,
     textAlign: 'center',
-    fontFamily: 'pacifico', // 📌 El yazısı fontu (App.js'de yüklemen lazım)
+    fontFamily: 'pacifico',
     textShadowColor: '#000',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 5,

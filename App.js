@@ -30,6 +30,7 @@ function TabNavigator() {
           let iconName;
           if (route.name === 'Home') iconName = 'home';
           else if (route.name === 'GameScreen') iconName = 'game-controller';
+          else if (route.name === 'Messages') iconName = 'chatbox';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Settings') iconName = 'settings';
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -41,6 +42,7 @@ function TabNavigator() {
     >
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="GameScreen" component={GameScreen} />
+      <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
@@ -53,14 +55,12 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Fontları yükle
         await Font.loadAsync({
           'pacifico': require('./assets/fonts/Pacifico-Regular.ttf'),
         });
       } catch (e) {
         console.warn(e);
       } finally {
-        // Splash screen’i kapatmaya hazırız
         setAppIsReady(true);
       }
     }
@@ -74,7 +74,7 @@ export default function App() {
   }, [appIsReady]);
 
   if (!appIsReady) {
-    return null; // Henüz app yüklenmediğinde hiçbir şey render etme
+    return null;
   }
 
   return (
@@ -84,7 +84,6 @@ export default function App() {
         <Stack.Screen name="TabNavigator" component={TabNavigator} />
         <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />
-        <Stack.Screen name="Messages" component={Messages} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
       </Stack.Navigator>
     </NavigationContainer>
