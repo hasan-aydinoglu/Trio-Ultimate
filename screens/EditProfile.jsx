@@ -2,15 +2,34 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { auth } from '../firebase';
 
 const EditProfile = ({ navigation }) => {
   const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState(require('../assets/avatar.png')); // 📌 şimdilik sabit avatar
+  const [bio, setBio] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [avatar, setAvatar] = useState(require('../assets/avatar.png')); // 📌 sabit avatar
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setBirthDate(date.toDateString());
+    hideDatePicker();
+  };
 
   const handleSave = () => {
-    // Burada veritabanına veya firebase'e kaydedebilirsin
-    Alert.alert('Saved', 'Your profile has been updated.');
+    Alert.alert(
+      'Profile Updated',
+      `Name: ${name}\nBio: ${bio}\nBirth Date: ${birthDate ? birthDate : 'Not set'}`
+    );
     navigation.goBack();
   };
 
@@ -27,6 +46,28 @@ const EditProfile = ({ navigation }) => {
         placeholderTextColor="#ccc"
         value={name}
         onChangeText={setName}
+      />
+
+      <Text style={styles.label}>Bio</Text>
+      <TextInput
+        style={[styles.input, { height: 80 }]}
+        placeholder="Tell us about yourself"
+        placeholderTextColor="#ccc"
+        multiline
+        value={bio}
+        onChangeText={setBio}
+      />
+
+      <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
+        <Ionicons name="calendar" size={20} color="#fff" />
+        <Text style={styles.buttonText}>  {birthDate ? birthDate : 'Select Birth Date'}</Text>
+      </TouchableOpacity>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>
@@ -51,11 +92,15 @@ const styles = StyleSheet.create({
   avatar: { width: 130, height: 130, borderRadius: 65, marginBottom: 30, borderWidth: 3, borderColor: '#1abc9c' },
   label: { color: '#ecf0f1', fontSize: 16, marginBottom: 10, alignSelf: 'flex-start' },
   input: {
-    width: '100%', padding: 15, marginBottom: 30, borderRadius: 25,
+    width: '100%', padding: 15, marginBottom: 20, borderRadius: 25,
     backgroundColor: '#34495E', borderColor: '#7f8c8d', borderWidth: 1, fontSize: 16, color: '#ecf0f1',
   },
   button: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#1abc9c', padding: 15,
+    borderRadius: 25, width: '80%', justifyContent: 'center', marginVertical: 10,
+  },
+  dateButton: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#2980b9', padding: 15,
     borderRadius: 25, width: '80%', justifyContent: 'center', marginVertical: 10,
   },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
