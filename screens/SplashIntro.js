@@ -10,13 +10,13 @@ export default function SplashIntro() {
   const fadeAnim = new Animated.Value(0);
 
   useEffect(() => {
-    // Logo animasyonu
+    
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 2000,
       useNativeDriver: true,
     }).start(() => {
-      // 3 saniye sonra ana sayfaya yönlendirme
+      
       navigation.replace('TabNavigator');
       SplashScreen.hideAsync();
     });

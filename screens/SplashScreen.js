@@ -1,25 +1,24 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import LottieView from 'lottie-react-native'; // Eğer animasyon kullanacaksanız
-
+import LottieView from 'lottie-react-native'; 
 const SplashScreen = ({ navigation }) => {
   useEffect(() => {
-    // Splash screen gösterildikten sonra, ana sayfaya yönlendir
+   
     const timer = setTimeout(() => {
-      navigation.replace('Home'); // 'Home' yerine ana sayfanızın adını yazın
-    }, 3000); // 3 saniye sonra yönlendir
+      navigation.replace('Home'); 
+    }, 3000);
 
-    return () => clearTimeout(timer); // Temizleme
+    return () => clearTimeout(timer); 
   }, [navigation]);
 
   return (
     <LinearGradient
-      colors={['#2C3E50', '#34495E']} // Renk geçişi
+      colors={['#2C3E50', '#34495E']} 
       style={styles.container}
     >
       <LottieView
-        source={require('../assets/animations/modernLoader.json')} // Animasyon dosyanız
+        source={require('../assets/animations/modernLoader.json')} 
         autoPlay
         loop
         style={styles.animation}

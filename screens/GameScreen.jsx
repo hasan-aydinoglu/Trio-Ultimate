@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Table values — your image values
+
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
   [5, 1, 8, 6, 5, 2, 7],

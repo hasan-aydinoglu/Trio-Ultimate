@@ -26,7 +26,7 @@ const Profile = ({ navigation }) => {
       <Text style={styles.title}>My Profile</Text>
 
       <Image
-        source={require('../assets/avatar.png')} // 📌 assets klasörüne avatar.png eklemeyi unutma
+        source={require('../assets/avatar.png')}
         style={styles.avatar}
       />
 

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient'; // Linear Gradient modülünü ekliyoruz
-import Icon from 'react-native-vector-icons/FontAwesome'; // Facebook ve Gmail ikonları için
-import { createUserWithEmailAndPassword } from 'firebase/auth'; // Firebase import
-import { auth } from '../firebase'; // Firebase auth dosyasını import ediyoruz
-
+import { LinearGradient } from 'expo-linear-gradient'; 
+import Icon from 'react-native-vector-icons/FontAwesome'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth'; 
+import { auth } from '../firebase'; 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -22,7 +21,7 @@ const SignUp = ({ navigation }) => {
         const user = userCredential.user;
         console.log('User registered:', user);
         Alert.alert('Registration Successful');
-        navigation.navigate('Home'); // Başarılı kayıt sonrası home sayfasına yönlendir
+        navigation.navigate('Home'); 
       })
       .catch((error) => {
         const errorMessage = error.message;
@@ -32,25 +31,25 @@ const SignUp = ({ navigation }) => {
   };
 
   const handleFacebookSignUp = () => {
-    // Facebook ile giriş yapılabilir
+    
     console.log('Sign up with Facebook');
   };
 
   const handleGmailSignUp = () => {
-    // Gmail ile giriş yapılabilir
+    
     console.log('Sign up with Gmail');
   };
 
   return (
     <LinearGradient
-      colors={['#2C3E50', '#34495E']} // Daha koyu tonlarda gradient arka plan
+      colors={['#2C3E50', '#34495E']} 
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* TRIO Yazısı */}
+        
         <Text style={styles.title}>TRIO</Text>
 
-        {/* Name Input */}
+        
         <TextInput
           style={styles.input}
           placeholder="Name"
@@ -59,7 +58,7 @@ const SignUp = ({ navigation }) => {
           onChangeText={setName}
         />
 
-        {/* Surname Input */}
+       
         <TextInput
           style={styles.input}
           placeholder="Surname"
@@ -68,7 +67,7 @@ const SignUp = ({ navigation }) => {
           onChangeText={setSurname}
         />
 
-        {/* Email Input */}
+       
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -78,7 +77,7 @@ const SignUp = ({ navigation }) => {
           onChangeText={setEmail}
         />
 
-        {/* Password Input */}
+       
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -88,12 +87,12 @@ const SignUp = ({ navigation }) => {
           onChangeText={setPassword}
         />
 
-        {/* Sign Up Button */}
+        
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
-        {/* Social Media Sign Up */}
+        
         <View style={styles.socialContainer}>
           <TouchableOpacity style={styles.socialButton} onPress={handleFacebookSignUp}>
             <Icon name="facebook" size={30} color="#3b5998" />
@@ -106,7 +105,7 @@ const SignUp = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Back to Sign In Button */}
+        
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Already have an account?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Home')}>
@@ -133,10 +132,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 60,
     fontWeight: 'bold',
-    color: '#ecf0f1', // Açık gri
+    color: '#ecf0f1', 
     marginBottom: 40,
     textAlign: 'center',
-    fontFamily: 'Poppins', // Modern bir font ekliyoruz
+    fontFamily: 'Poppins', 
     textShadowColor: '#2C3E50',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 5,
@@ -146,14 +145,13 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 10,
     borderRadius: 25,
-    backgroundColor: '#34495E', // Koyu gri renk
-    borderColor: '#7f8c8d', // Açık gri kenar
-    borderWidth: 1,
+    backgroundColor: '#34495E', 
+    borderColor: '#7f8c8d', 
     fontSize: 16,
-    color: '#ecf0f1', // Açık gri yazı
+    color: '#ecf0f1', 
   },
   button: {
-    backgroundColor: '#1abc9c', // Yeşilimsi ton
+    backgroundColor: '#1abc9c', 
     paddingVertical: 15,
     borderRadius: 25,
     marginTop: 20,
@@ -178,11 +176,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
-    backgroundColor: '#ecf0f1', // Açık renk
+    backgroundColor: '#ecf0f1', 
   },
   socialText: {
     marginLeft: 10,
-    color: '#34495E', // Koyu gri
+    color: '#34495E', 
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -192,11 +190,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpText: {
-    color: '#ecf0f1', // Açık gri
+    color: '#ecf0f1', 
     fontSize: 14,
   },
   signUpLink: {
-    color: '#1abc9c', // Yeşilimsi renk
+    color: '#1abc9c', 
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 5,

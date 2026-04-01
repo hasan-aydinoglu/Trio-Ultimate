@@ -19,7 +19,7 @@ import EditProfile from './screens/EditProfile';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-SplashScreen.preventAutoHideAsync(); // Splash ekranı app yüklenene kadar açık kalsın
+SplashScreen.preventAutoHideAsync(); 
 
 function TabNavigator() {
   return (

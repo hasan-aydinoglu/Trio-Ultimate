@@ -12,8 +12,7 @@ export default function SignIn({ navigation }) {
       .then((userCredential) => {
         const user = userCredential.user;
         console.log('Giriş yapıldı:', user);
-        // Navigation'a gerek yok çünkü onAuthStateChanged tetiklenecek
-      })
+        
       .catch((error) => {
         Alert.alert('Hata', error.message);
       });

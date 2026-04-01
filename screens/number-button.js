@@ -21,7 +21,7 @@ const styles = (props) => StyleSheet.create({
     justifyContent: 'left',
     padding: 15,
     borderRadius: 10,
-    //elevation: 3,
+   
     backgroundColor: props.color,
   },
   button_pressed: {
@@ -35,8 +35,6 @@ const styles = (props) => StyleSheet.create({
   text: {
     fontSize: 20,
     alignItems: 'center',
-    //lineHeight: 18,
-    //fontWeight: 'bold',
     letterSpacing: 0.25,
     color: 'black',
     

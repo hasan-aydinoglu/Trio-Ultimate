@@ -1,4 +1,3 @@
-// firebase.js
 import { initializeApp } from 'firebase/app';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,9 +20,7 @@ try {
     persistence: getReactNativePersistence(AsyncStorage)
   });
 } catch (e) {
-  // Eğer initializeAuth zaten yapılmışsa hata verir, bu durumda getAuth kullan
-  // Ama react-native Firebase modülü için getAuth genellikle hata verir.
-  // Bu yüzden try-catch içinde ikinci opsiyon olarak fallback veriyoruz.
+
   const { getAuth } = require('firebase/auth');
   auth = getAuth(app);
 }

@@ -7,9 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/trio-splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#00c6ff"
     },
     "assetBundlePatterns": [
       "*/"
@@ -36,8 +36,8 @@
         }
       ],
       "expo-font",
-      "expo-localization"
-    ],
-    "entryPoint": "./node_modules/expo/AppEntry.js"
+      "expo-localization",
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
