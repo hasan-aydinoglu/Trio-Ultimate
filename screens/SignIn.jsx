@@ -12,7 +12,7 @@ export default function SignIn({ navigation }) {
       .then((userCredential) => {
         const user = userCredential.user;
         console.log('Giriş yapıldı:', user);
-        
+      })
       .catch((error) => {
         Alert.alert('Hata', error.message);
       });

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { auth } from '../firebase';
@@ -18,124 +27,276 @@ const Home = ({ navigation }) => {
   }, []);
 
   const handleSignIn = () => {
+    if (!email || !password) {
+      Alert.alert('Warning', 'Please enter your email and password.');
+      return;
+    }
+
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        Alert.alert('Giriş Başarılı', 'Hoşgeldin ${userCredential.user.email}');
+        Alert.alert('Success', `Welcome ${userCredential.user.email}`);
       })
       .catch((error) => {
-        Alert.alert('Hata', error.message);
+        Alert.alert('Error', error.message);
       });
   };
 
-  const handleSignUp = () => {
-    navigation.navigate('SignUp');
-  };
-
-  const handleFacebookSignIn = () => {
-    const facebookUrl = 'https://www.facebook.com';
-    Linking.openURL(facebookUrl).catch(err => console.error('Error opening Facebook:', err));
-  };
-
-  const handleGmailSignIn = () => {
-    console.log('Sign in with Gmail');
-  };
-
   return (
-    <LinearGradient colors={['#00c6ff', '#0072ff', '#000']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>TRIO</Text>
+    <LinearGradient
+      colors={['#01040B', '#031327', '#041B38', '#020814']}
+      style={styles.container}
+    >
+      {/* Glow Effects */}
+      <View style={styles.bgGlowOne} />
+      <View style={styles.bgGlowTwo} />
+      <View style={styles.bgGlowThree} />
+      <View style={styles.bgCircleOne} />
+      <View style={styles.bgCircleTwo} />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#ccc"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#ccc"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        <Pressable style={styles.button} onPress={handleSignIn}>
-          <Text style={styles.buttonText}>Sign In</Text>
-        </Pressable>
-
-        <View style={styles.signUpContainer}>
-          <Text style={styles.signUpText}>Don't have an account?</Text>
-          <TouchableOpacity onPress={handleSignUp}>
-            <Text style={styles.signUpLink}>Sign Up</Text>
-          </TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* LOGO */}
+        <View style={styles.logoWrapper}>
+          <Text style={styles.logo}>Trio</Text>
         </View>
 
-        <View style={styles.socialContainer}>
-          <TouchableOpacity style={styles.socialButton} onPress={handleFacebookSignIn}>
-            <FontAwesome5 name="facebook-f" size={20} color="#3b5998" />
-            <Text style={styles.socialText}> Facebook</Text>
-          </TouchableOpacity>
+        {/* CARD */}
+        <View style={styles.cardWrapper}>
+          <View style={styles.card}>
+            <Text style={styles.title}>Login to Trio</Text>
 
-          <TouchableOpacity style={styles.socialButton} onPress={handleGmailSignIn}>
-            <FontAwesome5 name="google" size={20} color="#db4437" />
-            <Text style={styles.socialText}> Gmail</Text>
-          </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#BFC6D4"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#BFC6D4"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <Pressable style={styles.loginButton} onPress={handleSignIn}>
+              <Text style={styles.loginButtonText}>Login</Text>
+            </Pressable>
+
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <View style={styles.signUpRow}>
+              <Text style={styles.signUpText}>Don&apos;t have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                <Text style={styles.signUpLink}> Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.orText}>Or</Text>
+
+            <TouchableOpacity style={[styles.socialButton, styles.googleButton]}>
+              <FontAwesome5 name="google" size={18} color="#ffffff" />
+              <Text style={styles.socialButtonText}> Sign in with Google</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.socialButton, styles.facebookButton]}>
+              <FontAwesome5 name="facebook-f" size={18} color="#ffffff" />
+              <Text style={styles.socialButtonText}> Sign in with Facebook</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {user && (
-          <View style={{ marginTop: 30, alignItems: 'center' }}>
-            <Text style={{ color: 'white' }}>Hoşgeldin, {user.email}</Text>
+          <View style={styles.userBox}>
+            <Text style={styles.userText}>Welcome, {user.email}</Text>
           </View>
         )}
-
       </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scrollContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 30 },
+  container: { flex: 1 },
+
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+
+  logoWrapper: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+
+  logo: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+
+  cardWrapper: {
+    justifyContent: 'center',
+  },
+
+  card: {
+    backgroundColor: 'rgba(35, 56, 125, 0.34)',
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
   title: {
-    fontSize: 60,
-    fontWeight: 'bold',
-    color: '#ecf0f1',
-    marginBottom: 40,
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
     textAlign: 'center',
-    fontFamily: 'pacifico',
-    textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
+    marginBottom: 24,
   },
+
   input: {
-    width: '100%', padding: 15, marginVertical: 10, borderRadius: 25,
-    backgroundColor: '#34495E', borderColor: '#7f8c8d', borderWidth: 1, fontSize: 16, color: '#ecf0f1',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
   },
-  button: {
-    backgroundColor: '#1abc9c', paddingVertical: 15, borderRadius: 25, marginTop: 20,
-    alignItems: 'center', justifyContent: 'center',
+
+  loginButton: {
+    backgroundColor: '#38D67A',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
   },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  forgotPassword: { alignSelf: 'flex-end', marginTop: 10 },
-  forgotPasswordText: { color: '#1abc9c', fontSize: 14 },
-  signUpContainer: { flexDirection: 'row', marginTop: 20, justifyContent: 'center' },
-  signUpText: { color: '#ecf0f1', fontSize: 14 },
-  signUpLink: { color: '#1abc9c', fontSize: 14, fontWeight: 'bold', marginLeft: 5 },
-  socialContainer: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30, width: '100%' },
+
+  loginButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+
+  forgotPassword: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+
+  forgotPasswordText: {
+    color: '#ccc',
+  },
+
+  signUpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 14,
+  },
+
+  signUpText: {
+    color: '#ccc',
+  },
+
+  signUpLink: {
+    color: '#38D67A',
+    fontWeight: '700',
+  },
+
+  orText: {
+    textAlign: 'center',
+    marginVertical: 12,
+    color: '#fff',
+  },
+
   socialButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 15, paddingHorizontal: 20,
-    borderRadius: 30, backgroundColor: '#ecf0f1', width: '40%', marginTop: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 10,
+    borderWidth: 1,
   },
-  socialText: { marginLeft: 10, color: '#34495E', fontSize: 16, fontWeight: 'bold' },
+
+  googleButton: {
+    borderColor: 'red',
+  },
+
+  facebookButton: {
+    borderColor: 'blue',
+  },
+
+  socialButtonText: {
+    color: '#fff',
+    marginLeft: 8,
+  },
+
+  userBox: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+
+  userText: {
+    color: '#38D67A',
+  },
+
+  bgGlowOne: {
+    position: 'absolute',
+    top: 120,
+    left: -40,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(0,132,255,0.14)',
+  },
+
+  bgGlowTwo: {
+    position: 'absolute',
+    top: 260,
+    right: -60,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(54,110,255,0.15)',
+  },
+
+  bgGlowThree: {
+    position: 'absolute',
+    bottom: 120,
+    left: 30,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(0,214,255,0.08)',
+  },
+
+  bgCircleOne: {
+    position: 'absolute',
+    top: 170,
+    right: 35,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 2,
+    borderColor: 'rgba(49,97,255,0.22)',
+  },
+
+  bgCircleTwo: {
+    position: 'absolute',
+    bottom: 180,
+    left: 45,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: 'rgba(0,163,255,0.14)',
+  },
 });
 
 export default Home;
