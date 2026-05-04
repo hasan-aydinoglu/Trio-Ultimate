@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Switch, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
@@ -32,7 +32,10 @@ export default function SettingsScreen() {
         <Text style={styles.buttonText}>Contact Support</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]}>
+      <TouchableOpacity
+        style={[styles.button, isDarkMode && styles.darkButton]}
+        onPress={() => navigation.navigate('Privacy')}
+      >
         <Text style={styles.buttonText}>Privacy Policy</Text>
       </TouchableOpacity>
 
@@ -53,6 +56,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
+    marginTop: 40,
   },
   option: {
     flexDirection: 'row',

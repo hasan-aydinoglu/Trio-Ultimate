@@ -15,11 +15,12 @@ import Friends from './screens/Friends';
 import Messages from './screens/Messages';
 import SplashIntro from './screens/SplashIntro';
 import EditProfile from './screens/EditProfile';
+import PrivacyScreen from './screens/PrivacyScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-SplashScreen.preventAutoHideAsync(); 
+SplashScreen.preventAutoHideAsync();
 
 function TabNavigator() {
   return (
@@ -28,11 +29,13 @@ function TabNavigator() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           let iconName;
+
           if (route.name === 'Home') iconName = 'home';
           else if (route.name === 'GameScreen') iconName = 'game-controller';
           else if (route.name === 'Messages') iconName = 'chatbox';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Settings') iconName = 'settings';
+
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#1abc9c',
@@ -56,7 +59,7 @@ export default function App() {
     async function prepare() {
       try {
         await Font.loadAsync({
-          'pacifico': require('./assets/fonts/Pacifico-Regular.ttf'),
+          pacifico: require('./assets/fonts/Pacifico-Regular.ttf'),
         });
       } catch (e) {
         console.warn(e);
@@ -64,6 +67,7 @@ export default function App() {
         setAppIsReady(true);
       }
     }
+
     prepare();
   }, []);
 
@@ -79,12 +83,17 @@ export default function App() {
 
   return (
     <NavigationContainer onReady={onLayoutRootView}>
-      <Stack.Navigator initialRouteName="SplashIntro" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="SplashIntro"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="SplashIntro" component={SplashIntro} />
         <Stack.Screen name="TabNavigator" component={TabNavigator} />
         <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
+
+        <Stack.Screen name="Privacy" component={PrivacyScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
