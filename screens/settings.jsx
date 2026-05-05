@@ -16,7 +16,9 @@ export default function SettingsScreen({ navigation }) {
       }
       style={styles.container}
     >
-      <Text style={[styles.header, { color: '#fff' }]}>Settings</Text>
+      <Text style={[styles.header, { color: '#fff' }]}>
+        Settings
+      </Text>
 
       <View style={styles.option}>
         <Text style={styles.label}>Notifications</Text>
@@ -25,23 +27,38 @@ export default function SettingsScreen({ navigation }) {
 
       <View style={styles.option}>
         <Text style={styles.label}>Dark Mode</Text>
-        <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
+        <Switch
+          value={isDarkMode}
+          onValueChange={toggleDarkMode}
+        />
       </View>
 
-      <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]}>
-        <Text style={styles.buttonText}>Contact Support</Text>
+      <TouchableOpacity
+        style={[styles.button, isDarkMode && styles.darkButton]}
+        onPress={() => navigation.navigate('ContactUs')}
+      >
+        <Text style={styles.buttonText}>
+          Contact Support
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, isDarkMode && styles.darkButton]}
         onPress={() => navigation.navigate('Privacy')}
       >
-        <Text style={styles.buttonText}>Privacy Policy</Text>
+        <Text style={styles.buttonText}>
+          Privacy Policy
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]}>
-        <Text style={styles.buttonText}>Log Out</Text>
+      <TouchableOpacity
+        style={[styles.button, isDarkMode && styles.darkButton]}
+      >
+        <Text style={styles.buttonText}>
+          Log Out
+        </Text>
       </TouchableOpacity>
+
     </LinearGradient>
   );
 }

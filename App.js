@@ -16,6 +16,7 @@ import Messages from './screens/Messages';
 import SplashIntro from './screens/SplashIntro';
 import EditProfile from './screens/EditProfile';
 import PrivacyScreen from './screens/PrivacyScreen';
+import ContactUsScreen from './screens/ContactUsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -94,6 +95,7 @@ export default function App() {
         <Stack.Screen name="EditProfile" component={EditProfile} />
 
         <Stack.Screen name="Privacy" component={PrivacyScreen} />
+        <Stack.Screen name="ContactUs" component={ContactUsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
