@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import Home from './screens/home';
 import GameScreen from './screens/GameScreen';
+import GameModeScreen from './screens/GameModeScreen';
 import Profile from './screens/profile';
 import Settings from './screens/settings';
 import MainMenu from './screens/MainMenu';
@@ -32,7 +33,7 @@ function TabNavigator() {
           let iconName;
 
           if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'GameScreen') iconName = 'game-controller';
+          else if (route.name === 'GameMode') iconName = 'game-controller';
           else if (route.name === 'Messages') iconName = 'chatbox';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Settings') iconName = 'settings';
@@ -45,7 +46,11 @@ function TabNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="GameScreen" component={GameScreen} />
+      <Tab.Screen
+        name="GameMode"
+        component={GameModeScreen}
+        options={{ title: 'Game' }}
+      />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Settings" component={Settings} />
@@ -93,6 +98,8 @@ export default function App() {
         <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
+
+        <Stack.Screen name="GameScreen" component={GameScreen} />
 
         <Stack.Screen name="Privacy" component={PrivacyScreen} />
         <Stack.Screen name="ContactUs" component={ContactUsScreen} />
