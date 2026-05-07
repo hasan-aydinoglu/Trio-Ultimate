@@ -90,7 +90,7 @@ const GameScreen = () => {
 
   return (
     <ImageBackground source={require('../assets/trioabout.png')} style={styles.backgroundImage}>
-      <LinearGradient colors={['#2C3E50AA', '#34495EAA']} style={styles.container}>
+     <LinearGradient colors={['#00c6ff', '#0072ff', '#000']} style={styles.container}>
         
         <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
           <Text style={styles.buttonText}>🎲 Generate Number</Text>
