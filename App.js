@@ -18,6 +18,7 @@ import SplashIntro from './screens/SplashIntro';
 import EditProfile from './screens/EditProfile';
 import PrivacyScreen from './screens/PrivacyScreen';
 import ContactUsScreen from './screens/ContactUsScreen';
+import GameScreen2 from './screens/GameScreen2';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,6 +101,7 @@ export default function App() {
         <Stack.Screen name="EditProfile" component={EditProfile} />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
+        <Stack.Screen name="GameScreen2" component={GameScreen2} />
 
         <Stack.Screen name="Privacy" component={PrivacyScreen} />
         <Stack.Screen name="ContactUs" component={ContactUsScreen} />

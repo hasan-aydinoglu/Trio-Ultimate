@@ -11,7 +11,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function GameModeScreen({ navigation }) {
   const handlePress = (mode) => {
     if (mode === 1) {
-      navigation.navigate('GameScreen'); 
+      navigation.navigate('GameScreen');
+
+    } else if (mode === 2) {
+      navigation.navigate('GameScreen2');
+
     } else {
       Alert.alert('Coming Soon', `Game Type ${mode} will be added soon.`);
     }
@@ -33,11 +37,15 @@ export default function GameModeScreen({ navigation }) {
             onPress={() => handlePress(mode)}
             activeOpacity={0.85}
           >
-            <Text style={styles.buttonTitle}>Game Type {mode}</Text>
+            <Text style={styles.buttonTitle}>
+              Game Type {mode}
+            </Text>
 
             <Text style={styles.buttonSubtitle}>
               {mode === 1
                 ? 'Classic TRIO Game'
+                : mode === 2
+                ? 'Alternative Priority Mode'
                 : 'Alternative TRIO Mode'}
             </Text>
           </TouchableOpacity>
