@@ -16,11 +16,12 @@ export default function GameModeScreen({ navigation }) {
       navigation.navigate('GameScreen2');
     } else if (mode === 3) {
       navigation.navigate('GameScreen3');
+    } else if (mode === 4) {
+      navigation.navigate('GameScreen4');
     } else {
       Alert.alert('Coming Soon', `Game Type ${mode} will be added soon.`);
     }
   };
-
   return (
     <LinearGradient
       colors={['#00c6ff', '#0072ff', '#000']}

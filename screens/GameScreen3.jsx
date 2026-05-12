@@ -168,10 +168,10 @@ export default function GameScreen3() {
       source={require('../assets/trioabout.png')}
       style={styles.backgroundImage}
     >
-      <LinearGradient
-        colors={['#141E30', '#243B55', '#000000']}
-        style={styles.container}
-      >
+     <LinearGradient
+  colors={['#000000', '#0B3D2E', '#145A32', '#1E8449']}
+  style={styles.container}
+>
         <Text style={styles.title}>Game Type 3</Text>
         <Text style={styles.subtitle}>Hidden Card Challenge</Text>
 

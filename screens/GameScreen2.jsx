@@ -173,11 +173,10 @@ const GameScreen2 = () => {
       source={require('../assets/trioabout.png')}
       style={styles.backgroundImage}
     >
-      <LinearGradient
-  colors={['#8e44ad', '#e84393', '#1b1464']}
+     <LinearGradient
+  colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
   style={styles.container}
-
-      >
+>
         <Text style={styles.title}>Game Type 2</Text>
         <Text style={styles.subtitle}>
           Addition/Subtraction first, then Multiplication/Division
