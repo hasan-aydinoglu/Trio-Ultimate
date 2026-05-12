@@ -12,10 +12,10 @@ export default function GameModeScreen({ navigation }) {
   const handlePress = (mode) => {
     if (mode === 1) {
       navigation.navigate('GameScreen');
-
     } else if (mode === 2) {
       navigation.navigate('GameScreen2');
-
+    } else if (mode === 3) {
+      navigation.navigate('GameScreen3');
     } else {
       Alert.alert('Coming Soon', `Game Type ${mode} will be added soon.`);
     }
