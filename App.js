@@ -21,6 +21,7 @@ import ContactUsScreen from './screens/ContactUsScreen';
 import GameScreen2 from './screens/GameScreen2';
 import GameScreen3 from './screens/GameScreen3';
 import GameScreen4 from './screens/GameScreen4';
+import GameScreen5 from './screens/GameScreen5';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -106,6 +107,7 @@ export default function App() {
         <Stack.Screen name="GameScreen2" component={GameScreen2} />
         <Stack.Screen name="GameScreen3" component={GameScreen3} />
         <Stack.Screen name="GameScreen4" component={GameScreen4} />
+        <Stack.Screen name="GameScreen5" component={GameScreen5} />
 
         <Stack.Screen name="Privacy" component={PrivacyScreen} />
         <Stack.Screen name="ContactUs" component={ContactUsScreen} />

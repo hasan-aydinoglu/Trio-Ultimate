@@ -12,16 +12,24 @@ export default function GameModeScreen({ navigation }) {
   const handlePress = (mode) => {
     if (mode === 1) {
       navigation.navigate('GameScreen');
+
     } else if (mode === 2) {
       navigation.navigate('GameScreen2');
+
     } else if (mode === 3) {
       navigation.navigate('GameScreen3');
+
     } else if (mode === 4) {
       navigation.navigate('GameScreen4');
+
+    } else if (mode === 5) {
+      navigation.navigate('GameScreen5');
+
     } else {
       Alert.alert('Coming Soon', `Game Type ${mode} will be added soon.`);
     }
   };
+
   return (
     <LinearGradient
       colors={['#00c6ff', '#0072ff', '#000']}
@@ -47,6 +55,12 @@ export default function GameModeScreen({ navigation }) {
                 ? 'Classic TRIO Game'
                 : mode === 2
                 ? 'Alternative Priority Mode'
+                : mode === 3
+                ? 'Hidden Card Challenge'
+                : mode === 4
+                ? 'Fixed Formula Challenge'
+                : mode === 5
+                ? 'Blue Card Hunt Mode'
                 : 'Alternative TRIO Mode'}
             </Text>
           </TouchableOpacity>
