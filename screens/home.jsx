@@ -46,7 +46,7 @@ const Home = ({ navigation }) => {
       colors={['#01040B', '#031327', '#041B38', '#020814']}
       style={styles.container}
     >
-      {/* Glow Effects */}
+      
       <View style={styles.bgGlowOne} />
       <View style={styles.bgGlowTwo} />
       <View style={styles.bgGlowThree} />
@@ -57,12 +57,12 @@ const Home = ({ navigation }) => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* LOGO */}
+        
         <View style={styles.logoWrapper}>
           <Text style={styles.logo}>Trio</Text>
         </View>
 
-        {/* CARD */}
+        
         <View style={styles.cardWrapper}>
           <View style={styles.card}>
             <Text style={styles.title}>Login to Trio</Text>
