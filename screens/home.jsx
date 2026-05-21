@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   View,
   Text,
@@ -9,44 +10,80 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+
 import { LinearGradient } from 'expo-linear-gradient';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { Ionicons } from '@expo/vector-icons';
+
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from 'firebase/auth';
 
 const Home = ({ navigation }) => {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser);
+      }
+    );
+
     return () => unsubscribe();
+
   }, []);
 
   const handleSignIn = () => {
+
     if (!email || !password) {
-      Alert.alert('Warning', 'Please enter your email and password.');
+
+      Alert.alert(
+        'Warning',
+        'Please enter your email and password.'
+      );
+
       return;
     }
 
     signInWithEmailAndPassword(auth, email, password)
+
       .then((userCredential) => {
-        Alert.alert('Success', `Welcome ${userCredential.user.email}`);
+
+        Alert.alert(
+          'Success',
+          `Welcome ${userCredential.user.email}`
+        );
+
+        navigation.navigate('TabNavigator', {
+          screen: 'GameMode',
+        });
+
       })
+
       .catch((error) => {
-        Alert.alert('Error', error.message);
+
+        Alert.alert(
+          'Error',
+          error.message
+        );
+
       });
   };
 
   return (
+
     <LinearGradient
       colors={['#01040B', '#031327', '#041B38', '#020814']}
       style={styles.container}
     >
-      
+
       <View style={styles.bgGlowOne} />
       <View style={styles.bgGlowTwo} />
       <View style={styles.bgGlowThree} />
@@ -57,15 +94,18 @@ const Home = ({ navigation }) => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        
+
         <View style={styles.logoWrapper}>
           <Text style={styles.logo}>Trio</Text>
         </View>
 
-        
         <View style={styles.cardWrapper}>
+
           <View style={styles.card}>
-            <Text style={styles.title}>Login to Trio</Text>
+
+            <Text style={styles.title}>
+              Login to Trio
+            </Text>
 
             <TextInput
               style={styles.input}
@@ -86,47 +126,100 @@ const Home = ({ navigation }) => {
               onChangeText={setPassword}
             />
 
-            <Pressable style={styles.loginButton} onPress={handleSignIn}>
-              <Text style={styles.loginButtonText}>Login</Text>
+            <Pressable
+              style={styles.loginButton}
+              onPress={handleSignIn}
+            >
+              <Text style={styles.loginButtonText}>
+                Login
+              </Text>
             </Pressable>
 
             <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              <Text style={styles.forgotPasswordText}>
+                Forgot Password?
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.signUpRow}>
-              <Text style={styles.signUpText}>Don&apos;t have an account?</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                <Text style={styles.signUpLink}> Sign Up</Text>
+
+              <Text style={styles.signUpText}>
+                Don&apos;t have an account?
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('SignUp')}
+              >
+                <Text style={styles.signUpLink}>
+                  {' '}Sign Up
+                </Text>
               </TouchableOpacity>
+
             </View>
 
-            <Text style={styles.orText}>Or</Text>
+            <Text style={styles.orText}>
+              Or
+            </Text>
 
-            <TouchableOpacity style={[styles.socialButton, styles.googleButton]}>
-              <FontAwesome5 name="google" size={18} color="#ffffff" />
-              <Text style={styles.socialButtonText}> Sign in with Google</Text>
+            <TouchableOpacity
+              style={[styles.socialButton, styles.googleButton]}
+            >
+
+              <Ionicons
+                name="logo-google"
+                size={20}
+                color="#ffffff"
+              />
+
+              <Text style={styles.socialButtonText}>
+                {' '}Sign in with Google
+              </Text>
+
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.socialButton, styles.facebookButton]}>
-              <FontAwesome5 name="facebook-f" size={18} color="#ffffff" />
-              <Text style={styles.socialButtonText}> Sign in with Facebook</Text>
+            <TouchableOpacity
+              style={[styles.socialButton, styles.facebookButton]}
+            >
+
+              <Ionicons
+                name="logo-facebook"
+                size={20}
+                color="#ffffff"
+              />
+
+              <Text style={styles.socialButtonText}>
+                {' '}Sign in with Facebook
+              </Text>
+
             </TouchableOpacity>
+
           </View>
+
         </View>
 
         {user && (
+
           <View style={styles.userBox}>
-            <Text style={styles.userText}>Welcome, {user.email}</Text>
+
+            <Text style={styles.userText}>
+              Welcome, {user.email}
+            </Text>
+
           </View>
+
         )}
+
       </ScrollView>
+
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+
+  container: {
+    flex: 1,
+  },
 
   scrollContainer: {
     flexGrow: 1,
@@ -218,6 +311,7 @@ const styles = StyleSheet.create({
   socialButton: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 14,
     borderRadius: 12,
     marginTop: 10,
@@ -225,16 +319,19 @@ const styles = StyleSheet.create({
   },
 
   googleButton: {
-    borderColor: 'red',
+    backgroundColor: '#DB4437',
+    borderColor: '#DB4437',
   },
 
   facebookButton: {
-    borderColor: 'blue',
+    backgroundColor: '#1877F2',
+    borderColor: '#1877F2',
   },
 
   socialButtonText: {
     color: '#fff',
     marginLeft: 8,
+    fontWeight: '700',
   },
 
   userBox: {
@@ -297,6 +394,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(0,163,255,0.14)',
   },
+
 });
 
 export default Home;
