@@ -10,7 +10,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ContactUsScreen({ navigation }) {
-
   const openEmail = () => {
     Linking.openURL('mailto:contact@narrativecircle.com');
   };
@@ -20,46 +19,31 @@ export default function ContactUsScreen({ navigation }) {
       colors={['#00c6ff', '#0072ff', '#000']}
       style={styles.container}
     >
-
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backText}>
-          ← Back
-        </Text>
+        <Text style={styles.backText}>← Back</Text>
       </TouchableOpacity>
 
-      <Text style={styles.header}>
-        Contact Us
-      </Text>
+      <Text style={styles.header}>Contact Us</Text>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-
         <Text style={styles.text}>
-
           If you have questions or requests related to this Privacy Policy:
 
-          {'\n\n'}Narrative Circle
+          {'\n\n'}Hasan Aydinoglu Sole Proprietorship
 
-          {'\n\n'}contact@narrativecircle.com
-
-          {'\n\n'}68 Mildmay Grove South,
-          {'\n'}London, UK
-
+          {'\n\n'}
         </Text>
 
         <TouchableOpacity
           style={styles.emailButton}
           onPress={openEmail}
         >
-          <Text style={styles.emailButtonText}>
-            Send Email
-          </Text>
+          <Text style={styles.emailButtonText}>Send Email</Text>
         </TouchableOpacity>
-
       </ScrollView>
-
     </LinearGradient>
   );
 }

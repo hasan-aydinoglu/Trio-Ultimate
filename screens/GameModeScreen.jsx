@@ -52,7 +52,7 @@ export default function GameModeScreen({ navigation }) {
   const handlePress = (mode) => {
 
     if (mode === 1) {
-      navigation.navigate('GameScreen');
+      navigation.navigate('OnlineLobbyScreen', { gameType: 1 });
 
     } else if (mode === 2) {
       navigation.navigate('GameScreen2');
@@ -114,7 +114,7 @@ export default function GameModeScreen({ navigation }) {
           </TouchableOpacity>
         ))}
 
-        {/* ONLINE ROOM BUTTON */}
+        
 
         <TouchableOpacity
           style={styles.onlineButton}

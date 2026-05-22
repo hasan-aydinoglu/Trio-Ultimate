@@ -23,7 +23,7 @@ import GameScreen3 from './screens/GameScreen3';
 import GameScreen4 from './screens/GameScreen4';
 import GameScreen5 from './screens/GameScreen5';
 import SignUp from './screens/SignUp';
-
+import OnlineLobbyScreen from './screens/OnlineLobbyScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -105,6 +105,8 @@ export default function App() {
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="SignUp" component={SignUp} />
+
+        <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="GameScreen2" component={GameScreen2} />

@@ -44,9 +44,7 @@ export default function PrivacyScreen({ navigation }) {
           {'\n\n'}5. Contact
           {'\n'}If you have questions or requests related to this Privacy Policy:
 
-          {'\n\n'}Narrative Circle
-          {'\n'}contact@narrativecircle.com
-          {'\n'}68 Mildmay Grove South, London, UK
+          
         </Text>
       </ScrollView>
     </LinearGradient>
