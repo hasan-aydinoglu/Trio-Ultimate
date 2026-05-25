@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ImageBackground,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
 
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
@@ -12,7 +18,6 @@ const tableData = [
   [2, 1, 4, 8, 3, 9, 5],
   [1, 8, 6, 7, 2, 4, 6],
 ];
-
 
 const cellColors = [
   ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
@@ -28,8 +33,12 @@ const GameScreen = () => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
 
+  // RULE SCREEN
+  const [showRules, setShowRules] = useState(true);
+
   const handleCellPress = (rowIndex, colIndex, value) => {
     const cell = { row: rowIndex, col: colIndex, value };
+
     if (selectedCells.length < 3) {
       setSelectedCells([...selectedCells, cell]);
     }
@@ -40,65 +49,128 @@ const GameScreen = () => {
       Alert.alert('Pick 3 numbers first!');
       return;
     }
-  
+
     const values = selectedCells.map(c => c.value);
-    let result;
-  
-    
+
     if (values[1] !== 0) {
       const multiply = values[0] * values[1];
       const divide = values[0] / values[1];
-  
-      
+
       const possibleResults = [];
-  
-     
+
       possibleResults.push(multiply + values[2]);
       possibleResults.push(multiply - values[2]);
-  
-     
+
       if (Number.isFinite(divide)) {
         possibleResults.push(divide + values[2]);
         possibleResults.push(divide - values[2]);
       }
-  
-     
+
       if (randomNumber !== null) {
         if (possibleResults.includes(randomNumber)) {
-          Alert.alert('🎉 CONGRATULATIONS!', 'You reached the target: ${randomNumber}');
+          Alert.alert(
+            '🎉 CONGRATULATIONS!',
+            `You reached the target: ${randomNumber}`
+          );
         } else {
-          Alert.alert('❌ Not quite', 'Possible results: ${possibleResults.join(', ')} | Target: ${randomNumber}');
+          Alert.alert(
+            '❌ Not quite',
+            `Possible results: ${possibleResults.join(', ')} | Target: ${randomNumber}`
+          );
         }
       } else {
         Alert.alert('Generate a number first!');
       }
-  
     } else {
       Alert.alert('Error', 'Cannot divide by zero!');
     }
-  
+
     setSelectedCells([]);
   };
 
   const generateRandomNumber = () => {
     const number = Math.floor(Math.random() * 50) + 1;
+
     setRandomNumber(number);
+
     setTimeout(() => {
       setRandomNumber(null);
     }, 30000);
   };
 
+  // RULES SCREEN
+  if (showRules) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#00c6ff', '#0072ff', '#000']}
+          style={styles.rulesContainer}
+        >
+          <Text style={styles.rulesTitle}>TRIO GAME TYPE 1</Text>
+
+          <Text style={styles.rulesSubtitle}>Game Rules</Text>
+
+          <View style={styles.rulesCard}>
+            <Text style={styles.ruleText}>
+              • Generate a target number
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Select 3 numbers from the board
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Try to reach the target number
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Use multiplication or division first
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Then use addition or subtraction
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Press Check Result to verify your answer
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowRules(false)}
+          >
+            <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
   return (
-    <ImageBackground source={require('../assets/trioabout.png')} style={styles.backgroundImage}>
-     <LinearGradient colors={['#00c6ff', '#0072ff', '#000']} style={styles.container}>
-        
-        <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
+    <ImageBackground
+      source={require('../assets/trioabout.png')}
+      style={styles.backgroundImage}
+    >
+      <LinearGradient
+        colors={['#00c6ff', '#0072ff', '#000']}
+        style={styles.container}
+      >
+        <TouchableOpacity
+          style={styles.randomButton}
+          onPress={generateRandomNumber}
+        >
           <Text style={styles.buttonText}>🎲 Generate Number</Text>
         </TouchableOpacity>
 
         {randomNumber !== null && (
           <View style={styles.randomNumberBox}>
-            <Text style={styles.randomNumberText}>{randomNumber}</Text>
+            <Text style={styles.randomNumberText}>
+              {randomNumber}
+            </Text>
           </View>
         )}
 
@@ -110,47 +182,89 @@ const GameScreen = () => {
                   key={colIndex}
                   style={[
                     styles.cell,
-                    { backgroundColor: cellColors[rowIndex][colIndex] },
-                    selectedCells.find(c => c.row === rowIndex && c.col === colIndex)
+                    {
+                      backgroundColor:
+                        cellColors[rowIndex][colIndex],
+                    },
+                    selectedCells.find(
+                      c =>
+                        c.row === rowIndex &&
+                        c.col === colIndex
+                    )
                       ? styles.selected
                       : null,
                   ]}
-                  onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
+                  onPress={() =>
+                    handleCellPress(
+                      rowIndex,
+                      colIndex,
+                      cellValue
+                    )
+                  }
                 >
-                  <Text style={styles.cellText}>{cellValue}</Text>
+                  <Text style={styles.cellText}>
+                    {cellValue}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.checkButton} onPress={checkResult}>
-          <Text style={styles.buttonText}>✅ Check Result</Text>
+        <TouchableOpacity
+          style={styles.checkButton}
+          onPress={checkResult}
+        >
+          <Text style={styles.buttonText}>
+            ✅ Check Result
+          </Text>
         </TouchableOpacity>
-
       </LinearGradient>
     </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: { flex: 1, resizeMode: 'cover' },
-  container: { flex: 1, padding: 10, alignItems: 'center', justifyContent: 'center' },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+
+  container: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   randomButton: {
     backgroundColor: '#3498db',
     padding: 15,
     borderRadius: 30,
     marginBottom: 15,
   },
+
   checkButton: {
     backgroundColor: '#27ae60',
     padding: 15,
     borderRadius: 30,
     marginTop: 20,
   },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  table: { marginVertical: 10 },
-  row: { flexDirection: 'row' },
+
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  table: {
+    marginVertical: 10,
+  },
+
+  row: {
+    flexDirection: 'row',
+  },
+
   cell: {
     width: 45,
     height: 45,
@@ -159,11 +273,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   selected: {
     borderWidth: 2,
     borderColor: '#fff',
   },
-  cellText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+
+  cellText: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
   randomNumberBox: {
     backgroundColor: '#2980b9',
     width: 80,
@@ -173,7 +294,60 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  randomNumberText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
+
+  randomNumberText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+
+  // RULES SCREEN
+
+  rulesContainer: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rulesTitle: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  rulesSubtitle: {
+    fontSize: 22,
+    color: '#fff',
+    marginBottom: 25,
+    fontWeight: '600',
+  },
+
+  rulesCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  ruleText: {
+    color: '#fff',
+    fontSize: 17,
+    marginBottom: 15,
+    lineHeight: 24,
+  },
+
+  startButton: {
+    marginTop: 28,
+    backgroundColor: '#27ae60',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
+  },
 });
 
-export default GameScreen;
+export default GameScreen;  

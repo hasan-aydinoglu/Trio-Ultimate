@@ -55,7 +55,7 @@ export default function GameModeScreen({ navigation }) {
       navigation.navigate('OnlineLobbyScreen', { gameType: 1 });
 
     } else if (mode === 2) {
-      navigation.navigate('GameScreen2');
+      navigation.navigate('OnlineLobbyScreen', { gameType: 2 });
 
     } else if (mode === 3) {
       navigation.navigate('GameScreen3');

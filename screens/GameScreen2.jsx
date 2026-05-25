@@ -32,6 +32,7 @@ const cellColors = [
 const GameScreen2 = () => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
+  const [showRules, setShowRules] = useState(true);
 
   const handleCellPress = (rowIndex, colIndex, value) => {
     const alreadySelected = selectedCells.find(
@@ -68,70 +69,33 @@ const GameScreen2 = () => {
     const values = selectedCells.map((c) => c.value);
     const [a, b, c] = values;
 
-    
     const possibleResults = [
-      {
-        expression: `(${a} + ${b}) × ${c}`,
-        value: (a + b) * c,
-      },
-      {
-        expression: `(${a} - ${b}) × ${c}`,
-        value: (a - b) * c,
-      },
-      {
-        expression: `(${a} + ${c}) × ${b}`,
-        value: (a + c) * b,
-      },
-      {
-        expression: `(${a} - ${c}) × ${b}`,
-        value: (a - c) * b,
-      },
-      {
-        expression: `(${b} + ${c}) × ${a}`,
-        value: (b + c) * a,
-      },
-      {
-        expression: `(${b} - ${c}) × ${a}`,
-        value: (b - c) * a,
-      },
+      { expression: `(${a} + ${b}) × ${c}`, value: (a + b) * c },
+      { expression: `(${a} - ${b}) × ${c}`, value: (a - b) * c },
+      { expression: `(${a} + ${c}) × ${b}`, value: (a + c) * b },
+      { expression: `(${a} - ${c}) × ${b}`, value: (a - c) * b },
+      { expression: `(${b} + ${c}) × ${a}`, value: (b + c) * a },
+      { expression: `(${b} - ${c}) × ${a}`, value: (b - c) * a },
     ];
 
     if (c !== 0) {
       possibleResults.push(
-        {
-          expression: `(${a} + ${b}) ÷ ${c}`,
-          value: (a + b) / c,
-        },
-        {
-          expression: `(${a} - ${b}) ÷ ${c}`,
-          value: (a - b) / c,
-        }
+        { expression: `(${a} + ${b}) ÷ ${c}`, value: (a + b) / c },
+        { expression: `(${a} - ${b}) ÷ ${c}`, value: (a - b) / c }
       );
     }
 
     if (b !== 0) {
       possibleResults.push(
-        {
-          expression: `(${a} + ${c}) ÷ ${b}`,
-          value: (a + c) / b,
-        },
-        {
-          expression: `(${a} - ${c}) ÷ ${b}`,
-          value: (a - c) / b,
-        }
+        { expression: `(${a} + ${c}) ÷ ${b}`, value: (a + c) / b },
+        { expression: `(${a} - ${c}) ÷ ${b}`, value: (a - c) / b }
       );
     }
 
     if (a !== 0) {
       possibleResults.push(
-        {
-          expression: `(${b} + ${c}) ÷ ${a}`,
-          value: (b + c) / a,
-        },
-        {
-          expression: `(${b} - ${c}) ÷ ${a}`,
-          value: (b - c) / a,
-        }
+        { expression: `(${b} + ${c}) ÷ ${a}`, value: (b + c) / a },
+        { expression: `(${b} - ${c}) ÷ ${a}`, value: (b - c) / a }
       );
     }
 
@@ -168,15 +132,66 @@ const GameScreen2 = () => {
     }, 30000);
   };
 
+  if (showRules) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
+          style={styles.rulesContainer}
+        >
+          <Text style={styles.rulesTitle}>TRIO GAME TYPE 2</Text>
+
+          <Text style={styles.rulesSubtitle}>Game Rules</Text>
+
+          <View style={styles.rulesCard}>
+            <Text style={styles.ruleText}>
+              • Generate a target number
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Select exactly 3 numbers from the board
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • First use addition or subtraction inside brackets
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Then multiply or divide the result by the third number
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Example: (3 + 7) × 5 = 50
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Press Check Result to verify your answer
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowRules(false)}
+          >
+            <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
       source={require('../assets/trioabout.png')}
       style={styles.backgroundImage}
     >
-     <LinearGradient
-  colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
-  style={styles.container}
->
+      <LinearGradient
+        colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
+        style={styles.container}
+      >
         <Text style={styles.title}>Game Type 2</Text>
         <Text style={styles.subtitle}>
           Addition/Subtraction first, then Multiplication/Division
@@ -314,6 +329,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
+  },
+
+  rulesContainer: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rulesTitle: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  rulesSubtitle: {
+    fontSize: 22,
+    color: '#fff',
+    marginBottom: 25,
+    fontWeight: '600',
+  },
+
+  rulesCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  ruleText: {
+    color: '#fff',
+    fontSize: 17,
+    marginBottom: 15,
+    lineHeight: 24,
+  },
+
+  startButton: {
+    marginTop: 28,
+    backgroundColor: '#27ae60',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
   },
 });
 

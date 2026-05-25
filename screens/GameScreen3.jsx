@@ -78,6 +78,7 @@ export default function GameScreen3() {
   const [targetNumber, setTargetNumber] = useState(null);
   const [usedBlueCards, setUsedBlueCards] = useState([]);
   const [playerTurn, setPlayerTurn] = useState(1);
+  const [showRules, setShowRules] = useState(true);
   const [scores, setScores] = useState({
     1: 0,
     2: 0,
@@ -163,15 +164,49 @@ export default function GameScreen3() {
     setScores({ 1: 0, 2: 0 });
   };
 
+  if (showRules) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#000000', '#0B3D2E', '#145A32', '#1E8449']}
+          style={styles.rulesContainer}
+        >
+          <Text style={styles.rulesTitle}>TRIO GAME TYPE 3</Text>
+          <Text style={styles.rulesSubtitle}>Hidden Card Challenge</Text>
+
+          <View style={styles.rulesCard}>
+            <Text style={styles.ruleText}>• This mode is played by 2 players.</Text>
+            <Text style={styles.ruleText}>• Press Draw Blue Card to get the target number.</Text>
+            <Text style={styles.ruleText}>• Cards are hidden at the beginning of each round.</Text>
+            <Text style={styles.ruleText}>• Players take turns opening one card.</Text>
+            <Text style={styles.ruleText}>• Try to reach the blue target number using opened cards.</Text>
+            <Text style={styles.ruleText}>• The player who reaches the target wins that round.</Text>
+            <Text style={styles.ruleText}>• The target number is added to the winner’s score.</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowRules(false)}
+          >
+            <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
       source={require('../assets/trioabout.png')}
       style={styles.backgroundImage}
     >
-     <LinearGradient
-  colors={['#000000', '#0B3D2E', '#145A32', '#1E8449']}
-  style={styles.container}
->
+      <LinearGradient
+        colors={['#000000', '#0B3D2E', '#145A32', '#1E8449']}
+        style={styles.container}
+      >
         <Text style={styles.title}>Game Type 3</Text>
         <Text style={styles.subtitle}>Hidden Card Challenge</Text>
 
@@ -348,5 +383,52 @@ const styles = StyleSheet.create({
   openedNumbers: {
     color: '#fff',
     fontSize: 15,
+  },
+
+  rulesContainer: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rulesTitle: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  rulesSubtitle: {
+    fontSize: 20,
+    color: '#dbeafe',
+    marginBottom: 25,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  rulesCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  ruleText: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 13,
+    lineHeight: 23,
+  },
+
+  startButton: {
+    marginTop: 28,
+    backgroundColor: '#2563eb',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
   },
 });

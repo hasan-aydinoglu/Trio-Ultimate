@@ -18,13 +18,30 @@ const players = [
 export default function OnlineLobbyScreen({ navigation, route }) {
   const gameType = route?.params?.gameType || 1;
 
+  const handleStartGame = () => {
+    if (gameType === 1) {
+      navigation.navigate('GameScreen');
+    } else if (gameType === 2) {
+      navigation.navigate('GameScreen2');
+    } else if (gameType === 3) {
+      navigation.navigate('GameScreen3');
+    } else if (gameType === 4) {
+      navigation.navigate('GameScreen4');
+    } else if (gameType === 5) {
+      navigation.navigate('GameScreen5');
+    }
+  };
+
   return (
     <LinearGradient
       colors={['#00c6ff', '#0072ff', '#000']}
       style={styles.container}
     >
       <Text style={styles.title}>Online Players</Text>
-      <Text style={styles.subtitle}>Game Type {gameType}</Text>
+
+      <Text style={styles.subtitle}>
+        Game Type {gameType}
+      </Text>
 
       <View style={styles.card}>
         <FlatList
@@ -39,8 +56,13 @@ export default function OnlineLobbyScreen({ navigation, route }) {
               </View>
 
               <View>
-                <Text style={styles.playerName}>{item.name}</Text>
-                <Text style={styles.status}>{item.status}</Text>
+                <Text style={styles.playerName}>
+                  {item.name}
+                </Text>
+
+                <Text style={styles.status}>
+                  {item.status}
+                </Text>
               </View>
             </View>
           )}
@@ -49,9 +71,11 @@ export default function OnlineLobbyScreen({ navigation, route }) {
 
       <TouchableOpacity
         style={styles.startButton}
-        onPress={() => navigation.navigate('GameScreen')}
+        onPress={handleStartGame}
       >
-        <Text style={styles.startText}>Start Game</Text>
+        <Text style={styles.startText}>
+          Start Game
+        </Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -63,24 +87,28 @@ const styles = StyleSheet.create({
     padding: 25,
     justifyContent: 'center',
   },
+
   title: {
     fontSize: 34,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
   },
+
   subtitle: {
     fontSize: 18,
     color: '#dbeafe',
     textAlign: 'center',
     marginBottom: 25,
   },
+
   card: {
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 25,
     padding: 20,
     marginBottom: 30,
   },
+
   playerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -88,6 +116,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.2)',
   },
+
   avatar: {
     width: 48,
     height: 48,
@@ -97,26 +126,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
+
   avatarText: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#0072ff',
   },
+
   playerName: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
+
   status: {
     color: '#dbeafe',
     fontSize: 14,
   },
+
   startButton: {
     backgroundColor: '#22c55e',
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
   },
+
   startText: {
     color: '#fff',
     fontSize: 18,

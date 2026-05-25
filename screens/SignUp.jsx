@@ -30,7 +30,7 @@ const SignUp = ({ navigation }) => {
         const user = userCredential.user;
         console.log('User registered:', user);
         Alert.alert('Registration Successful');
-        navigation.navigate('Home');
+        navigation.navigate('TabNavigator');
       })
       .catch((error) => {
         const errorMessage = error.message;

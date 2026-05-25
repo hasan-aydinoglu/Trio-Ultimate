@@ -30,6 +30,7 @@ export default function GameScreen5() {
   const [openedCards, setOpenedCards] = useState([]);
   const [wonBlueCards, setWonBlueCards] = useState([]);
   const [playerTurn, setPlayerTurn] = useState(1);
+  const [showRules, setShowRules] = useState(true);
 
   const openCard = (index) => {
     if (openedCards.includes(index)) return;
@@ -79,6 +80,40 @@ export default function GameScreen5() {
     setPlayerTurn(playerTurn === 1 ? 2 : 1);
   };
 
+  if (showRules) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#1a0033', '#4a148c', '#7b1fa2', '#ce93d8']}
+          style={styles.rulesContainer}
+        >
+          <Text style={styles.rulesTitle}>TRIO GAME TYPE 5</Text>
+          <Text style={styles.rulesSubtitle}>Blue Card Hunt Mode</Text>
+
+          <View style={styles.rulesCard}>
+            <Text style={styles.ruleText}>• This mode is played by 2 players.</Text>
+            <Text style={styles.ruleText}>• Blue cards are shown at the top of the screen.</Text>
+            <Text style={styles.ruleText}>• Players take turns choosing 3 hidden cards.</Text>
+            <Text style={styles.ruleText}>• Try to match one of the blue card numbers.</Text>
+            <Text style={styles.ruleText}>• You can use addition, multiplication, and subtraction formulas.</Text>
+            <Text style={styles.ruleText}>• If your 3 numbers match a blue card, you win that card.</Text>
+            <Text style={styles.ruleText}>• Won blue cards turn green with a check mark.</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowRules(false)}
+          >
+            <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
       source={require('../assets/trioabout.png')}
@@ -97,7 +132,6 @@ export default function GameScreen5() {
           Turn: Player {playerTurn}
         </Text>
 
-        {/* Blue cards */}
         <View style={styles.blueCardContainer}>
           {blueCards.map((card) => (
             <View
@@ -116,7 +150,6 @@ export default function GameScreen5() {
           ))}
         </View>
 
-        {/* Table */}
         <View style={styles.table}>
           {Array.from({ length: 7 }).map((_, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
@@ -246,4 +279,52 @@ const styles = StyleSheet.create({
     color:'#fff',
     fontWeight:'bold',
   },
-});
+
+  rulesContainer: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rulesTitle: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: '900',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  rulesSubtitle: {
+    fontSize: 20,
+    color: '#fff',
+    marginBottom: 25,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  rulesCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+
+  ruleText: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 12,
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+
+  startButton: {
+    marginTop: 28,
+    backgroundColor: '#2563eb',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
+  },
+}); 

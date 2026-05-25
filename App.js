@@ -33,13 +33,12 @@ SplashScreen.preventAutoHideAsync();
 function TabNavigator() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="GameMode"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           let iconName;
 
-          if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'GameMode') iconName = 'game-controller';
+          if (route.name === 'GameMode') iconName = 'game-controller';
           else if (route.name === 'Messages') iconName = 'chatbox';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Settings') iconName = 'settings';
@@ -51,7 +50,6 @@ function TabNavigator() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={Home} />
       <Tab.Screen
         name="GameMode"
         component={GameModeScreen}
@@ -96,9 +94,11 @@ export default function App() {
   return (
     <NavigationContainer onReady={onLayoutRootView}>
       <Stack.Navigator
-        initialRouteName="SplashIntro"
+        initialRouteName="Home"
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name="Home" component={Home} />
+
         <Stack.Screen name="SplashIntro" component={SplashIntro} />
         <Stack.Screen name="TabNavigator" component={TabNavigator} />
         <Stack.Screen name="MainMenu" component={MainMenu} />

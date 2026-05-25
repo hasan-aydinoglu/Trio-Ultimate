@@ -37,6 +37,7 @@ export default function GameScreen4() {
   const [mode, setMode] = useState('doubleMinus');
   const [playerTurn, setPlayerTurn] = useState(1);
   const [scores, setScores] = useState({ 1: 0, 2: 0 });
+  const [showRules, setShowRules] = useState(true);
 
   const drawBlueCard = () => {
     const randomBlueCard = blueCards[Math.floor(Math.random() * blueCards.length)];
@@ -147,15 +148,49 @@ export default function GameScreen4() {
     setScores({ 1: 0, 2: 0 });
   };
 
+  if (showRules) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#000000', '#434343', '#FFFFFF']}
+          style={styles.rulesContainer}
+        >
+          <Text style={styles.rulesTitle}>TRIO GAME TYPE 4</Text>
+          <Text style={styles.rulesSubtitle}>Fixed Formula Challenge</Text>
+
+          <View style={styles.rulesCard}>
+            <Text style={styles.ruleText}>• This mode is played by 2 players.</Text>
+            <Text style={styles.ruleText}>• Draw a blue card to get the target number.</Text>
+            <Text style={styles.ruleText}>• Choose one of the fixed formula modes.</Text>
+            <Text style={styles.ruleText}>• Mode 1: [ ][ ] - [ ][ ] = Target</Text>
+            <Text style={styles.ruleText}>• Mode 2: [ ] × [ ] - [ ] = Target</Text>
+            <Text style={styles.ruleText}>• Select the required amount of numbers from the board.</Text>
+            <Text style={styles.ruleText}>• Press Check Formula to verify your answer.</Text>
+            <Text style={styles.ruleText}>• Correct answers add the target number to your score.</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => setShowRules(false)}
+          >
+            <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
       source={require('../assets/trioabout.png')}
       style={styles.backgroundImage}
     >
-     <LinearGradient
-  colors={['#000000', '#434343', '#FFFFFF']}
-  style={styles.container}
-
+      <LinearGradient
+        colors={['#000000', '#434343', '#FFFFFF']}
+        style={styles.container}
       >
         <Text style={styles.title}>Game Type 4</Text>
         <Text style={styles.subtitle}>Fixed Formula Challenge</Text>
@@ -405,5 +440,53 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
     fontWeight: '900',
+  },
+
+  rulesContainer: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  rulesTitle: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: '900',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  rulesSubtitle: {
+    fontSize: 20,
+    color: '#fff',
+    marginBottom: 25,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  rulesCard: {
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+
+  ruleText: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 12,
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+
+  startButton: {
+    marginTop: 28,
+    backgroundColor: '#2563eb',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
   },
 });

@@ -43,6 +43,7 @@ export default function PrivacyScreen({ navigation }) {
 
           {'\n\n'}5. Contact
           {'\n'}If you have questions or requests related to this Privacy Policy:
+          hasan.aydng@gmail.com
 
           
         </Text>
