@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -31,7 +32,20 @@ const cellColors = [
 
 const blueCards = [10, 20, 24, 27, 30, 32, 36, 40, 44, 45, 48, 50];
 
-export default function GameScreen4() {
+const players = [
+  {
+    id: 1,
+    name: 'Player 1',
+    photo: null,
+  },
+  {
+    id: 2,
+    name: 'Player 2',
+    photo: null,
+  },
+];
+
+export default function GameScreen4({ route }) {
   const [selectedCells, setSelectedCells] = useState([]);
   const [targetNumber, setTargetNumber] = useState(null);
   const [mode, setMode] = useState('doubleMinus');
@@ -39,8 +53,26 @@ export default function GameScreen4() {
   const [scores, setScores] = useState({ 1: 0, 2: 0 });
   const [showRules, setShowRules] = useState(true);
 
+  const routePlayers = route?.params?.players || players;
+
+  const getPlayerPhoto = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.photo || player?.image || player?.avatar || null;
+  };
+
+  const getPlayerName = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.name || `Player ${playerId}`;
+  };
+
+  const changeTurn = () => {
+    setPlayerTurn((prev) => (prev === 1 ? 2 : 1));
+  };
+
   const drawBlueCard = () => {
-    const randomBlueCard = blueCards[Math.floor(Math.random() * blueCards.length)];
+    const randomBlueCard =
+      blueCards[Math.floor(Math.random() * blueCards.length)];
+
     setTargetNumber(randomBlueCard);
     setSelectedCells([]);
   };
@@ -95,7 +127,7 @@ export default function GameScreen4() {
 
         Alert.alert(
           '🎉 Correct!',
-          `Player ${playerTurn} wins ${targetNumber} points!\n\n${firstNumber} - ${secondNumber} = ${targetNumber}`
+          `${getPlayerName(playerTurn)} wins ${targetNumber} points!\n\n${firstNumber} - ${secondNumber} = ${targetNumber}`
         );
 
         setTargetNumber(null);
@@ -125,7 +157,7 @@ export default function GameScreen4() {
 
         Alert.alert(
           '🎉 Correct!',
-          `Player ${playerTurn} wins ${targetNumber} points!\n\n${a} × ${b} - ${c} = ${targetNumber}`
+          `${getPlayerName(playerTurn)} wins ${targetNumber} points!\n\n${a} × ${b} - ${c} = ${targetNumber}`
         );
 
         setTargetNumber(null);
@@ -138,7 +170,7 @@ export default function GameScreen4() {
       }
     }
 
-    setPlayerTurn(playerTurn === 1 ? 2 : 1);
+    changeTurn();
   };
 
   const resetGame = () => {
@@ -146,6 +178,40 @@ export default function GameScreen4() {
     setTargetNumber(null);
     setPlayerTurn(1);
     setScores({ 1: 0, 2: 0 });
+  };
+
+  const renderPlayerCard = (playerId) => {
+    const photo = getPlayerPhoto(playerId);
+    const isActive = playerTurn === playerId;
+
+    return (
+      <View
+        style={[
+          styles.playerCard,
+          isActive && styles.activePlayerCard,
+        ]}
+      >
+        <LinearGradient
+          colors={
+            isActive
+              ? ['#2563eb', '#60a5fa']
+              : ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.02)']
+          }
+          style={styles.avatarGlow}
+        >
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+        <Text style={styles.playerScore}>{scores[playerId]} pts</Text>
+      </View>
+    );
   };
 
   if (showRules) {
@@ -195,12 +261,12 @@ export default function GameScreen4() {
         <Text style={styles.title}>Game Type 4</Text>
         <Text style={styles.subtitle}>Fixed Formula Challenge</Text>
 
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreText}>Player 1: {scores[1]}</Text>
-          <Text style={styles.scoreText}>Player 2: {scores[2]}</Text>
+        <View style={styles.playersBox}>
+          {renderPlayerCard(1)}
+          {renderPlayerCard(2)}
         </View>
 
-        <Text style={styles.turnText}>Turn: Player {playerTurn}</Text>
+        <Text style={styles.turnText}>Turn: {getPlayerName(playerTurn)}</Text>
 
         <View style={styles.modeBox}>
           <TouchableOpacity
@@ -264,7 +330,9 @@ export default function GameScreen4() {
                       { backgroundColor: cellColors[rowIndex][colIndex] },
                       isSelected ? styles.selected : null,
                     ]}
-                    onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
+                    onPress={() =>
+                      handleCellPress(rowIndex, colIndex, cellValue)
+                    }
                     activeOpacity={0.85}
                   >
                     <Text style={styles.cellText}>{cellValue}</Text>
@@ -314,20 +382,70 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  scoreBox: {
+  playersBox: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 24,
+    marginBottom: 14,
   },
 
-  scoreText: {
+  playerCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+
+  activePlayerCard: {
+    transform: [{ scale: 1.12 }],
+  },
+
+  avatarGlow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 60,
+    padding: 10,
+    marginBottom: 4,
+  },
+
+  profileImage: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+
+  defaultAvatar: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  defaultAvatarText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+
+  playerName: {
     color: '#fff',
     fontSize: 13,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+
+  playerScore: {
+    color: '#dbeafe',
+    fontSize: 12,
     fontWeight: 'bold',
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    marginTop: 2,
   },
 
   turnText: {

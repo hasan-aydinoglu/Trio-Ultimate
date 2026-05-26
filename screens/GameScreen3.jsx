@@ -20,12 +20,9 @@ const originalCards = [
 ];
 
 const cardColors = ['#e67e22', '#e84393', '#8e44ad'];
-
 const blueCards = [20, 24, 27, 30, 32, 36, 40, 44, 45, 48, 50];
 
-const shuffleArray = (array) => {
-  return [...array].sort(() => Math.random() - 0.5);
-};
+const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
 const canReachTarget = (numbers, target) => {
   if (numbers.length < 3) return null;
@@ -56,10 +53,10 @@ const canReachTarget = (numbers, target) => {
   for (const nums of permutations) {
     for (const op1 of ops) {
       for (const op2 of ops) {
-        let first = op1.fn(nums[0], nums[1]);
+        const first = op1.fn(nums[0], nums[1]);
         if (first === null || !Number.isFinite(first)) continue;
 
-        let result = op2.fn(first, nums[2]);
+        const result = op2.fn(first, nums[2]);
         if (result === null || !Number.isFinite(result)) continue;
 
         if (Math.abs(result - target) < 0.0001) {
@@ -87,6 +84,10 @@ export default function GameScreen3() {
   const openedNumbers = useMemo(() => {
     return openedIndexes.map((index) => cards[index]);
   }, [openedIndexes, cards]);
+
+  const changeTurn = () => {
+    setPlayerTurn((prev) => (prev === 1 ? 2 : 1));
+  };
 
   const startRound = () => {
     const availableBlueCards = blueCards.filter(
@@ -148,11 +149,11 @@ export default function GameScreen3() {
       setTargetNumber(null);
       setOpenedIndexes([]);
       setCards(shuffleArray(originalCards));
-      setPlayerTurn(playerTurn === 1 ? 2 : 1);
+      changeTurn();
       return;
     }
 
-    setPlayerTurn(playerTurn === 1 ? 2 : 1);
+    changeTurn();
   };
 
   const resetGame = () => {
@@ -210,9 +211,26 @@ export default function GameScreen3() {
         <Text style={styles.title}>Game Type 3</Text>
         <Text style={styles.subtitle}>Hidden Card Challenge</Text>
 
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreText}>Player 1: {scores[1]}</Text>
-          <Text style={styles.scoreText}>Player 2: {scores[2]}</Text>
+        <View style={styles.playersBox}>
+          <View
+            style={[
+              styles.playerCard,
+              playerTurn === 1 && styles.activePlayerCard,
+            ]}
+          >
+            <Text style={styles.playerName}>Player 1</Text>
+            <Text style={styles.playerScore}>{scores[1]} pts</Text>
+          </View>
+
+          <View
+            style={[
+              styles.playerCard,
+              playerTurn === 2 && styles.activePlayerCard,
+            ]}
+          >
+            <Text style={styles.playerName}>Player 2</Text>
+            <Text style={styles.playerScore}>{scores[2]} pts</Text>
+          </View>
         </View>
 
         <Text style={styles.turnText}>Turn: Player {playerTurn}</Text>
@@ -226,30 +244,32 @@ export default function GameScreen3() {
         <View style={styles.table}>
           {Array.from({ length: 7 }).map((_, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
-              {cards.slice(rowIndex * 7, rowIndex * 7 + 7).map((value, colIndex) => {
-                const index = rowIndex * 7 + colIndex;
-                const isOpened = openedIndexes.includes(index);
+              {cards
+                .slice(rowIndex * 7, rowIndex * 7 + 7)
+                .map((value, colIndex) => {
+                  const index = rowIndex * 7 + colIndex;
+                  const isOpened = openedIndexes.includes(index);
 
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.cell,
-                      {
-                        backgroundColor: isOpened
-                          ? cardColors[index % cardColors.length]
-                          : '#111827',
-                      },
-                    ]}
-                    onPress={() => openCard(index)}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.cellText}>
-                      {isOpened ? value : '?'}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.cell,
+                        {
+                          backgroundColor: isOpened
+                            ? cardColors[index % cardColors.length]
+                            : '#111827',
+                        },
+                      ]}
+                      onPress={() => openCard(index)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.cellText}>
+                        {isOpened ? value : '?'}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
             </View>
           ))}
         </View>
@@ -295,20 +315,39 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  scoreBox: {
+  playersBox: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 8,
   },
 
-  scoreText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
+  playerCard: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    minWidth: 120,
+  },
+
+  activePlayerCard: {
+    backgroundColor: 'rgba(37,99,235,0.85)',
+    borderColor: '#fff',
+  },
+
+  playerName: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+
+  playerScore: {
+    color: '#e0f2fe',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginTop: 3,
   },
 
   turnText: {
