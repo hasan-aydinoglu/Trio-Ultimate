@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -29,12 +30,52 @@ const cellColors = [
   ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e84393', '#e84393', '#e67e22'],
 ];
 
-const GameScreen = () => {
+const players = [
+  { id: 1, name: 'Player 1', photo: null },
+  { id: 2, name: 'Player 2', photo: null },
+  { id: 3, name: 'Player 3', photo: null },
+  { id: 4, name: 'Player 4', photo: null },
+];
+
+const GameScreen = ({ route }) => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
-
-  // RULE SCREEN
   const [showRules, setShowRules] = useState(true);
+
+  const routePlayers = route?.params?.players || players;
+
+  const getPlayerPhoto = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.photo || player?.image || player?.avatar || null;
+  };
+
+  const getPlayerName = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.name || `Player ${playerId}`;
+  };
+
+  const renderPlayerCard = (playerId) => {
+    const photo = getPlayerPhoto(playerId);
+
+    return (
+      <View style={styles.playerCard}>
+        <LinearGradient
+          colors={['#2563eb', '#60a5fa']}
+          style={styles.avatarGlow}
+        >
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+      </View>
+    );
+  };
 
   const handleCellPress = (rowIndex, colIndex, value) => {
     const cell = { row: rowIndex, col: colIndex, value };
@@ -98,7 +139,6 @@ const GameScreen = () => {
     }, 30000);
   };
 
-  // RULES SCREEN
   if (showRules) {
     return (
       <ImageBackground
@@ -110,33 +150,15 @@ const GameScreen = () => {
           style={styles.rulesContainer}
         >
           <Text style={styles.rulesTitle}>TRIO GAME TYPE 1</Text>
-
           <Text style={styles.rulesSubtitle}>Game Rules</Text>
 
           <View style={styles.rulesCard}>
-            <Text style={styles.ruleText}>
-              • Generate a target number
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Select 3 numbers from the board
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Try to reach the target number
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Use multiplication or division first
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Then use addition or subtraction
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Press Check Result to verify your answer
-            </Text>
+            <Text style={styles.ruleText}>• Generate a target number</Text>
+            <Text style={styles.ruleText}>• Select 3 numbers from the board</Text>
+            <Text style={styles.ruleText}>• Try to reach the target number</Text>
+            <Text style={styles.ruleText}>• Use multiplication or division first</Text>
+            <Text style={styles.ruleText}>• Then use addition or subtraction</Text>
+            <Text style={styles.ruleText}>• Press Check Result to verify your answer</Text>
           </View>
 
           <TouchableOpacity
@@ -159,6 +181,13 @@ const GameScreen = () => {
         colors={['#00c6ff', '#0072ff', '#000']}
         style={styles.container}
       >
+        <View style={styles.playersBox}>
+          {renderPlayerCard(1)}
+          {renderPlayerCard(2)}
+          {renderPlayerCard(3)}
+          {renderPlayerCard(4)}
+        </View>
+
         <TouchableOpacity
           style={styles.randomButton}
           onPress={generateRandomNumber}
@@ -168,9 +197,7 @@ const GameScreen = () => {
 
         {randomNumber !== null && (
           <View style={styles.randomNumberBox}>
-            <Text style={styles.randomNumberText}>
-              {randomNumber}
-            </Text>
+            <Text style={styles.randomNumberText}>{randomNumber}</Text>
           </View>
         )}
 
@@ -183,28 +210,19 @@ const GameScreen = () => {
                   style={[
                     styles.cell,
                     {
-                      backgroundColor:
-                        cellColors[rowIndex][colIndex],
+                      backgroundColor: cellColors[rowIndex][colIndex],
                     },
                     selectedCells.find(
-                      c =>
-                        c.row === rowIndex &&
-                        c.col === colIndex
+                      c => c.row === rowIndex && c.col === colIndex
                     )
                       ? styles.selected
                       : null,
                   ]}
                   onPress={() =>
-                    handleCellPress(
-                      rowIndex,
-                      colIndex,
-                      cellValue
-                    )
+                    handleCellPress(rowIndex, colIndex, cellValue)
                   }
                 >
-                  <Text style={styles.cellText}>
-                    {cellValue}
-                  </Text>
+                  <Text style={styles.cellText}>{cellValue}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -215,9 +233,7 @@ const GameScreen = () => {
           style={styles.checkButton}
           onPress={checkResult}
         >
-          <Text style={styles.buttonText}>
-            ✅ Check Result
-          </Text>
+          <Text style={styles.buttonText}>✅ Check Result</Text>
         </TouchableOpacity>
       </LinearGradient>
     </ImageBackground>
@@ -235,6 +251,62 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  playersBox: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+    flexWrap: 'wrap',
+  },
+
+  playerCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+
+  avatarGlow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 60,
+    padding: 7,
+    marginBottom: 4,
+  },
+
+  profileImage: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+
+  defaultAvatar: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  defaultAvatarText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+
+  playerName: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '900',
+    textAlign: 'center',
   },
 
   randomButton: {
@@ -301,8 +373,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // RULES SCREEN
-
   rulesContainer: {
     flex: 1,
     padding: 24,
@@ -350,4 +420,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GameScreen;  
+export default GameScreen;
