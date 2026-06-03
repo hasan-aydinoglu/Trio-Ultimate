@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -21,16 +22,66 @@ const tableNumbers = [
 
 const blueCards = [20,24,27,30,32,36,40,44,45,48,50];
 
+const players = [
+  { id: 1, name: 'Player 1', photo: null },
+  { id: 2, name: 'Player 2', photo: null },
+];
+
 const shuffleArray = (array) => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
-export default function GameScreen5() {
+export default function GameScreen5({ route }) {
   const [cards] = useState(shuffleArray(tableNumbers));
   const [openedCards, setOpenedCards] = useState([]);
   const [wonBlueCards, setWonBlueCards] = useState([]);
   const [playerTurn, setPlayerTurn] = useState(1);
   const [showRules, setShowRules] = useState(true);
+
+  const routePlayers = route?.params?.players || players;
+
+  const getPlayerPhoto = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.photo || player?.image || player?.avatar || null;
+  };
+
+  const getPlayerName = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.name || `Player ${playerId}`;
+  };
+
+  const renderPlayerCard = (playerId) => {
+    const photo = getPlayerPhoto(playerId);
+    const isActive = playerTurn === playerId;
+
+    return (
+      <View
+        style={[
+          styles.playerCard,
+          isActive && styles.activePlayerCard,
+        ]}
+      >
+        <LinearGradient
+          colors={
+            isActive
+              ? ['#7b1fa2', '#ce93d8']
+              : ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.02)']
+          }
+          style={styles.avatarGlow}
+        >
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+      </View>
+    );
+  };
 
   const openCard = (index) => {
     if (openedCards.includes(index)) return;
@@ -70,7 +121,7 @@ export default function GameScreen5() {
 
       Alert.alert(
         '🎉 Blue Card Won!',
-        `Player ${playerTurn} won blue card ${matchedBlueCard}`
+        `${getPlayerName(playerTurn)} won blue card ${matchedBlueCard}`
       );
     } else {
       Alert.alert('❌ No Match', 'No blue card found.');
@@ -124,12 +175,15 @@ export default function GameScreen5() {
         style={styles.container}
       >
         <Text style={styles.title}>Game Type 5</Text>
-        <Text style={styles.subtitle}>
-          Blue Card Hunt Mode
-        </Text>
+        <Text style={styles.subtitle}>Blue Card Hunt Mode</Text>
+
+        <View style={styles.playersBox}>
+          {renderPlayerCard(1)}
+          {renderPlayerCard(2)}
+        </View>
 
         <Text style={styles.turnText}>
-          Turn: Player {playerTurn}
+          Turn: {getPlayerName(playerTurn)}
         </Text>
 
         <View style={styles.blueCardContainer}>
@@ -209,6 +263,65 @@ const styles = StyleSheet.create({
   subtitle:{
     color:'#fff',
     marginBottom:10,
+  },
+
+  playersBox: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 24,
+    marginBottom: 10,
+  },
+
+  playerCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+
+  activePlayerCard: {
+    transform: [{ scale: 1.12 }],
+  },
+
+  avatarGlow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 60,
+    padding: 8,
+    marginBottom: 4,
+  },
+
+  profileImage: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+
+  defaultAvatar: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  defaultAvatarText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+
+  playerName: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
   },
 
   turnText:{
@@ -327,4 +440,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 45,
     borderRadius: 30,
   },
-}); 
+});

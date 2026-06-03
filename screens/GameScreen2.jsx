@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -29,10 +30,52 @@ const cellColors = [
   ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e84393', '#e84393', '#e67e22'],
 ];
 
-const GameScreen2 = () => {
+const players = [
+  { id: 1, name: 'Player 1', photo: null },
+  { id: 2, name: 'Player 2', photo: null },
+  { id: 3, name: 'Player 3', photo: null },
+  { id: 4, name: 'Player 4', photo: null },
+];
+
+const GameScreen2 = ({ route }) => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
   const [showRules, setShowRules] = useState(true);
+
+  const routePlayers = route?.params?.players || players;
+
+  const getPlayerPhoto = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.photo || player?.image || player?.avatar || null;
+  };
+
+  const getPlayerName = (playerId) => {
+    const player = routePlayers.find((p) => p.id === playerId);
+    return player?.name || `Player ${playerId}`;
+  };
+
+  const renderPlayerCard = (playerId) => {
+    const photo = getPlayerPhoto(playerId);
+
+    return (
+      <View style={styles.playerCard}>
+        <LinearGradient
+          colors={['#005f73', '#0a9396', '#94d2bd']}
+          style={styles.avatarGlow}
+        >
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+      </View>
+    );
+  };
 
   const handleCellPress = (rowIndex, colIndex, value) => {
     const alreadySelected = selectedCells.find(
@@ -147,9 +190,7 @@ const GameScreen2 = () => {
           <Text style={styles.rulesSubtitle}>Game Rules</Text>
 
           <View style={styles.rulesCard}>
-            <Text style={styles.ruleText}>
-              • Generate a target number
-            </Text>
+            <Text style={styles.ruleText}>• Generate a target number</Text>
 
             <Text style={styles.ruleText}>
               • Select exactly 3 numbers from the board
@@ -163,9 +204,7 @@ const GameScreen2 = () => {
               • Then multiply or divide the result by the third number
             </Text>
 
-            <Text style={styles.ruleText}>
-              • Example: (3 + 7) × 5 = 50
-            </Text>
+            <Text style={styles.ruleText}>• Example: (3 + 7) × 5 = 50</Text>
 
             <Text style={styles.ruleText}>
               • Press Check Result to verify your answer
@@ -196,6 +235,13 @@ const GameScreen2 = () => {
         <Text style={styles.subtitle}>
           Addition/Subtraction first, then Multiplication/Division
         </Text>
+
+        <View style={styles.playersBox}>
+          {renderPlayerCard(1)}
+          {renderPlayerCard(2)}
+          {renderPlayerCard(3)}
+          {renderPlayerCard(4)}
+        </View>
 
         <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
           <Text style={styles.buttonText}>🎲 Generate Number</Text>
@@ -263,6 +309,62 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 13,
     marginBottom: 12,
+    textAlign: 'center',
+  },
+
+  playersBox: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+
+  playerCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+
+  avatarGlow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 60,
+    padding: 7,
+    marginBottom: 4,
+  },
+
+  profileImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+
+  defaultAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  defaultAvatarText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+
+  playerName: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '900',
     textAlign: 'center',
   },
 
