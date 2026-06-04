@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebase';
 
 const EditProfile = ({ navigation }) => {
@@ -38,7 +39,11 @@ const EditProfile = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setAvatar({ uri: result.assets[0].uri });
+      const selectedImage = result.assets[0].uri;
+
+      setAvatar({ uri: selectedImage });
+
+      await AsyncStorage.setItem('profileImage', selectedImage);
     }
   };
 

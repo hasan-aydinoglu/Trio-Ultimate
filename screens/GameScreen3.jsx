@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const originalCards = [
   3, 7, 3, 5, 8, 4, 9,
@@ -76,10 +78,23 @@ export default function GameScreen3() {
   const [usedBlueCards, setUsedBlueCards] = useState([]);
   const [playerTurn, setPlayerTurn] = useState(1);
   const [showRules, setShowRules] = useState(true);
+  const [profileImage, setProfileImage] = useState(null);
   const [scores, setScores] = useState({
     1: 0,
     2: 0,
   });
+
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      const savedImage = await AsyncStorage.getItem('profileImage');
+
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
+    };
+
+    loadProfileImage();
+  }, []);
 
   const openedNumbers = useMemo(() => {
     return openedIndexes.map((index) => cards[index]);
@@ -218,6 +233,14 @@ export default function GameScreen3() {
               playerTurn === 1 && styles.activePlayerCard,
             ]}
           >
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <View style={styles.defaultAvatar}>
+                <Text style={styles.defaultAvatarText}>P1</Text>
+              </View>
+            )}
+
             <Text style={styles.playerName}>Player 1</Text>
             <Text style={styles.playerScore}>{scores[1]} pts</Text>
           </View>
@@ -228,6 +251,10 @@ export default function GameScreen3() {
               playerTurn === 2 && styles.activePlayerCard,
             ]}
           >
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.defaultAvatarText}>P2</Text>
+            </View>
+
             <Text style={styles.playerName}>Player 2</Text>
             <Text style={styles.playerScore}>{scores[2]} pts</Text>
           </View>
@@ -335,6 +362,33 @@ const styles = StyleSheet.create({
   activePlayerCard: {
     backgroundColor: 'rgba(37,99,235,0.85)',
     borderColor: '#fff',
+  },
+
+  profileImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#fff',
+    marginBottom: 6,
+  },
+
+  defaultAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 2,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+
+  defaultAvatarText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '900',
   },
 
   playerName: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
@@ -41,10 +42,27 @@ const GameScreen = ({ route }) => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
   const [showRules, setShowRules] = useState(true);
+  const [profileImage, setProfileImage] = useState(null);
 
   const routePlayers = route?.params?.players || players;
 
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      const savedImage = await AsyncStorage.getItem('profileImage');
+
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
+    };
+
+    loadProfileImage();
+  }, []);
+
   const getPlayerPhoto = (playerId) => {
+    if (playerId === 1 && profileImage) {
+      return profileImage;
+    }
+
     const player = routePlayers.find((p) => p.id === playerId);
     return player?.photo || player?.image || player?.avatar || null;
   };
