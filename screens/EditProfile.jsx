@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +23,29 @@ const EditProfile = ({ navigation }) => {
   const [birthDate, setBirthDate] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      const savedProfile = await AsyncStorage.getItem('userProfile');
+
+      if (savedProfile) {
+        const profileData = JSON.parse(savedProfile);
+
+        if (profileData.name) setName(profileData.name);
+        if (profileData.bio) setBio(profileData.bio);
+        if (profileData.birthDate) setBirthDate(profileData.birthDate);
+        if (profileData.profileImage) {
+          setAvatar({ uri: profileData.profileImage });
+        }
+      }
+    } catch (error) {
+      console.log('Profile load error:', error);
+    }
+  };
 
   const pickImage = async () => {
     const permissionResult =
@@ -48,6 +73,7 @@ const EditProfile = ({ navigation }) => {
   };
 
   const showDatePicker = () => {
+    Keyboard.dismiss();
     setDatePickerVisibility(true);
   };
 
@@ -60,83 +86,120 @@ const EditProfile = ({ navigation }) => {
     hideDatePicker();
   };
 
-  const handleSave = () => {
-    Alert.alert(
-      'Profile Updated',
-      `Name: ${name}\nBio: ${bio}\nBirth Date: ${
-        birthDate ? birthDate : 'Not set'
-      }`
-    );
-    navigation.goBack();
+  const handleSave = async () => {
+    Keyboard.dismiss();
+
+    try {
+      let profileImage = '';
+
+      if (avatar && avatar.uri) {
+        profileImage = avatar.uri;
+      } else {
+        const savedImage = await AsyncStorage.getItem('profileImage');
+        profileImage = savedImage || '';
+      }
+
+      const profileData = {
+        name,
+        bio,
+        birthDate,
+        profileImage,
+        email: auth.currentUser?.email || '',
+      };
+
+      await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
+
+      Alert.alert(
+        'Profile Updated',
+        `Name: ${name}\nBio: ${bio}\nBirth Date: ${
+          birthDate ? birthDate : 'Not set'
+        }`
+      );
+
+      navigation.goBack();
+    } catch (error) {
+      console.log('Profile save error:', error);
+      Alert.alert('Error', 'Profile could not be saved.');
+    }
   };
 
   return (
-    <LinearGradient
-      colors={['#00c6ff', '#0072ff', '#000']}
-      style={styles.container}
-    >
-      <Text style={styles.title}>Edit Profile</Text>
-
-      <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
-        <Image source={avatar} style={styles.avatar} />
-
-        <View style={styles.cameraIcon}>
-          <Ionicons name="camera" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
-        <Ionicons name="image-outline" size={18} color="#fff" />
-        <Text style={styles.buttonText}>  Change Profile Photo</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.label}>Username</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your name"
-        placeholderTextColor="#ccc"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Tell us about yourself"
-        placeholderTextColor="#ccc"
-        multiline
-        value={bio}
-        onChangeText={setBio}
-      />
-
-      <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
-        <Ionicons name="calendar" size={20} color="#fff" />
-        <Text style={styles.buttonText}>
-          {'  '}
-          {birthDate ? birthDate : 'Select Birth Date'}
-        </Text>
-      </TouchableOpacity>
-
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-      />
-
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-        <Text style={styles.buttonText}>  Save Changes</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#95a5a6' }]}
-        onPress={() => navigation.goBack()}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient
+        colors={['#00c6ff', '#0072ff', '#000']}
+        style={styles.container}
       >
-        <Ionicons name="arrow-back" size={20} color="#fff" />
-        <Text style={styles.buttonText}>  Cancel</Text>
-      </TouchableOpacity>
-    </LinearGradient>
+        <Text style={styles.title}>Edit Profile</Text>
+
+        <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
+          <Image source={avatar} style={styles.avatar} />
+
+          <View style={styles.cameraIcon}>
+            <Ionicons name="camera" size={20} color="#fff" />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
+          <Ionicons name="image-outline" size={18} color="#fff" />
+          <Text style={styles.buttonText}>  Change Profile Photo</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.label}>Username</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          placeholderTextColor="#ccc"
+          value={name}
+          onChangeText={setName}
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
+        />
+
+        <Text style={styles.label}>Bio</Text>
+        <TextInput
+          style={[styles.input, { height: 80 }]}
+          placeholder="Tell us about yourself"
+          placeholderTextColor="#ccc"
+          multiline
+          value={bio}
+          onChangeText={setBio}
+          returnKeyType="done"
+          blurOnSubmit={true}
+          onSubmitEditing={Keyboard.dismiss}
+        />
+
+        <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
+          <Ionicons name="calendar" size={20} color="#fff" />
+          <Text style={styles.buttonText}>
+            {'  '}
+            {birthDate ? birthDate : 'Select Birth Date'}
+          </Text>
+        </TouchableOpacity>
+
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSave}>
+          <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+          <Text style={styles.buttonText}>  Save Changes</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#95a5a6' }]}
+          onPress={() => {
+            Keyboard.dismiss();
+            navigation.goBack();
+          }}
+        >
+          <Ionicons name="arrow-back" size={20} color="#fff" />
+          <Text style={styles.buttonText}>  Cancel</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
   );
 };
 

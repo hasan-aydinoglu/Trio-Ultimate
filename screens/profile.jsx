@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Profile = ({ navigation }) => {
   const [user, setUser] = useState(null);
+  const [profileName, setProfileName] = useState('');
+  const [profileBio, setProfileBio] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -14,6 +20,31 @@ const Profile = ({ navigation }) => {
     });
     return () => unsubscribe();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+    }, [])
+  );
+
+  const loadProfileData = async () => {
+    try {
+      const savedProfile = await AsyncStorage.getItem('userProfile');
+
+      if (savedProfile) {
+        const profileData = JSON.parse(savedProfile);
+
+        if (profileData.name) setProfileName(profileData.name);
+        if (profileData.bio) setProfileBio(profileData.bio);
+        if (profileData.birthDate) setBirthDate(profileData.birthDate);
+        if (profileData.profileImage) {
+          setAvatar({ uri: profileData.profileImage });
+        }
+      }
+    } catch (error) {
+      console.log('Profile load error:', error);
+    }
+  };
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -26,9 +57,24 @@ const Profile = ({ navigation }) => {
       <Text style={styles.title}>My Profile</Text>
 
       <Image
-        source={require('../assets/avatar.png')}
+        source={avatar}
         style={styles.avatar}
       />
+
+      <Text style={styles.label}>Username</Text>
+      <Text style={styles.value}>
+        {profileName ? profileName : 'No username set'}
+      </Text>
+
+      <Text style={styles.label}>Bio</Text>
+      <Text style={styles.value}>
+        {profileBio ? profileBio : 'No bio set'}
+      </Text>
+
+      <Text style={styles.label}>Birth Date</Text>
+      <Text style={styles.value}>
+        {birthDate ? birthDate : 'Not set'}
+      </Text>
 
       <Text style={styles.label}>Email Address</Text>
       <Text style={styles.value}>{user ? user.email : 'Not signed in'}</Text>
