@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const players = [
   { id: '1', name: 'Hasan', status: 'Ready' },
@@ -17,6 +19,27 @@ const players = [
 
 export default function OnlineLobbyScreen({ navigation, route }) {
   const gameType = route?.params?.gameType || 1;
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    loadProfileImage();
+  }, []);
+
+  const loadProfileImage = async () => {
+    try {
+      const savedProfile = await AsyncStorage.getItem('userProfile');
+
+      if (savedProfile) {
+        const profileData = JSON.parse(savedProfile);
+
+        if (profileData.profileImage) {
+          setProfileImage(profileData.profileImage);
+        }
+      }
+    } catch (error) {
+      console.log('Online lobby profile image load error:', error);
+    }
+  };
 
   const handleStartGame = () => {
     if (gameType === 1) {
@@ -49,11 +72,18 @@ export default function OnlineLobbyScreen({ navigation, route }) {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.playerRow}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {item.name.charAt(0)}
-                </Text>
-              </View>
+              {item.id === '1' && profileImage ? (
+                <Image
+                  source={{ uri: profileImage }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {item.name.charAt(0)}
+                  </Text>
+                </View>
+              )}
 
               <View>
                 <Text style={styles.playerName}>
@@ -125,6 +155,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
+  },
+
+  avatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 15,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
 
   avatarText: {
