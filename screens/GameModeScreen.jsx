@@ -64,7 +64,7 @@ export default function GameModeScreen({ navigation }) {
       navigation.navigate('OnlineLobbyScreen', { gameType: 4 });
 
     } else if (mode === 5) {
-      navigation.navigate('GameScreen5');
+      navigation.navigate('OnlineLobbyScreen', { gameType: 5 });
 
     } else {
       Alert.alert('Coming Soon', `Game Type ${mode} will be added soon.`);
@@ -113,8 +113,6 @@ export default function GameModeScreen({ navigation }) {
 
           </TouchableOpacity>
         ))}
-
-        
 
         <TouchableOpacity
           style={styles.onlineButton}
