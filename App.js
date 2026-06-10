@@ -40,6 +40,7 @@ function TabNavigator() {
 
           if (route.name === 'GameMode') iconName = 'game-controller';
           else if (route.name === 'Messages') iconName = 'chatbox';
+          else if (route.name === 'Friends') iconName = 'people';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Settings') iconName = 'settings';
 
@@ -55,7 +56,9 @@ function TabNavigator() {
         component={GameModeScreen}
         options={{ title: 'Game' }}
       />
+
       <Tab.Screen name="Messages" component={Messages} />
+      <Tab.Screen name="Friends" component={Friends} />
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
