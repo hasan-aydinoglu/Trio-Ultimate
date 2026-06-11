@@ -18,7 +18,9 @@ const players = [
 ];
 
 export default function OnlineLobbyScreen({ navigation, route }) {
+  const roomId = route?.params?.roomId;
   const gameType = route?.params?.gameType || 1;
+
   const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
@@ -39,6 +41,14 @@ export default function OnlineLobbyScreen({ navigation, route }) {
     } catch (error) {
       console.log('Online lobby profile image load error:', error);
     }
+  };
+
+  const handleInviteFriends = () => {
+    navigation.navigate('Friends', {
+      roomId: roomId,
+      gameType: gameType,
+      inviteMode: true,
+    });
   };
 
   const handleStartGame = () => {
@@ -65,6 +75,12 @@ export default function OnlineLobbyScreen({ navigation, route }) {
       <Text style={styles.subtitle}>
         Game Type {gameType}
       </Text>
+
+      {roomId ? (
+        <Text style={styles.roomIdText}>
+          Room ID: {roomId}
+        </Text>
+      ) : null}
 
       <View style={styles.card}>
         <FlatList
@@ -97,6 +113,15 @@ export default function OnlineLobbyScreen({ navigation, route }) {
             </View>
           )}
         />
+
+        <TouchableOpacity
+          style={styles.inviteButton}
+          onPress={handleInviteFriends}
+        >
+          <Text style={styles.inviteText}>
+            Invite Friends
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
@@ -129,7 +154,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#dbeafe',
     textAlign: 'center',
-    marginBottom: 25,
+    marginBottom: 8,
+  },
+
+  roomIdText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 12,
+    marginBottom: 18,
+    opacity: 0.85,
   },
 
   card: {
@@ -181,6 +214,20 @@ const styles = StyleSheet.create({
   status: {
     color: '#dbeafe',
     fontSize: 14,
+  },
+
+  inviteButton: {
+    backgroundColor: '#1abc9c',
+    paddingVertical: 14,
+    borderRadius: 22,
+    alignItems: 'center',
+    marginTop: 18,
+  },
+
+  inviteText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 
   startButton: {

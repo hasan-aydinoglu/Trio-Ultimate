@@ -9,44 +9,10 @@ import {
 
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { auth, db } from '../firebase';
-
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
-
 export default function GameModeScreen({ navigation }) {
 
-  const createRoom = async () => {
-    const user = auth.currentUser;
-
-    if (!user) {
-      Alert.alert('Login Required', 'Please login first.');
-      return;
-    }
-
-    try {
-      const roomRef = await addDoc(collection(db, 'rooms'), {
-        players: [
-          {
-            uid: user.uid,
-            email: user.email,
-          },
-        ],
-        status: 'waiting',
-        createdAt: serverTimestamp(),
-      });
-
-      Alert.alert(
-        'Online Room Created',
-        `Room ID: ${roomRef.id}`
-      );
-
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
+  const createOnlineRoom = () => {
+    navigation.navigate('OnlineRoomSetupScreen');
   };
 
   const handlePress = (mode) => {
@@ -116,7 +82,7 @@ export default function GameModeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.onlineButton}
-          onPress={createRoom}
+          onPress={createOnlineRoom}
         >
           <Text style={styles.onlineButtonText}>
             Create Online Room
