@@ -38,11 +38,43 @@ const players = [
   { id: 4, name: 'Player 4', photo: null },
 ];
 
-const GameScreen = ({ route }) => {
+const createNumberPool = () => {
+  const numbers = Array.from({ length: 50 }, (_, i) => i + 1);
+  return numbers.sort(() => Math.random() - 0.5);
+};
+
+const shuffleTable = () => {
+  const flatNumbers = tableData.flat();
+  const shuffled = [...flatNumbers].sort(() => Math.random() - 0.5);
+
+  const newTable = [];
+
+  for (let i = 0; i < tableData.length; i++) {
+    newTable.push(
+      shuffled.slice(i * tableData[0].length, (i + 1) * tableData[0].length)
+    );
+  }
+
+  return newTable;
+};
+
+const GameScreen = ({ navigation, route }) => {
   const [selectedCells, setSelectedCells] = useState([]);
   const [randomNumber, setRandomNumber] = useState(null);
   const [showRules, setShowRules] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
+
+  const [currentTableData, setCurrentTableData] = useState(tableData);
+  const [numberPool, setNumberPool] = useState(createNumberPool());
+  const [gameOver, setGameOver] = useState(false);
+  const [currentPlayer, setCurrentPlayer] = useState(1);
+
+  const [scores, setScores] = useState({
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+  });
 
   const routePlayers = route?.params?.players || players;
 
@@ -72,11 +104,44 @@ const GameScreen = ({ route }) => {
     return player?.name || `Player ${playerId}`;
   };
 
+  const getWinner = () => {
+    const maxScore = Math.max(...Object.values(scores));
+    const winners = Object.keys(scores).filter(
+      playerId => scores[playerId] === maxScore
+    );
+
+    if (winners.length > 1) {
+      return 'Draw';
+    }
+
+    return getPlayerName(Number(winners[0]));
+  };
+
+  const resetGame = () => {
+    setSelectedCells([]);
+    setRandomNumber(null);
+    setCurrentTableData(shuffleTable());
+    setNumberPool(createNumberPool());
+    setGameOver(false);
+    setCurrentPlayer(1);
+    setScores({
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+    });
+  };
+
   const renderPlayerCard = (playerId) => {
     const photo = getPlayerPhoto(playerId);
 
     return (
-      <View style={styles.playerCard}>
+      <View
+        style={[
+          styles.playerCard,
+          currentPlayer === playerId && styles.activePlayerCard,
+        ]}
+      >
         <LinearGradient
           colors={['#2563eb', '#60a5fa']}
           style={styles.avatarGlow}
@@ -91,11 +156,24 @@ const GameScreen = ({ route }) => {
         </LinearGradient>
 
         <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+        <Text style={styles.scoreText}>Score: {scores[playerId]}</Text>
       </View>
     );
   };
 
   const handleCellPress = (rowIndex, colIndex, value) => {
+    if (gameOver) {
+      return;
+    }
+
+    const alreadySelected = selectedCells.find(
+      c => c.row === rowIndex && c.col === colIndex
+    );
+
+    if (alreadySelected) {
+      return;
+    }
+
     const cell = { row: rowIndex, col: colIndex, value };
 
     if (selectedCells.length < 3) {
@@ -103,58 +181,87 @@ const GameScreen = ({ route }) => {
     }
   };
 
+  const generateRandomNumber = () => {
+    if (gameOver) {
+      return;
+    }
+
+    if (numberPool.length === 0) {
+      setGameOver(true);
+      setRandomNumber(null);
+      return;
+    }
+
+    const nextNumber = numberPool[0];
+    const remainingNumbers = numberPool.slice(1);
+
+    setRandomNumber(nextNumber);
+    setNumberPool(remainingNumbers);
+    setSelectedCells([]);
+
+    if (remainingNumbers.length === 0) {
+      setTimeout(() => {
+        setGameOver(true);
+        setRandomNumber(null);
+      }, 30000);
+    }
+  };
+
   const checkResult = () => {
+    if (gameOver) {
+      return;
+    }
+
     if (selectedCells.length !== 3) {
       Alert.alert('Pick 3 numbers first!');
       return;
     }
 
+    if (randomNumber === null) {
+      Alert.alert('Generate a number first!');
+      return;
+    }
+
     const values = selectedCells.map(c => c.value);
 
-    if (values[1] !== 0) {
-      const multiply = values[0] * values[1];
-      const divide = values[0] / values[1];
-
-      const possibleResults = [];
-
-      possibleResults.push(multiply + values[2]);
-      possibleResults.push(multiply - values[2]);
-
-      if (Number.isFinite(divide)) {
-        possibleResults.push(divide + values[2]);
-        possibleResults.push(divide - values[2]);
-      }
-
-      if (randomNumber !== null) {
-        if (possibleResults.includes(randomNumber)) {
-          Alert.alert(
-            '🎉 CONGRATULATIONS!',
-            `You reached the target: ${randomNumber}`
-          );
-        } else {
-          Alert.alert(
-            '❌ Not quite',
-            `Possible results: ${possibleResults.join(', ')} | Target: ${randomNumber}`
-          );
-        }
-      } else {
-        Alert.alert('Generate a number first!');
-      }
-    } else {
+    if (values[1] === 0) {
       Alert.alert('Error', 'Cannot divide by zero!');
+      return;
+    }
+
+    const multiply = values[0] * values[1];
+    const divide = values[0] / values[1];
+
+    const possibleResults = [];
+
+    possibleResults.push(multiply + values[2]);
+    possibleResults.push(multiply - values[2]);
+
+    if (Number.isFinite(divide)) {
+      possibleResults.push(divide + values[2]);
+      possibleResults.push(divide - values[2]);
+    }
+
+    if (possibleResults.includes(randomNumber)) {
+      setScores(prevScores => ({
+        ...prevScores,
+        [currentPlayer]: prevScores[currentPlayer] + 1,
+      }));
+
+      Alert.alert(
+        '🎉 CONGRATULATIONS!',
+        `${getPlayerName(currentPlayer)} reached the target: ${randomNumber}`
+      );
+    } else {
+      Alert.alert(
+        '❌ Not quite',
+        `Possible results: ${possibleResults.join(', ')} | Target: ${randomNumber}`
+      );
     }
 
     setSelectedCells([]);
-  };
-
-  const generateRandomNumber = () => {
-    const number = Math.floor(Math.random() * 50) + 1;
-
-    setRandomNumber(number);
-
-    setTimeout(() => {
-      setRandomNumber(null);
-    }, 30000);
+    setRandomNumber(null);
+    setCurrentPlayer(currentPlayer === 4 ? 1 : currentPlayer + 1);
   };
 
   if (showRules) {
@@ -176,7 +283,8 @@ const GameScreen = ({ route }) => {
             <Text style={styles.ruleText}>• Try to reach the target number</Text>
             <Text style={styles.ruleText}>• Use multiplication or division first</Text>
             <Text style={styles.ruleText}>• Then use addition or subtraction</Text>
-            <Text style={styles.ruleText}>• Press Check Result to verify your answer</Text>
+            <Text style={styles.ruleText}>• Each correct answer gives 1 point</Text>
+            <Text style={styles.ruleText}>• When all target numbers finish, the winner is announced</Text>
           </View>
 
           <TouchableOpacity
@@ -184,6 +292,55 @@ const GameScreen = ({ route }) => {
             onPress={() => setShowRules(false)}
           >
             <Text style={styles.buttonText}>START GAME</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
+    );
+  }
+
+  if (gameOver) {
+    return (
+      <ImageBackground
+        source={require('../assets/trioabout.png')}
+        style={styles.backgroundImage}
+      >
+        <LinearGradient
+          colors={['#00c6ff', '#0072ff', '#000']}
+          style={styles.container}
+        >
+          <Text style={styles.gameOverTitle}>🏆 GAME OVER</Text>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.winnerText}>
+              Winner: {getWinner()}
+            </Text>
+
+            <Text style={styles.finalScoreText}>
+              {getPlayerName(1)}: {scores[1]} points
+            </Text>
+            <Text style={styles.finalScoreText}>
+              {getPlayerName(2)}: {scores[2]} points
+            </Text>
+            <Text style={styles.finalScoreText}>
+              {getPlayerName(3)}: {scores[3]} points
+            </Text>
+            <Text style={styles.finalScoreText}>
+              {getPlayerName(4)}: {scores[4]} points
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.playAgainButton}
+            onPress={resetGame}
+          >
+            <Text style={styles.buttonText}>🔄 Play Again</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={() => navigation.navigate('GameModeScreen')}
+          >
+            <Text style={styles.buttonText}>🏠 Home</Text>
           </TouchableOpacity>
         </LinearGradient>
       </ImageBackground>
@@ -206,6 +363,14 @@ const GameScreen = ({ route }) => {
           {renderPlayerCard(4)}
         </View>
 
+        <Text style={styles.turnText}>
+          Turn: {getPlayerName(currentPlayer)}
+        </Text>
+
+        <Text style={styles.remainingText}>
+          Remaining Numbers: {numberPool.length}
+        </Text>
+
         <TouchableOpacity
           style={styles.randomButton}
           onPress={generateRandomNumber}
@@ -220,7 +385,7 @@ const GameScreen = ({ route }) => {
         )}
 
         <View style={styles.table}>
-          {tableData.map((row, rowIndex) => (
+          {currentTableData.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {row.map((cellValue, colIndex) => (
                 <TouchableOpacity
@@ -276,7 +441,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 14,
+    marginBottom: 8,
     flexWrap: 'wrap',
   },
 
@@ -285,6 +450,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 4,
     paddingHorizontal: 4,
+    borderRadius: 16,
+  },
+
+  activePlayerCard: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
 
   avatarGlow: {
@@ -327,6 +499,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  scoreText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+
+  turnText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '900',
+    marginBottom: 5,
+  },
+
+  remainingText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+
   randomButton: {
     backgroundColor: '#3498db',
     padding: 15,
@@ -339,6 +532,22 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 30,
     marginTop: 20,
+  },
+
+  playAgainButton: {
+    backgroundColor: '#27ae60',
+    paddingVertical: 16,
+    paddingHorizontal: 45,
+    borderRadius: 30,
+    marginTop: 25,
+  },
+
+  homeButton: {
+    backgroundColor: '#3498db',
+    paddingVertical: 16,
+    paddingHorizontal: 60,
+    borderRadius: 30,
+    marginTop: 15,
   },
 
   buttonText: {
@@ -389,6 +598,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
+  },
+
+  gameOverTitle: {
+    fontSize: 34,
+    color: '#fff',
+    fontWeight: '900',
+    marginBottom: 25,
+  },
+
+  resultCard: {
+    width: '90%',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+  },
+
+  winnerText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '900',
+    marginBottom: 18,
+    textAlign: 'center',
+  },
+
+  finalScoreText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
   },
 
   rulesContainer: {
