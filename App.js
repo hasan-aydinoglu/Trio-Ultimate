@@ -26,6 +26,9 @@ import SignUp from './screens/SignUp';
 import OnlineLobbyScreen from './screens/OnlineLobbyScreen';
 import OnlineRoomSetupScreen from './screens/OnlineRoomSetupScreen';
 
+import ChatScreen from './screens/ChatScreen';
+import UserProfileScreen from './screens/UserProfileScreen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -52,12 +55,7 @@ function TabNavigator() {
         headerShown: false,
       })}
     >
-      <Tab.Screen
-        name="GameMode"
-        component={GameModeScreen}
-        options={{ title: 'Game' }}
-      />
-
+      <Tab.Screen name="GameMode" component={GameModeScreen} options={{ title: 'Game' }} />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Friends" component={Friends} />
       <Tab.Screen name="Profile" component={Profile} />
@@ -97,10 +95,7 @@ export default function App() {
 
   return (
     <NavigationContainer onReady={onLayoutRootView}>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={Home} />
 
         <Stack.Screen name="SplashIntro" component={SplashIntro} />
@@ -110,15 +105,11 @@ export default function App() {
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="SignUp" component={SignUp} />
 
-        <Stack.Screen
-          name="OnlineRoomSetupScreen"
-          component={OnlineRoomSetupScreen}
-        />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
+        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
 
-        <Stack.Screen
-          name="OnlineLobbyScreen"
-          component={OnlineLobbyScreen}
-        />
+        <Stack.Screen name="OnlineRoomSetupScreen" component={OnlineRoomSetupScreen} />
+        <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="GameScreen2" component={GameScreen2} />

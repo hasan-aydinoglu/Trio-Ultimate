@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const conversations = [
   {
@@ -66,8 +67,32 @@ const conversations = [
 
 export default function Messages({ navigation }) {
   const [search, setSearch] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
 
-  const filteredConversations = conversations.filter((item) =>
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      const savedImage = await AsyncStorage.getItem('profileImage');
+
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
+    };
+
+    loadProfileImage();
+  }, []);
+
+  const updatedConversations = conversations.map((item) => {
+    if (item.id === '1' && profileImage) {
+      return {
+        ...item,
+        avatar: profileImage,
+      };
+    }
+
+    return item;
+  });
+
+  const filteredConversations = updatedConversations.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase()) ||
     item.username.toLowerCase().includes(search.toLowerCase())
   );
@@ -76,13 +101,17 @@ export default function Messages({ navigation }) {
     <TouchableOpacity
       style={styles.chatRow}
       activeOpacity={0.8}
-      onPress={() => alert(`${item.name} chat screen will be added soon.`)}
+      onPress={() => navigation.navigate('ChatScreen', { conversation: item })}
     >
-      <View style={styles.avatarWrapper}>
+      <TouchableOpacity
+        style={styles.avatarWrapper}
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate('UserProfileScreen', { user: item })}
+      >
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
 
         {item.online && <View style={styles.onlineDot} />}
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.messageInfo}>
         <View style={styles.topRow}>
