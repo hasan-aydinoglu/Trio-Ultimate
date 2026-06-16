@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,36 +7,71 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const friendsData = [
-  {
-    id: '1',
-    name: 'Player 1',
-    online: true,
-    avatar: 'https://i.pravatar.cc/150?img=1',
-  },
-  {
-    id: '2',
-    name: 'Player 2',
-    online: false,
-    avatar: 'https://i.pravatar.cc/150?img=2',
-  },
-  {
-    id: '3',
-    name: 'Player 3',
-    online: true,
-    avatar: 'https://i.pravatar.cc/150?img=3',
-  },
-];
+import { auth, db } from '../firebase';
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 export default function FriendsScreen() {
   const [search, setSearch] = useState('');
+  const [friends, setFriends] = useState([]);
 
-  const filteredFriends = friendsData.filter(friend =>
-    friend.name.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, 'users'),
+      (snapshot) => {
+        const usersList = snapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter((user) => user.id !== auth.currentUser?.uid);
+
+        setFriends(usersList);
+      },
+      (error) => {
+        console.log('Friends error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const filteredFriends = friends.filter((friend) =>
+    (friend.name || friend.username || friend.email || '')
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
+
+  const sendFriendRequest = async (friend) => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login first.');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'friendRequests'), {
+        fromUserId: currentUser.uid,
+        toUserId: friend.id,
+        toUserName: friend.name || friend.username || friend.email || 'Player',
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
+
+      Alert.alert('Success', `Friend request sent to ${friend.name || 'Player'}`);
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
     <LinearGradient
@@ -64,20 +99,25 @@ export default function FriendsScreen() {
           <View style={styles.friendCard}>
             <View style={styles.left}>
               <Image
-                source={{ uri: item.avatar }}
+                source={{
+                  uri:
+                    item.profileImage ||
+                    item.avatar ||
+                    'https://i.pravatar.cc/150?img=1',
+                }}
                 style={styles.avatar}
               />
 
               <View>
-                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.name}>
+                  {item.name || item.username || 'Player'}
+                </Text>
 
                 <Text
                   style={[
                     styles.status,
                     {
-                      color: item.online
-                        ? '#00ff88'
-                        : '#ff4444',
+                      color: item.online ? '#00ff88' : '#ff4444',
                     },
                   ]}
                 >
@@ -86,7 +126,10 @@ export default function FriendsScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.inviteButton}>
+            <TouchableOpacity
+              style={styles.inviteButton}
+              onPress={() => sendFriendRequest(item)}
+            >
               <Text style={styles.buttonText}>
                 Invite
               </Text>
@@ -95,7 +138,10 @@ export default function FriendsScreen() {
         )}
       />
 
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => Alert.alert('Add Friend', 'Search players and send invite.')}
+      >
         <Text style={styles.addText}>
           + Add Friend
         </Text>

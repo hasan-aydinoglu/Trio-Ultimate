@@ -11,7 +11,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+
+import {
+  doc,
+  setDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -26,8 +32,22 @@ const SignUp = ({ navigation }) => {
     }
 
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
+
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          name: `${name} ${surname}`,
+          firstName: name,
+          surname: surname,
+          username: `@${name.toLowerCase()}${surname.toLowerCase()}`,
+          email: user.email,
+          profileImage: '',
+          avatar: '',
+          online: true,
+          createdAt: serverTimestamp(),
+        });
+
         console.log('User registered:', user);
         Alert.alert('Registration Successful');
         navigation.navigate('TabNavigator');
@@ -78,6 +98,7 @@ const SignUp = ({ navigation }) => {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
         />
 
         <TextInput
