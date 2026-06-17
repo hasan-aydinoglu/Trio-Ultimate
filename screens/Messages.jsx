@@ -12,62 +12,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const conversations = [
-  {
-    id: '1',
-    name: 'Hasan',
-    username: '@hasan',
-    lastMessage: 'Ready for the next TRIO game?',
-    time: '2m',
-    online: true,
-    unread: 2,
-    avatar: 'https://i.pravatar.cc/150?img=12',
-  },
-  {
-    id: '2',
-    name: 'Player 2',
-    username: '@player2',
-    lastMessage: 'Good game!',
-    time: '14m',
-    online: true,
-    unread: 0,
-    avatar: 'https://i.pravatar.cc/150?img=22',
-  },
-  {
-    id: '3',
-    name: 'Player 3',
-    username: '@player3',
-    lastMessage: 'Invite me again later.',
-    time: '1h',
-    online: false,
-    unread: 1,
-    avatar: 'https://i.pravatar.cc/150?img=33',
-  },
-  {
-    id: '4',
-    name: 'Player 4',
-    username: '@player4',
-    lastMessage: 'That was a smart move!',
-    time: '3h',
-    online: false,
-    unread: 0,
-    avatar: 'https://i.pravatar.cc/150?img=44',
-  },
-  {
-    id: '5',
-    name: 'Player 5',
-    username: '@player5',
-    lastMessage: 'Let’s play Game Type 4.',
-    time: 'Yesterday',
-    online: true,
-    unread: 3,
-    avatar: 'https://i.pravatar.cc/150?img=55',
-  },
-];
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+
+import { db } from '../firebase';
 
 export default function Messages({ navigation }) {
   const [search, setSearch] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
     const loadProfileImage = async () => {
@@ -81,8 +38,26 @@ export default function Messages({ navigation }) {
     loadProfileImage();
   }, []);
 
+  useEffect(() => {
+    const q = query(
+      collection(db, 'conversations'),
+      orderBy('updatedAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const firebaseConversations = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setConversations(firebaseConversations);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const updatedConversations = conversations.map((item) => {
-    if (item.id === '1' && profileImage) {
+    if (item.name === 'Hasan' && profileImage) {
       return {
         ...item,
         avatar: profileImage,
@@ -93,8 +68,8 @@ export default function Messages({ navigation }) {
   });
 
   const filteredConversations = updatedConversations.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.username.toLowerCase().includes(search.toLowerCase())
+    item.name?.toLowerCase().includes(search.toLowerCase()) ||
+    item.username?.toLowerCase().includes(search.toLowerCase())
   );
 
   const renderConversation = ({ item }) => (
