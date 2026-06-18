@@ -17,10 +17,14 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
+  query,
+  where,
+  getDocs,
 } from 'firebase/firestore';
 
-export default function FriendsScreen() {
+export default function FriendsScreen({ navigation }) {
   const [search, setSearch] = useState('');
+  const [addFriendText, setAddFriendText] = useState('');
   const [friends, setFriends] = useState([]);
 
   useEffect(() => {
@@ -58,19 +62,93 @@ export default function FriendsScreen() {
       return;
     }
 
+    if (friend.id === currentUser.uid) {
+      Alert.alert('Error', 'You cannot add yourself.');
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'friendRequests'), {
         fromUserId: currentUser.uid,
+        fromEmail: currentUser.email,
         toUserId: friend.id,
         toUserName: friend.name || friend.username || friend.email || 'Player',
+        toUserEmail: friend.email || '',
         status: 'pending',
         createdAt: serverTimestamp(),
       });
 
-      Alert.alert('Success', `Friend request sent to ${friend.name || 'Player'}`);
+      Alert.alert(
+        'Success',
+        `Friend request sent to ${
+          friend.name || friend.username || 'Player'
+        }`
+      );
     } catch (error) {
       Alert.alert('Error', error.message);
     }
+  };
+
+  const handleAddFriend = async () => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login first.');
+      return;
+    }
+
+    if (!addFriendText.trim()) {
+      Alert.alert('Error', 'Please enter email or username.');
+      return;
+    }
+
+    const searchValue = addFriendText.trim();
+
+    try {
+      let userQuery = query(
+        collection(db, 'users'),
+        where('email', '==', searchValue)
+      );
+
+      let snapshot = await getDocs(userQuery);
+
+      if (snapshot.empty) {
+        userQuery = query(
+          collection(db, 'users'),
+          where('username', '==', searchValue)
+        );
+
+        snapshot = await getDocs(userQuery);
+      }
+
+      if (snapshot.empty) {
+        Alert.alert('Not Found', 'No user found with this email or username.');
+        return;
+      }
+
+      const foundUserDoc = snapshot.docs[0];
+
+      const foundUser = {
+        id: foundUserDoc.id,
+        ...foundUserDoc.data(),
+      };
+
+      if (foundUser.id === currentUser.uid) {
+        Alert.alert('Error', 'You cannot add yourself.');
+        return;
+      }
+
+      await sendFriendRequest(foundUser);
+      setAddFriendText('');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const openUserProfile = (user) => {
+    navigation.navigate('UserProfileScreen', {
+      user,
+    });
   };
 
   return (
@@ -92,12 +170,34 @@ export default function FriendsScreen() {
         onChangeText={setSearch}
       />
 
+      <View style={styles.addFriendBox}>
+        <TextInput
+          style={styles.addFriendInput}
+          placeholder="Enter email or username..."
+          placeholderTextColor="#ccc"
+          value={addFriendText}
+          onChangeText={setAddFriendText}
+          autoCapitalize="none"
+        />
+
+        <TouchableOpacity
+          style={styles.smallAddButton}
+          onPress={handleAddFriend}
+        >
+          <Text style={styles.smallAddText}>Add</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={filteredFriends}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.friendCard}>
-            <View style={styles.left}>
+            <TouchableOpacity
+              style={styles.left}
+              activeOpacity={0.8}
+              onPress={() => openUserProfile(item)}
+            >
               <Image
                 source={{
                   uri:
@@ -124,7 +224,7 @@ export default function FriendsScreen() {
                   {item.online ? 'Online' : 'Offline'}
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.inviteButton}
@@ -140,7 +240,7 @@ export default function FriendsScreen() {
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => Alert.alert('Add Friend', 'Search players and send invite.')}
+        onPress={handleAddFriend}
       >
         <Text style={styles.addText}>
           + Add Friend
@@ -175,7 +275,34 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 12,
     color: '#fff',
+    marginBottom: 12,
+  },
+
+  addFriendBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 15,
+  },
+
+  addFriendInput: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 15,
+    padding: 12,
+    color: '#fff',
+    marginRight: 10,
+  },
+
+  smallAddButton: {
+    backgroundColor: '#00ff88',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 15,
+  },
+
+  smallAddText: {
+    color: '#000',
+    fontWeight: 'bold',
   },
 
   friendCard: {
@@ -191,6 +318,7 @@ const styles = StyleSheet.create({
   left: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
 
   avatar: {
@@ -215,6 +343,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
+    marginLeft: 10,
   },
 
   buttonText: {

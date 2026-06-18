@@ -12,19 +12,32 @@ import { Ionicons } from '@expo/vector-icons';
 export default function UserProfileScreen({ navigation, route }) {
   const { user } = route.params;
 
+  const avatarUri =
+    user.profileImage ||
+    user.avatar ||
+    'https://i.pravatar.cc/150?img=1';
+
   return (
     <LinearGradient
       colors={['#00c6ff', '#0072ff', '#000']}
       style={styles.container}
     >
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
         <Ionicons name="chevron-back" size={32} color="#fff" />
       </TouchableOpacity>
 
-      <Image source={{ uri: user.avatar }} style={styles.bigAvatar} />
+      <Image source={{ uri: avatarUri }} style={styles.bigAvatar} />
 
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.username}>{user.username}</Text>
+      <Text style={styles.name}>
+        {user.name || 'Player'}
+      </Text>
+
+      <Text style={styles.username}>
+        {user.username || user.email || '@player'}
+      </Text>
 
       <View style={styles.infoCard}>
         <Text style={styles.infoText}>
@@ -32,7 +45,11 @@ export default function UserProfileScreen({ navigation, route }) {
         </Text>
 
         <Text style={styles.infoText}>
-          Last message: {user.lastMessage}
+          Email: {user.email || 'No email'}
+        </Text>
+
+        <Text style={styles.infoText}>
+          Last message: {user.lastMessage || 'No messages yet'}
         </Text>
       </View>
 
