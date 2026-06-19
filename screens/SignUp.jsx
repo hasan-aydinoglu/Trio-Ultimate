@@ -17,46 +17,75 @@ import {
   doc,
   setDoc,
   serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
 } from 'firebase/firestore';
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignUp = () => {
-    if (!name || !surname || !email || !password) {
+  const handleSignUp = async () => {
+    if (!name || !surname || !username || !email || !password) {
       Alert.alert('All fields are required!');
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
+    const cleanUsername = username
+      .trim()
+      .replace('@', '')
+      .toLowerCase();
 
-        await setDoc(doc(db, 'users', user.uid), {
-          uid: user.uid,
-          name: `${name} ${surname}`,
-          firstName: name,
-          surname: surname,
-          username: `@${name.toLowerCase()}${surname.toLowerCase()}`,
-          email: user.email,
-          profileImage: '',
-          avatar: '',
-          online: true,
-          createdAt: serverTimestamp(),
-        });
+    try {
+      const usernameQuery = query(
+        collection(db, 'users'),
+        where('username', '==', cleanUsername)
+      );
 
-        console.log('User registered:', user);
-        Alert.alert('Registration Successful');
-        navigation.navigate('TabNavigator');
-      })
-      .catch((error) => {
-        const errorMessage = error.message;
-        console.log(errorMessage);
-        Alert.alert('Error', errorMessage);
+      const usernameSnapshot = await getDocs(usernameQuery);
+
+      if (!usernameSnapshot.empty) {
+        Alert.alert(
+          'Username Unavailable',
+          'This username is already taken. Please choose another one.'
+        );
+        return;
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        name: `${name} ${surname}`,
+        firstName: name,
+        surname: surname,
+        username: cleanUsername,
+        email: user.email,
+        profileImage: '',
+        avatar: '',
+        online: true,
+        createdAt: serverTimestamp(),
       });
+
+      console.log('User registered:', user);
+      Alert.alert('Registration Successful');
+      navigation.navigate('TabNavigator');
+    } catch (error) {
+      const errorMessage = error.message;
+      console.log(errorMessage);
+      Alert.alert('Error', errorMessage);
+    }
   };
 
   const handleFacebookSignUp = () => {
@@ -89,6 +118,15 @@ const SignUp = ({ navigation }) => {
           placeholderTextColor="#ccc"
           value={surname}
           onChangeText={setSurname}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#ccc"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
         />
 
         <TextInput
