@@ -2,6 +2,7 @@
   "expo": {
     "name": "trio",
     "slug": "trio",
+    "scheme": "trio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -37,7 +38,8 @@
       ],
       "expo-font",
       "expo-localization",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-web-browser"
     ]
   }
 }
