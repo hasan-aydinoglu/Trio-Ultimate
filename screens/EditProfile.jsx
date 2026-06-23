@@ -14,37 +14,80 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { auth } from '../firebase';
+import { auth, db, storage } from '../firebase';
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  getDocs,
+} from 'firebase/firestore';
+
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
 
 const EditProfile = ({ navigation }) => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
+  const [profileImage, setProfileImage] = useState('');
 
   useEffect(() => {
     loadProfileData();
   }, []);
 
   const loadProfileData = async () => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) return;
+
     try {
-      const savedProfile = await AsyncStorage.getItem('userProfile');
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
 
-      if (savedProfile) {
-        const profileData = JSON.parse(savedProfile);
+      if (userDoc.exists()) {
+        const data = userDoc.data();
 
-        if (profileData.name) setName(profileData.name);
-        if (profileData.bio) setBio(profileData.bio);
-        if (profileData.birthDate) setBirthDate(profileData.birthDate);
-        if (profileData.profileImage) {
-          setAvatar({ uri: profileData.profileImage });
+        if (data.name) setName(data.name);
+        if (data.username) setUsername(data.username);
+        if (data.bio) setBio(data.bio);
+        if (data.birthDate) setBirthDate(data.birthDate);
+
+        if (data.profileImage) {
+          setProfileImage(data.profileImage);
+          setAvatar({ uri: data.profileImage });
         }
       }
     } catch (error) {
       console.log('Profile load error:', error);
     }
+  };
+
+  const uploadProfileImage = async (imageUri) => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) return '';
+
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+
+    const imageRef = ref(
+      storage,
+      `profileImages/${currentUser.uid}.jpg`
+    );
+
+    await uploadBytes(imageRef, blob);
+
+    const downloadURL = await getDownloadURL(imageRef);
+
+    return downloadURL;
   };
 
   const pickImage = async () => {
@@ -60,15 +103,14 @@ const EditProfile = ({ navigation }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.5,
     });
 
     if (!result.canceled) {
       const selectedImage = result.assets[0].uri;
 
+      setProfileImage(selectedImage);
       setAvatar({ uri: selectedImage });
-
-      await AsyncStorage.setItem('profileImage', selectedImage);
     }
   };
 
@@ -86,36 +128,78 @@ const EditProfile = ({ navigation }) => {
     hideDatePicker();
   };
 
+  const updateFriendsCopies = async (profileData) => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) return;
+
+    const friendsSnapshot = await getDocs(
+      collection(db, 'users', currentUser.uid, 'friends')
+    );
+
+    const updatePromises = friendsSnapshot.docs.map((friendDoc) => {
+      const friendId = friendDoc.id;
+
+      return setDoc(
+        doc(db, 'users', friendId, 'friends', currentUser.uid),
+        {
+          uid: currentUser.uid,
+          name: profileData.name,
+          username: profileData.username,
+          email: profileData.email,
+          profileImage: profileData.profileImage,
+          avatar: profileData.profileImage,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    });
+
+    await Promise.all(updatePromises);
+  };
+
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    try {
-      let profileImage = '';
+    const currentUser = auth.currentUser;
 
-      if (avatar && avatar.uri) {
-        profileImage = avatar.uri;
-      } else {
-        const savedImage = await AsyncStorage.getItem('profileImage');
-        profileImage = savedImage || '';
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login first.');
+      return;
+    }
+
+    try {
+      let finalProfileImage = profileImage;
+
+      if (
+        profileImage &&
+        !profileImage.startsWith('https://') &&
+        !profileImage.startsWith('http://')
+      ) {
+        finalProfileImage = await uploadProfileImage(profileImage);
       }
 
       const profileData = {
+        uid: currentUser.uid,
         name,
+        username: username.trim().toLowerCase(),
         bio,
         birthDate,
-        profileImage,
-        email: auth.currentUser?.email || '',
+        email: currentUser.email || '',
+        profileImage: finalProfileImage,
+        avatar: finalProfileImage,
+        updatedAt: serverTimestamp(),
       };
 
-      await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
-
-      Alert.alert(
-        'Profile Updated',
-        `Name: ${name}\nBio: ${bio}\nBirth Date: ${
-          birthDate ? birthDate : 'Not set'
-        }`
+      await setDoc(
+        doc(db, 'users', currentUser.uid),
+        profileData,
+        { merge: true }
       );
 
+      await updateFriendsCopies(profileData);
+
+      Alert.alert('Profile Updated', 'Your profile has been saved.');
       navigation.goBack();
     } catch (error) {
       console.log('Profile save error:', error);
@@ -144,13 +228,25 @@ const EditProfile = ({ navigation }) => {
           <Text style={styles.buttonText}>  Change Profile Photo</Text>
         </TouchableOpacity>
 
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Name</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter your name"
           placeholderTextColor="#ccc"
           value={name}
           onChangeText={setName}
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
+        />
+
+        <Text style={styles.label}>Username</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter username"
+          placeholderTextColor="#ccc"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
           returnKeyType="done"
           onSubmitEditing={Keyboard.dismiss}
         />

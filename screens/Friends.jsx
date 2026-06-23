@@ -15,11 +15,13 @@ import { auth, db } from '../firebase';
 import {
   collection,
   onSnapshot,
-  addDoc,
   serverTimestamp,
   query,
   where,
   getDocs,
+  doc,
+  setDoc,
+  getDoc,
 } from 'firebase/firestore';
 
 export default function FriendsScreen({ navigation }) {
@@ -28,17 +30,19 @@ export default function FriendsScreen({ navigation }) {
   const [friends, setFriends] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'users'),
-      (snapshot) => {
-        const usersList = snapshot.docs
-          .map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-          .filter((user) => user.id !== auth.currentUser?.uid);
+    const currentUser = auth.currentUser;
 
-        setFriends(usersList);
+    if (!currentUser) return;
+
+    const unsubscribe = onSnapshot(
+      collection(db, 'users', currentUser.uid, 'friends'),
+      (snapshot) => {
+        const friendsList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setFriends(friendsList);
       },
       (error) => {
         console.log('Friends error:', error);
@@ -54,7 +58,7 @@ export default function FriendsScreen({ navigation }) {
       .includes(search.toLowerCase())
   );
 
-  const sendFriendRequest = async (friend) => {
+  const addFriendPermanently = async (friend) => {
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
@@ -68,21 +72,39 @@ export default function FriendsScreen({ navigation }) {
     }
 
     try {
-      await addDoc(collection(db, 'friendRequests'), {
-        fromUserId: currentUser.uid,
-        fromEmail: currentUser.email,
-        toUserId: friend.id,
-        toUserName: friend.name || friend.username || friend.email || 'Player',
-        toUserEmail: friend.email || '',
-        status: 'pending',
+      const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
+
+      const currentUserData = currentUserDoc.exists()
+        ? currentUserDoc.data()
+        : {};
+
+      await setDoc(doc(db, 'users', currentUser.uid, 'friends', friend.id), {
+        uid: friend.id,
+        name: friend.name || '',
+        surname: friend.surname || '',
+        username: friend.username || '',
+        email: friend.email || '',
+        profileImage: friend.profileImage || friend.avatar || '',
+        avatar: friend.avatar || friend.profileImage || '',
+        online: friend.online || false,
+        createdAt: serverTimestamp(),
+      });
+
+      await setDoc(doc(db, 'users', friend.id, 'friends', currentUser.uid), {
+        uid: currentUser.uid,
+        name: currentUserData.name || '',
+        surname: currentUserData.surname || '',
+        username: currentUserData.username || '',
+        email: currentUser.email || '',
+        profileImage: currentUserData.profileImage || currentUserData.avatar || '',
+        avatar: currentUserData.avatar || currentUserData.profileImage || '',
+        online: currentUserData.online || false,
         createdAt: serverTimestamp(),
       });
 
       Alert.alert(
         'Success',
-        `Friend request sent to ${
-          friend.name || friend.username || 'Player'
-        }`
+        `${friend.name || friend.username || 'Player'} added as friend.`
       );
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -102,7 +124,7 @@ export default function FriendsScreen({ navigation }) {
       return;
     }
 
-    const searchValue = addFriendText.trim();
+    const searchValue = addFriendText.trim().toLowerCase();
 
     try {
       let userQuery = query(
@@ -133,12 +155,7 @@ export default function FriendsScreen({ navigation }) {
         ...foundUserDoc.data(),
       };
 
-      if (foundUser.id === currentUser.uid) {
-        Alert.alert('Error', 'You cannot add yourself.');
-        return;
-      }
-
-      await sendFriendRequest(foundUser);
+      await addFriendPermanently(foundUser);
       setAddFriendText('');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -228,11 +245,13 @@ export default function FriendsScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.inviteButton}
-              onPress={() => sendFriendRequest(item)}
+              onPress={() =>
+                navigation.navigate('Messages', {
+                  selectedFriend: item,
+                })
+              }
             >
-              <Text style={styles.buttonText}>
-                Invite
-              </Text>
+              <Text style={styles.buttonText}>Message</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -242,9 +261,7 @@ export default function FriendsScreen({ navigation }) {
         style={styles.addButton}
         onPress={handleAddFriend}
       >
-        <Text style={styles.addText}>
-          + Add Friend
-        </Text>
+        <Text style={styles.addText}>+ Add Friend</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

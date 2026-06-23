@@ -7,115 +7,216 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { auth, db } from '../firebase';
 
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
+  addDoc,
+  serverTimestamp,
+  doc,
+  setDoc,
 } from 'firebase/firestore';
 
-import { db } from '../firebase';
-
-export default function Messages({ navigation }) {
+export default function Messages({ navigation, route }) {
   const [search, setSearch] = useState('');
-  const [profileImage, setProfileImage] = useState(null);
-  const [conversations, setConversations] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState(
+    route?.params?.selectedFriend || null
+  );
+  const [messages, setMessages] = useState([]);
+  const [messageText, setMessageText] = useState('');
+
+  const currentUser = auth.currentUser;
+
+  const getChatId = (uid1, uid2) => {
+    return [uid1, uid2].sort().join('_');
+  };
 
   useEffect(() => {
-    const loadProfileImage = async () => {
-      const savedImage = await AsyncStorage.getItem('profileImage');
+    if (!currentUser) return;
 
-      if (savedImage) {
-        setProfileImage(savedImage);
+    const unsubscribe = onSnapshot(
+      collection(db, 'users', currentUser.uid, 'friends'),
+      (snapshot) => {
+        const friendsList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setFriends(friendsList);
       }
-    };
-
-    loadProfileImage();
-  }, []);
-
-  useEffect(() => {
-    const q = query(
-      collection(db, 'conversations'),
-      orderBy('updatedAt', 'desc')
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const firebaseConversations = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setConversations(firebaseConversations);
-    });
 
     return () => unsubscribe();
   }, []);
 
-  const updatedConversations = conversations.map((item) => {
-    if (item.name === 'Hasan' && profileImage) {
-      return {
-        ...item,
-        avatar: profileImage,
-      };
-    }
+  useEffect(() => {
+    if (!currentUser || !selectedFriend) return;
 
-    return item;
-  });
+    const chatId = getChatId(currentUser.uid, selectedFriend.uid || selectedFriend.id);
 
-  const filteredConversations = updatedConversations.filter((item) =>
-    item.name?.toLowerCase().includes(search.toLowerCase()) ||
-    item.username?.toLowerCase().includes(search.toLowerCase())
+    const q = query(
+      collection(db, 'chats', chatId, 'messages'),
+      orderBy('createdAt', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messageList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setMessages(messageList);
+    });
+
+    return () => unsubscribe();
+  }, [selectedFriend]);
+
+  const sendMessage = async () => {
+    if (!messageText.trim()) return;
+    if (!currentUser || !selectedFriend) return;
+
+    const friendId = selectedFriend.uid || selectedFriend.id;
+    const chatId = getChatId(currentUser.uid, friendId);
+
+    const text = messageText.trim();
+
+    setMessageText('');
+
+    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+      text,
+      senderId: currentUser.uid,
+      receiverId: friendId,
+      createdAt: serverTimestamp(),
+    });
+
+    await setDoc(
+      doc(db, 'chats', chatId),
+      {
+        users: [currentUser.uid, friendId],
+        lastMessage: text,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  };
+
+  const filteredFriends = friends.filter((item) =>
+    (item.name || item.username || item.email || '')
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
-  const renderConversation = ({ item }) => (
+  const renderFriend = ({ item }) => (
     <TouchableOpacity
       style={styles.chatRow}
       activeOpacity={0.8}
-      onPress={() => navigation.navigate('ChatScreen', { conversation: item })}
+      onPress={() => setSelectedFriend(item)}
     >
       <TouchableOpacity
         style={styles.avatarWrapper}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('UserProfileScreen', { user: item })}
       >
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        <Image
+          source={{
+            uri:
+              item.profileImage ||
+              item.avatar ||
+              'https://i.pravatar.cc/150?img=1',
+          }}
+          style={styles.avatar}
+        />
 
         {item.online && <View style={styles.onlineDot} />}
       </TouchableOpacity>
 
       <View style={styles.messageInfo}>
-        <View style={styles.topRow}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-
-        <View style={styles.bottomRow}>
-          <Text
-            style={[
-              styles.lastMessage,
-              item.unread > 0 && styles.unreadMessage,
-            ]}
-            numberOfLines={1}
-          >
-            {item.lastMessage}
-          </Text>
-
-          {item.unread > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.unread}</Text>
-            </View>
-          )}
-        </View>
-
-        <Text style={styles.username}>{item.username}</Text>
+        <Text style={styles.name}>{item.name || item.username || 'Player'}</Text>
+        <Text style={styles.lastMessage}>Tap to start chatting</Text>
+        <Text style={styles.username}>{item.username || item.email}</Text>
       </View>
     </TouchableOpacity>
   );
+
+  const renderMessage = ({ item }) => {
+    const isMe = item.senderId === currentUser?.uid;
+
+    return (
+      <View
+        style={[
+          styles.messageBubble,
+          isMe ? styles.myMessage : styles.theirMessage,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.text}</Text>
+      </View>
+    );
+  };
+
+  if (selectedFriend) {
+    return (
+      <LinearGradient
+        colors={['#00c6ff', '#0072ff', '#000']}
+        style={styles.container}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.chatHeader}>
+            <TouchableOpacity onPress={() => setSelectedFriend(null)}>
+              <Ionicons name="arrow-back" size={28} color="#fff" />
+            </TouchableOpacity>
+
+            <Image
+              source={{
+                uri:
+                  selectedFriend.profileImage ||
+                  selectedFriend.avatar ||
+                  'https://i.pravatar.cc/150?img=1',
+              }}
+              style={styles.headerAvatar}
+            />
+
+            <Text style={styles.chatTitle}>
+              {selectedFriend.name || selectedFriend.username || 'Player'}
+            </Text>
+          </View>
+
+          <FlatList
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={{ paddingVertical: 15 }}
+          />
+
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.messageInput}
+              placeholder="Type message..."
+              placeholderTextColor="#ccc"
+              value={messageText}
+              onChangeText={setMessageText}
+            />
+
+            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+              <Ionicons name="send" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -134,7 +235,7 @@ export default function Messages({ navigation }) {
         <Ionicons name="search" size={20} color="#ccc" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search players..."
+          placeholder="Search friends..."
           placeholderTextColor="#ccc"
           value={search}
           onChangeText={setSearch}
@@ -144,9 +245,9 @@ export default function Messages({ navigation }) {
       <Text style={styles.sectionTitle}>Chats</Text>
 
       <FlatList
-        data={filteredConversations}
+        data={filteredFriends}
         keyExtractor={(item) => item.id}
-        renderItem={renderConversation}
+        renderItem={renderFriend}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 30 }}
       />
@@ -247,38 +348,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
   name: {
     color: '#fff',
     fontSize: 17,
     fontWeight: 'bold',
   },
 
-  time: {
-    color: '#ddd',
-    fontSize: 12,
-  },
-
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-
   lastMessage: {
-    flex: 1,
     color: '#dcdcdc',
     fontSize: 14,
-  },
-
-  unreadMessage: {
-    color: '#fff',
-    fontWeight: 'bold',
+    marginTop: 4,
   },
 
   username: {
@@ -287,20 +366,70 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  badge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#1abc9c',
-    justifyContent: 'center',
+  chatHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
-    paddingHorizontal: 6,
+    marginBottom: 15,
   },
 
-  badgeText: {
+  headerAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    marginLeft: 15,
+    marginRight: 10,
+  },
+
+  chatTitle: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 20,
     fontWeight: 'bold',
+  },
+
+  messageBubble: {
+    maxWidth: '75%',
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 10,
+  },
+
+  myMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#00ff88',
+  },
+
+  theirMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+
+  messageText: {
+    color: '#fff',
+    fontSize: 15,
+  },
+
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 18,
+  },
+
+  messageInput: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 18,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    color: '#fff',
+    marginRight: 10,
+  },
+
+  sendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#00c6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
