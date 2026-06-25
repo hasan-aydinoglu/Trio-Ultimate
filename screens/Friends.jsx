@@ -31,6 +31,8 @@ export default function FriendsScreen({ navigation }) {
   const [addFriendText, setAddFriendText] = useState('');
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
+  const [searchedUser, setSearchedUser] = useState(null);
+  const [requestSent, setRequestSent] = useState(false);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -130,7 +132,8 @@ export default function FriendsScreen({ navigation }) {
         surname: currentUserData.surname || '',
         username: currentUserData.username || '',
         email: currentUser.email || '',
-        profileImage: currentUserData.profileImage || currentUserData.avatar || '',
+        profileImage:
+          currentUserData.profileImage || currentUserData.avatar || '',
         avatar: currentUserData.avatar || currentUserData.profileImage || '',
         online: currentUserData.online || false,
         createdAt: serverTimestamp(),
@@ -179,6 +182,7 @@ export default function FriendsScreen({ navigation }) {
       const existingRequestSnapshot = await getDocs(existingRequestQuery);
 
       if (!existingRequestSnapshot.empty) {
+        setRequestSent(true);
         Alert.alert('Already Sent', 'Friend request already sent.');
         return;
       }
@@ -188,7 +192,8 @@ export default function FriendsScreen({ navigation }) {
         fromName: currentUserData.name || '',
         fromUsername: currentUserData.username || '',
         fromEmail: currentUser.email || '',
-        fromProfileImage: currentUserData.profileImage || currentUserData.avatar || '',
+        fromProfileImage:
+          currentUserData.profileImage || currentUserData.avatar || '',
 
         toUserId: friend.id,
         toName: friend.name || '',
@@ -199,6 +204,8 @@ export default function FriendsScreen({ navigation }) {
         status: 'pending',
         createdAt: serverTimestamp(),
       });
+
+      setRequestSent(true);
 
       Alert.alert(
         'Request Sent',
@@ -242,6 +249,8 @@ export default function FriendsScreen({ navigation }) {
       }
 
       if (snapshot.empty) {
+        setSearchedUser(null);
+        setRequestSent(false);
         Alert.alert('Not Found', 'No user found with this email or username.');
         return;
       }
@@ -253,8 +262,34 @@ export default function FriendsScreen({ navigation }) {
         ...foundUserDoc.data(),
       };
 
-      await sendFriendRequest(foundUser);
-      setAddFriendText('');
+      if (foundUser.id === currentUser.uid) {
+        setSearchedUser(null);
+        setRequestSent(false);
+        Alert.alert('Error', 'You cannot add yourself.');
+        return;
+      }
+
+      const alreadyFriendDoc = await getDoc(
+        doc(db, 'users', currentUser.uid, 'friends', foundUser.id)
+      );
+
+      if (alreadyFriendDoc.exists()) {
+        setSearchedUser(foundUser);
+        setRequestSent(true);
+        return;
+      }
+
+      const existingRequestQuery = query(
+        collection(db, 'friendRequests'),
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', foundUser.id),
+        where('status', '==', 'pending')
+      );
+
+      const existingRequestSnapshot = await getDocs(existingRequestQuery);
+
+      setSearchedUser(foundUser);
+      setRequestSent(!existingRequestSnapshot.empty);
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -304,9 +339,7 @@ export default function FriendsScreen({ navigation }) {
       <View style={styles.left}>
         <Image
           source={{
-            uri:
-              item.fromProfileImage ||
-              'https://i.pravatar.cc/150?img=1',
+            uri: item.fromProfileImage || 'https://i.pravatar.cc/150?img=1',
           }}
           style={styles.avatar}
         />
@@ -365,7 +398,11 @@ export default function FriendsScreen({ navigation }) {
           placeholder="Enter email or username..."
           placeholderTextColor="#ccc"
           value={addFriendText}
-          onChangeText={setAddFriendText}
+          onChangeText={(text) => {
+            setAddFriendText(text);
+            setSearchedUser(null);
+            setRequestSent(false);
+          }}
           autoCapitalize="none"
         />
 
@@ -373,9 +410,54 @@ export default function FriendsScreen({ navigation }) {
           style={styles.smallAddButton}
           onPress={handleAddFriend}
         >
-          <Text style={styles.smallAddText}>Add</Text>
+          <Text style={styles.smallAddText}>Search</Text>
         </TouchableOpacity>
       </View>
+
+      {searchedUser && (
+        <View style={styles.friendCard}>
+          <TouchableOpacity
+            style={styles.left}
+            activeOpacity={0.8}
+            onPress={() => openUserProfile(searchedUser)}
+          >
+            <Image
+              source={{
+                uri:
+                  searchedUser.profileImage ||
+                  searchedUser.avatar ||
+                  'https://i.pravatar.cc/150?img=1',
+              }}
+              style={styles.avatar}
+            />
+
+            <View>
+              <Text style={styles.name}>
+                {searchedUser.name || searchedUser.username || 'Player'}
+              </Text>
+
+              <Text style={styles.status}>
+                {searchedUser.username
+                  ? `@${searchedUser.username}`
+                  : searchedUser.email}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.inviteButton,
+              requestSent && styles.requestedButton,
+            ]}
+            disabled={requestSent}
+            onPress={() => sendFriendRequest(searchedUser)}
+          >
+            <Text style={styles.buttonText}>
+              {requestSent ? 'Requested' : 'Add Friend'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {friendRequests.length > 0 && (
         <>
@@ -443,13 +525,6 @@ export default function FriendsScreen({ navigation }) {
           </View>
         )}
       />
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddFriend}
-      >
-        <Text style={styles.addText}>+ Add Friend</Text>
-      </TouchableOpacity>
     </LinearGradient>
   );
 }
@@ -566,6 +641,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
+  requestedButton: {
+    backgroundColor: '#7f8c8d',
+  },
+
   requestButtons: {
     flexDirection: 'row',
     marginTop: 12,
@@ -592,19 +671,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-
-  addButton: {
-    backgroundColor: '#00ff88',
-    padding: 15,
-    borderRadius: 15,
-    marginTop: 15,
-  },
-
-  addText: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#000',
-    fontSize: 16,
   },
 });
