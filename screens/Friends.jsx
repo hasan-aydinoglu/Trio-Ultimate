@@ -1,3 +1,5 @@
+// FriendsScreen.jsx
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -328,6 +330,47 @@ export default function FriendsScreen({ navigation }) {
     }
   };
 
+  const removeFriend = async (friend) => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login first.');
+      return;
+    }
+
+    const friendId = friend.uid || friend.id;
+
+    Alert.alert(
+      'Remove Friend',
+      `Remove ${friend.name || friend.username || 'this player'} from your friends?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(
+                doc(db, 'users', currentUser.uid, 'friends', friendId)
+              );
+
+              await deleteDoc(
+                doc(db, 'users', friendId, 'friends', currentUser.uid)
+              );
+
+              Alert.alert('Removed', 'Friend removed successfully.');
+            } catch (error) {
+              Alert.alert('Error', error.message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const openUserProfile = (user) => {
     navigation.navigate('UserProfileScreen', {
       user,
@@ -512,16 +555,25 @@ export default function FriendsScreen({ navigation }) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.inviteButton}
-              onPress={() =>
-                navigation.navigate('Messages', {
-                  selectedFriend: item,
-                })
-              }
-            >
-              <Text style={styles.buttonText}>Message</Text>
-            </TouchableOpacity>
+            <View style={styles.friendActions}>
+              <TouchableOpacity
+                style={styles.inviteButton}
+                onPress={() =>
+                  navigation.navigate('Messages', {
+                    selectedFriend: item,
+                  })
+                }
+              >
+                <Text style={styles.buttonText}>Message</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeFriend(item)}
+              >
+                <Text style={styles.buttonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
@@ -633,12 +685,26 @@ const styles = StyleSheet.create({
     color: '#ddd',
   },
 
+  friendActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+
   inviteButton: {
     backgroundColor: '#00c6ff',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
     marginLeft: 10,
+  },
+
+  removeButton: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginLeft: 8,
   },
 
   requestedButton: {
