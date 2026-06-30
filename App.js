@@ -40,7 +40,7 @@ function TabNavigator() {
       initialRouteName="GameMode"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
-          let iconName;
+          let iconName = 'ellipse';
 
           if (route.name === 'GameMode') iconName = 'game-controller';
           else if (route.name === 'Messages') iconName = 'chatbox';
@@ -55,7 +55,12 @@ function TabNavigator() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="GameMode" component={GameModeScreen} options={{ title: 'Game' }} />
+      <Tab.Screen
+        name="GameMode"
+        component={GameModeScreen}
+        options={{ title: 'Game' }}
+      />
+
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Friends" component={Friends} />
       <Tab.Screen name="Profile" component={Profile} />
@@ -95,21 +100,35 @@ export default function App() {
 
   return (
     <NavigationContainer onReady={onLayoutRootView}>
-      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="Home" component={Home} />
 
         <Stack.Screen name="SplashIntro" component={SplashIntro} />
         <Stack.Screen name="TabNavigator" component={TabNavigator} />
         <Stack.Screen name="MainMenu" component={MainMenu} />
+
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="SignUp" component={SignUp} />
 
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+        <Stack.Screen
+          name="UserProfileScreen"
+          component={UserProfileScreen}
+        />
 
-        <Stack.Screen name="OnlineRoomSetupScreen" component={OnlineRoomSetupScreen} />
-        <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
+        <Stack.Screen
+          name="OnlineRoomSetupScreen"
+          component={OnlineRoomSetupScreen}
+        />
+
+        <Stack.Screen
+          name="OnlineLobbyScreen"
+          component={OnlineLobbyScreen}
+        />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="GameScreen2" component={GameScreen2} />

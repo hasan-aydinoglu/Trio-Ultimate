@@ -372,9 +372,26 @@ export default function FriendsScreen({ navigation }) {
   };
 
   const openUserProfile = (user) => {
-    navigation.navigate('UserProfileScreen', {
-      user,
-    });
+    const userId = user.uid || user.id;
+
+    if (!userId) {
+      Alert.alert('Error', 'User profile could not be opened.');
+      return;
+    }
+
+    const parentNavigation = navigation.getParent();
+
+    if (parentNavigation) {
+      parentNavigation.navigate('UserProfileScreen', {
+        userId,
+        user,
+      });
+    } else {
+      navigation.navigate('UserProfileScreen', {
+        userId,
+        user,
+      });
+    }
   };
 
   const renderFriendRequest = ({ item }) => (

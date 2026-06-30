@@ -1,21 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
+import { db } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+
 export default function UserProfileScreen({ navigation, route }) {
-  const { user } = route.params;
+  const user = route.params?.user || {};
+  const userId = route.params?.userId || user.uid || user.id;
+
+  const [profileUser, setProfileUser] = useState(user);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onSnapshot(
+      doc(db, 'users', userId),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          setProfileUser({
+            id: snapshot.id,
+            uid: snapshot.id,
+            ...snapshot.data(),
+          });
+        }
+
+        setLoading(false);
+      },
+      (error) => {
+        console.log('User profile error:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userId]);
 
   const avatarUri =
-    user.profileImage ||
-    user.avatar ||
+    profileUser.profileImage ||
+    profileUser.avatar ||
     'https://i.pravatar.cc/150?img=1';
+
+  if (loading) {
+    return (
+      <LinearGradient
+        colors={['#00c6ff', '#0072ff', '#000']}
+        style={styles.loadingContainer}
+      >
+        <ActivityIndicator size="large" color="#fff" />
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -32,30 +78,34 @@ export default function UserProfileScreen({ navigation, route }) {
       <Image source={{ uri: avatarUri }} style={styles.bigAvatar} />
 
       <Text style={styles.name}>
-        {user.name || 'Player'}
+        {`${profileUser.name || 'Player'} ${profileUser.surname || ''}`.trim()}
       </Text>
 
       <Text style={styles.username}>
-        {user.username || user.email || '@player'}
+        {profileUser.username
+          ? `@${profileUser.username}`
+          : profileUser.email || '@player'}
       </Text>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>
-          Status: {user.online ? 'Online' : 'Offline'}
-        </Text>
+      <Text style={styles.infoText}>
+        Status: {profileUser.online ? 'Online' : 'Offline'}
+      </Text>
 
-        <Text style={styles.infoText}>
-          Email: {user.email || 'No email'}
-        </Text>
+      <Text style={styles.infoText}>
+        Email: {profileUser.email || 'No email'}
+      </Text>
 
-        <Text style={styles.infoText}>
-          Last message: {user.lastMessage || 'No messages yet'}
-        </Text>
-      </View>
+      <Text style={styles.infoText}>
+        Bio: {profileUser.bio || 'No bio yet'}
+      </Text>
 
       <TouchableOpacity
         style={styles.messageButton}
-        onPress={() => navigation.navigate('ChatScreen', { conversation: user })}
+        onPress={() =>
+          navigation.navigate('ChatScreen', {
+            conversation: profileUser,
+          })
+        }
       >
         <Text style={styles.buttonText}>Message</Text>
       </TouchableOpacity>
@@ -64,6 +114,12 @@ export default function UserProfileScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   container: {
     flex: 1,
     alignItems: 'center',
@@ -90,26 +146,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 30,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   username: {
     color: '#b8eaff',
     fontSize: 17,
     marginTop: 5,
-  },
-
-  infoCard: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 22,
-    padding: 20,
-    marginTop: 30,
+    marginBottom: 30,
   },
 
   infoText: {
+    width: '100%',
     color: '#fff',
     fontSize: 16,
     marginBottom: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 14,
+    borderRadius: 14,
   },
 
   messageButton: {
