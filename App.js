@@ -6,6 +6,15 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
+import { auth, db } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from 'firebase/firestore';
+
 import Home from './screens/home';
 import GameScreen from './screens/GameScreen';
 import GameModeScreen from './screens/GameModeScreen';
@@ -25,7 +34,6 @@ import GameScreen5 from './screens/GameScreen5';
 import SignUp from './screens/SignUp';
 import OnlineLobbyScreen from './screens/OnlineLobbyScreen';
 import OnlineRoomSetupScreen from './screens/OnlineRoomSetupScreen';
-
 import ChatScreen from './screens/ChatScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 
@@ -34,7 +42,7 @@ const Stack = createNativeStackNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
-function TabNavigator() {
+function TabNavigator({ unreadMessageCount, friendRequestCount }) {
   return (
     <Tab.Navigator
       initialRouteName="GameMode"
@@ -61,8 +69,22 @@ function TabNavigator() {
         options={{ title: 'Game' }}
       />
 
-      <Tab.Screen name="Messages" component={Messages} />
-      <Tab.Screen name="Friends" component={Friends} />
+      <Tab.Screen
+        name="Messages"
+        component={Messages}
+        options={{
+          tabBarBadge: unreadMessageCount > 0 ? unreadMessageCount : undefined,
+        }}
+      />
+
+      <Tab.Screen
+        name="Friends"
+        component={Friends}
+        options={{
+          tabBarBadge: friendRequestCount > 0 ? friendRequestCount : undefined,
+        }}
+      />
+
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
@@ -71,6 +93,9 @@ function TabNavigator() {
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [friendRequestCount, setFriendRequestCount] = useState(0);
 
   useEffect(() => {
     async function prepare() {
@@ -87,6 +112,64 @@ export default function App() {
 
     prepare();
   }, []);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+      } else {
+        setCurrentUserId(null);
+        setUnreadMessageCount(0);
+        setFriendRequestCount(0);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const friendRequestsQuery = query(
+      collection(db, 'friendRequests'),
+      where('toUserId', '==', currentUserId),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(
+      friendRequestsQuery,
+      (snapshot) => {
+        setFriendRequestCount(snapshot.size);
+      },
+      (error) => {
+        console.log('Friend request badge error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const unreadMessagesQuery = query(
+      collection(db, 'chats'),
+      where('lastMessageReceiverId', '==', currentUserId),
+      where('lastMessageRead', '==', false)
+    );
+
+    const unsubscribe = onSnapshot(
+      unreadMessagesQuery,
+      (snapshot) => {
+        setUnreadMessageCount(snapshot.size);
+      },
+      (error) => {
+        console.log('Unread message badge error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUserId]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
@@ -105,30 +188,31 @@ export default function App() {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Home" component={Home} />
-
         <Stack.Screen name="SplashIntro" component={SplashIntro} />
-        <Stack.Screen name="TabNavigator" component={TabNavigator} />
-        <Stack.Screen name="MainMenu" component={MainMenu} />
 
+        <Stack.Screen name="TabNavigator">
+          {(props) => (
+            <TabNavigator
+              {...props}
+              unreadMessageCount={unreadMessageCount}
+              friendRequestCount={friendRequestCount}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="MainMenu" component={MainMenu} />
         <Stack.Screen name="Friends" component={Friends} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="SignUp" component={SignUp} />
 
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        <Stack.Screen
-          name="UserProfileScreen"
-          component={UserProfileScreen}
-        />
+        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
 
         <Stack.Screen
           name="OnlineRoomSetupScreen"
           component={OnlineRoomSetupScreen}
         />
-
-        <Stack.Screen
-          name="OnlineLobbyScreen"
-          component={OnlineLobbyScreen}
-        />
+        <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="GameScreen2" component={GameScreen2} />

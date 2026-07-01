@@ -24,6 +24,7 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore';
 
 export default function Messages({ navigation, route }) {
@@ -53,6 +54,9 @@ export default function Messages({ navigation, route }) {
         }));
 
         setFriends(friendsList);
+      },
+      (error) => {
+        console.log('Messages friends error:', error);
       }
     );
 
@@ -62,21 +66,54 @@ export default function Messages({ navigation, route }) {
   useEffect(() => {
     if (!currentUser || !selectedFriend) return;
 
-    const chatId = getChatId(currentUser.uid, selectedFriend.uid || selectedFriend.id);
+    const friendId = selectedFriend.uid || selectedFriend.id;
+    const chatId = getChatId(currentUser.uid, friendId);
 
     const q = query(
       collection(db, 'chats', chatId, 'messages'),
       orderBy('createdAt', 'asc')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const messageList = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      q,
+      async (snapshot) => {
+        const messageList = snapshot.docs.map((messageDoc) => ({
+          id: messageDoc.id,
+          ...messageDoc.data(),
+        }));
 
-      setMessages(messageList);
-    });
+        setMessages(messageList);
+
+        const unreadMessages = snapshot.docs.filter((messageDoc) => {
+          const data = messageDoc.data();
+
+          return data.receiverId === currentUser.uid && data.read === false;
+        });
+
+        if (unreadMessages.length > 0) {
+          const batch = writeBatch(db);
+
+          unreadMessages.forEach((messageDoc) => {
+            batch.update(messageDoc.ref, {
+              read: true,
+            });
+          });
+
+          await batch.commit();
+
+          await setDoc(
+            doc(db, 'chats', chatId),
+            {
+              lastMessageRead: true,
+            },
+            { merge: true }
+          );
+        }
+      },
+      (error) => {
+        console.log('Messages listener error:', error);
+      }
+    );
 
     return () => unsubscribe();
   }, [selectedFriend]);
@@ -96,6 +133,7 @@ export default function Messages({ navigation, route }) {
       text,
       senderId: currentUser.uid,
       receiverId: friendId,
+      read: false,
       createdAt: serverTimestamp(),
     });
 
@@ -104,10 +142,31 @@ export default function Messages({ navigation, route }) {
       {
         users: [currentUser.uid, friendId],
         lastMessage: text,
+        lastMessageSenderId: currentUser.uid,
+        lastMessageReceiverId: friendId,
+        lastMessageRead: false,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
     );
+  };
+
+  const openUserProfile = (user) => {
+    const userId = user.uid || user.id;
+
+    const parentNavigation = navigation.getParent();
+
+    if (parentNavigation) {
+      parentNavigation.navigate('UserProfileScreen', {
+        userId,
+        user,
+      });
+    } else {
+      navigation.navigate('UserProfileScreen', {
+        userId,
+        user,
+      });
+    }
   };
 
   const filteredFriends = friends.filter((item) =>
@@ -125,7 +184,7 @@ export default function Messages({ navigation, route }) {
       <TouchableOpacity
         style={styles.avatarWrapper}
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('UserProfileScreen', { user: item })}
+        onPress={() => openUserProfile(item)}
       >
         <Image
           source={{
@@ -141,9 +200,15 @@ export default function Messages({ navigation, route }) {
       </TouchableOpacity>
 
       <View style={styles.messageInfo}>
-        <Text style={styles.name}>{item.name || item.username || 'Player'}</Text>
+        <Text style={styles.name}>
+          {item.name || item.username || 'Player'}
+        </Text>
+
         <Text style={styles.lastMessage}>Tap to start chatting</Text>
-        <Text style={styles.username}>{item.username || item.email}</Text>
+
+        <Text style={styles.username}>
+          {item.username || item.email}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -178,15 +243,20 @@ export default function Messages({ navigation, route }) {
               <Ionicons name="arrow-back" size={28} color="#fff" />
             </TouchableOpacity>
 
-            <Image
-              source={{
-                uri:
-                  selectedFriend.profileImage ||
-                  selectedFriend.avatar ||
-                  'https://i.pravatar.cc/150?img=1',
-              }}
-              style={styles.headerAvatar}
-            />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => openUserProfile(selectedFriend)}
+            >
+              <Image
+                source={{
+                  uri:
+                    selectedFriend.profileImage ||
+                    selectedFriend.avatar ||
+                    'https://i.pravatar.cc/150?img=1',
+                }}
+                style={styles.headerAvatar}
+              />
+            </TouchableOpacity>
 
             <Text style={styles.chatTitle}>
               {selectedFriend.name || selectedFriend.username || 'Player'}
@@ -233,6 +303,7 @@ export default function Messages({ navigation, route }) {
 
       <View style={styles.searchBox}>
         <Ionicons name="search" size={20} color="#ccc" />
+
         <TextInput
           style={styles.searchInput}
           placeholder="Search friends..."
