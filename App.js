@@ -42,7 +42,11 @@ const Stack = createNativeStackNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
-function TabNavigator({ unreadMessageCount, friendRequestCount }) {
+function TabNavigator({
+  unreadMessageCount,
+  friendRequestCount,
+  gameInviteCount,
+}) {
   return (
     <Tab.Navigator
       initialRouteName="GameMode"
@@ -66,7 +70,10 @@ function TabNavigator({ unreadMessageCount, friendRequestCount }) {
       <Tab.Screen
         name="GameMode"
         component={GameModeScreen}
-        options={{ title: 'Game' }}
+        options={{
+          title: 'Game',
+          tabBarBadge: gameInviteCount > 0 ? gameInviteCount : undefined,
+        }}
       />
 
       <Tab.Screen
@@ -96,6 +103,7 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [friendRequestCount, setFriendRequestCount] = useState(0);
+  const [gameInviteCount, setGameInviteCount] = useState(0);
 
   useEffect(() => {
     async function prepare() {
@@ -121,6 +129,7 @@ export default function App() {
         setCurrentUserId(null);
         setUnreadMessageCount(0);
         setFriendRequestCount(0);
+        setGameInviteCount(0);
       }
     });
 
@@ -171,6 +180,28 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUserId]);
 
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const gameInvitesQuery = query(
+      collection(db, 'gameInvites'),
+      where('toUserId', '==', currentUserId),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(
+      gameInvitesQuery,
+      (snapshot) => {
+        setGameInviteCount(snapshot.size);
+      },
+      (error) => {
+        console.log('Game invite badge error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUserId]);
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await SplashScreen.hideAsync();
@@ -196,6 +227,7 @@ export default function App() {
               {...props}
               unreadMessageCount={unreadMessageCount}
               friendRequestCount={friendRequestCount}
+              gameInviteCount={gameInviteCount}
             />
           )}
         </Stack.Screen>

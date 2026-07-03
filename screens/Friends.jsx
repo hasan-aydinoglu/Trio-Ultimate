@@ -28,13 +28,17 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 
-export default function FriendsScreen({ navigation }) {
+export default function FriendsScreen({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [addFriendText, setAddFriendText] = useState('');
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [searchedUser, setSearchedUser] = useState(null);
   const [requestSent, setRequestSent] = useState(false);
+
+  const inviteMode = route?.params?.inviteMode || false;
+  const roomId = route?.params?.roomId || null;
+  const gameType = route?.params?.gameType || 1;
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -140,6 +144,70 @@ export default function FriendsScreen({ navigation }) {
         online: currentUserData.online || false,
         createdAt: serverTimestamp(),
       });
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const sendGameInvite = async (friend) => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login first.');
+      return;
+    }
+
+    try {
+      const friendId = friend.uid || friend.id;
+
+      const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
+
+      const currentUserData = currentUserDoc.exists()
+        ? currentUserDoc.data()
+        : {};
+
+      const existingInviteQuery = query(
+        collection(db, 'gameInvites'),
+        where('fromUserId', '==', currentUser.uid),
+        where('toUserId', '==', friendId),
+        where('gameType', '==', gameType),
+        where('status', '==', 'pending')
+      );
+
+      const existingInviteSnapshot = await getDocs(existingInviteQuery);
+
+      if (!existingInviteSnapshot.empty) {
+        Alert.alert('Already Sent', 'Game invitation already sent.');
+        return;
+      }
+
+      await addDoc(collection(db, 'gameInvites'), {
+        fromUserId: currentUser.uid,
+        fromName: currentUserData.name || '',
+        fromUsername:
+          currentUserData.username || currentUserData.name || 'Player',
+        fromEmail: currentUser.email || '',
+        fromProfileImage:
+          currentUserData.profileImage || currentUserData.avatar || '',
+
+        toUserId: friendId,
+        toName: friend.name || '',
+        toUsername: friend.username || '',
+        toEmail: friend.email || '',
+        toProfileImage: friend.profileImage || friend.avatar || '',
+
+        roomId: roomId,
+        gameType: gameType,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
+
+      Alert.alert(
+        'Invite Sent',
+        `Game Type ${gameType} invite sent to ${
+          friend.name || friend.username || 'Player'
+        }.`
+      );
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -438,10 +506,14 @@ export default function FriendsScreen({ navigation }) {
       colors={['#00c6ff', '#0072ff', '#000']}
       style={styles.container}
     >
-      <Text style={styles.title}>Friends</Text>
+      <Text style={styles.title}>
+        {inviteMode ? 'Invite Friends' : 'Friends'}
+      </Text>
 
       <Text style={styles.subtitle}>
-        Total Friends: {filteredFriends.length}
+        {inviteMode
+          ? `Invite a friend to Game Type ${gameType}`
+          : `Total Friends: ${filteredFriends.length}`}
       </Text>
 
       <TextInput
@@ -452,87 +524,93 @@ export default function FriendsScreen({ navigation }) {
         onChangeText={setSearch}
       />
 
-      <View style={styles.addFriendBox}>
-        <TextInput
-          style={styles.addFriendInput}
-          placeholder="Enter email or username..."
-          placeholderTextColor="#ccc"
-          value={addFriendText}
-          onChangeText={(text) => {
-            setAddFriendText(text);
-            setSearchedUser(null);
-            setRequestSent(false);
-          }}
-          autoCapitalize="none"
-        />
-
-        <TouchableOpacity
-          style={styles.smallAddButton}
-          onPress={handleAddFriend}
-        >
-          <Text style={styles.smallAddText}>Search</Text>
-        </TouchableOpacity>
-      </View>
-
-      {searchedUser && (
-        <View style={styles.friendCard}>
-          <TouchableOpacity
-            style={styles.left}
-            activeOpacity={0.8}
-            onPress={() => openUserProfile(searchedUser)}
-          >
-            <Image
-              source={{
-                uri:
-                  searchedUser.profileImage ||
-                  searchedUser.avatar ||
-                  'https://i.pravatar.cc/150?img=1',
+      {!inviteMode && (
+        <>
+          <View style={styles.addFriendBox}>
+            <TextInput
+              style={styles.addFriendInput}
+              placeholder="Enter email or username..."
+              placeholderTextColor="#ccc"
+              value={addFriendText}
+              onChangeText={(text) => {
+                setAddFriendText(text);
+                setSearchedUser(null);
+                setRequestSent(false);
               }}
-              style={styles.avatar}
+              autoCapitalize="none"
             />
 
-            <View>
-              <Text style={styles.name}>
-                {searchedUser.name || searchedUser.username || 'Player'}
-              </Text>
+            <TouchableOpacity
+              style={styles.smallAddButton}
+              onPress={handleAddFriend}
+            >
+              <Text style={styles.smallAddText}>Search</Text>
+            </TouchableOpacity>
+          </View>
 
-              <Text style={styles.status}>
-                {searchedUser.username
-                  ? `@${searchedUser.username}`
-                  : searchedUser.email}
-              </Text>
+          {searchedUser && (
+            <View style={styles.friendCard}>
+              <TouchableOpacity
+                style={styles.left}
+                activeOpacity={0.8}
+                onPress={() => openUserProfile(searchedUser)}
+              >
+                <Image
+                  source={{
+                    uri:
+                      searchedUser.profileImage ||
+                      searchedUser.avatar ||
+                      'https://i.pravatar.cc/150?img=1',
+                  }}
+                  style={styles.avatar}
+                />
+
+                <View>
+                  <Text style={styles.name}>
+                    {searchedUser.name || searchedUser.username || 'Player'}
+                  </Text>
+
+                  <Text style={styles.status}>
+                    {searchedUser.username
+                      ? `@${searchedUser.username}`
+                      : searchedUser.email}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.inviteButton,
+                  requestSent && styles.requestedButton,
+                ]}
+                disabled={requestSent}
+                onPress={() => sendFriendRequest(searchedUser)}
+              >
+                <Text style={styles.buttonText}>
+                  {requestSent ? 'Requested' : 'Add Friend'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            style={[
-              styles.inviteButton,
-              requestSent && styles.requestedButton,
-            ]}
-            disabled={requestSent}
-            onPress={() => sendFriendRequest(searchedUser)}
-          >
-            <Text style={styles.buttonText}>
-              {requestSent ? 'Requested' : 'Add Friend'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+          {friendRequests.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Friend Requests</Text>
 
-      {friendRequests.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Friend Requests</Text>
-
-          <FlatList
-            data={friendRequests}
-            keyExtractor={(item) => item.id}
-            renderItem={renderFriendRequest}
-            scrollEnabled={false}
-          />
+              <FlatList
+                data={friendRequests}
+                keyExtractor={(item) => item.id}
+                renderItem={renderFriendRequest}
+                scrollEnabled={false}
+              />
+            </>
+          )}
         </>
       )}
 
-      <Text style={styles.sectionTitle}>My Friends</Text>
+      <Text style={styles.sectionTitle}>
+        {inviteMode ? 'Select Friend' : 'My Friends'}
+      </Text>
 
       <FlatList
         data={filteredFriends}
@@ -573,23 +651,34 @@ export default function FriendsScreen({ navigation }) {
             </TouchableOpacity>
 
             <View style={styles.friendActions}>
-              <TouchableOpacity
-                style={styles.inviteButton}
-                onPress={() =>
-                  navigation.navigate('Messages', {
-                    selectedFriend: item,
-                  })
-                }
-              >
-                <Text style={styles.buttonText}>Message</Text>
-              </TouchableOpacity>
+              {inviteMode ? (
+                <TouchableOpacity
+                  style={styles.gameInviteButton}
+                  onPress={() => sendGameInvite(item)}
+                >
+                  <Text style={styles.buttonText}>Invite</Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.inviteButton}
+                    onPress={() =>
+                      navigation.navigate('Messages', {
+                        selectedFriend: item,
+                      })
+                    }
+                  >
+                    <Text style={styles.buttonText}>Message</Text>
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeFriend(item)}
-              >
-                <Text style={styles.buttonText}>Remove</Text>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removeFriend(item)}
+                  >
+                    <Text style={styles.buttonText}>Remove</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         )}
@@ -713,6 +802,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 10,
+    marginLeft: 10,
+  },
+
+  gameInviteButton: {
+    backgroundColor: '#1abc9c',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 12,
     marginLeft: 10,
   },
 
