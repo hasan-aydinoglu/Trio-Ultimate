@@ -11,6 +11,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
   [5, 1, 8, 6, 5, 2, 7],
@@ -63,6 +66,7 @@ const GameScreen = ({ navigation, route }) => {
   const [randomNumber, setRandomNumber] = useState(null);
   const [showRules, setShowRules] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
+  const [loggedInPlayerName, setLoggedInPlayerName] = useState('Player 1');
 
   const [currentTableData, setCurrentTableData] = useState(tableData);
   const [numberPool, setNumberPool] = useState(createNumberPool());
@@ -87,7 +91,42 @@ const GameScreen = ({ navigation, route }) => {
       }
     };
 
+    const loadLoggedInPlayerName = async () => {
+      try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+
+          setLoggedInPlayerName(
+            data.username ||
+            data.name ||
+            data.fullName ||
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+        } else {
+          setLoggedInPlayerName(
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+        }
+      } catch (error) {
+        console.log('User name load error:', error);
+      }
+    };
+
     loadProfileImage();
+    loadLoggedInPlayerName();
   }, []);
 
   const getPlayerPhoto = (playerId) => {
@@ -100,6 +139,10 @@ const GameScreen = ({ navigation, route }) => {
   };
 
   const getPlayerName = (playerId) => {
+    if (playerId === 1) {
+      return loggedInPlayerName;
+    }
+
     const player = routePlayers.find((p) => p.id === playerId);
     return player?.name || `Player ${playerId}`;
   };

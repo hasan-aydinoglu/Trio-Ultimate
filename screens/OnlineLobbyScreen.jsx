@@ -10,38 +10,46 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const players = [
-  { id: '1', name: 'Hasan', status: 'Ready' },
-  { id: '2', name: 'Player 2', status: 'Waiting' },
-  { id: '3', name: 'Player 3', status: 'Waiting' },
-  { id: '4', name: 'Player 4', status: 'Waiting' },
-];
-
 export default function OnlineLobbyScreen({ navigation, route }) {
   const roomId = route?.params?.roomId;
   const gameType = route?.params?.gameType || 1;
 
   const [profileImage, setProfileImage] = useState(null);
+  const [playerName, setPlayerName] = useState('Player 1');
 
   useEffect(() => {
-    loadProfileImage();
+    loadProfileData();
   }, []);
 
-  const loadProfileImage = async () => {
+  const loadProfileData = async () => {
     try {
       const savedProfile = await AsyncStorage.getItem('userProfile');
 
       if (savedProfile) {
         const profileData = JSON.parse(savedProfile);
 
+        setPlayerName(
+          profileData.username ||
+          profileData.name ||
+          profileData.fullName ||
+          'Player 1'
+        );
+
         if (profileData.profileImage) {
           setProfileImage(profileData.profileImage);
         }
       }
     } catch (error) {
-      console.log('Online lobby profile image load error:', error);
+      console.log('Online lobby profile load error:', error);
     }
   };
+
+  const players = [
+    { id: '1', name: playerName, status: 'Ready' },
+    { id: '2', name: 'Player 2', status: 'Waiting' },
+    { id: '3', name: 'Player 3', status: 'Waiting' },
+    { id: '4', name: 'Player 4', status: 'Waiting' },
+  ];
 
   const handleInviteFriends = () => {
     navigation.navigate('Friends', {
