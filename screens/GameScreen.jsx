@@ -204,6 +204,18 @@ const GameScreen = ({ navigation, route }) => {
     );
   };
 
+  const isCellNextToLastSelected = (cell) => {
+    if (selectedCells.length === 0) {
+      return true;
+    }
+
+    const lastSelectedCell = selectedCells[selectedCells.length - 1];
+    const rowDifference = Math.abs(cell.row - lastSelectedCell.row);
+    const colDifference = Math.abs(cell.col - lastSelectedCell.col);
+
+    return rowDifference <= 1 && colDifference <= 1;
+  };
+
   const handleCellPress = (rowIndex, colIndex, value) => {
     if (gameOver) {
       return;
@@ -219,9 +231,16 @@ const GameScreen = ({ navigation, route }) => {
 
     const cell = { row: rowIndex, col: colIndex, value };
 
-    if (selectedCells.length < 3) {
-      setSelectedCells([...selectedCells, cell]);
+    if (selectedCells.length >= 3) {
+      return;
     }
+
+    if (!isCellNextToLastSelected(cell)) {
+      Alert.alert('Invalid selection', 'Numbers must be next to each other or diagonal.');
+      return;
+    }
+
+    setSelectedCells([...selectedCells, cell]);
   };
 
   const generateRandomNumber = () => {
@@ -323,6 +342,7 @@ const GameScreen = ({ navigation, route }) => {
           <View style={styles.rulesCard}>
             <Text style={styles.ruleText}>• Generate a target number</Text>
             <Text style={styles.ruleText}>• Select 3 numbers from the board</Text>
+            <Text style={styles.ruleText}>• Numbers must be next to each other or diagonal</Text>
             <Text style={styles.ruleText}>• Try to reach the target number</Text>
             <Text style={styles.ruleText}>• Use multiplication or division first</Text>
             <Text style={styles.ruleText}>• Then use addition or subtraction</Text>
