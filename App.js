@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -51,20 +53,42 @@ function TabNavigator({
     <Tab.Navigator
       initialRouteName="GameMode"
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           let iconName = 'ellipse';
 
           if (route.name === 'GameMode') iconName = 'game-controller';
-          else if (route.name === 'Messages') iconName = 'chatbox';
+          else if (route.name === 'Messages') iconName = 'chatbubble-ellipses';
           else if (route.name === 'Friends') iconName = 'people';
-          else if (route.name === 'Profile') iconName = 'person';
+          else if (route.name === 'Profile') iconName = 'person-circle';
           else if (route.name === 'Settings') iconName = 'settings';
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          if (focused) {
+            return (
+              <LinearGradient
+                colors={['#00c6ff', '#0072ff']}
+                style={styles.activeIconBox}
+              >
+                <Ionicons name={iconName} size={23} color="#fff" />
+              </LinearGradient>
+            );
+          }
+
+          return (
+            <View style={styles.inactiveIconBox}>
+              <Ionicons name={iconName} size={22} color={color} />
+            </View>
+          );
         },
-        tabBarActiveTintColor: '#1abc9c',
-        tabBarInactiveTintColor: 'gray',
+
+        tabBarActiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: '#8A94A6',
         headerShown: false,
+
+        tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
+        tabBarLabelStyle: styles.tabBarLabel,
+
+        tabBarBadgeStyle: styles.badge,
       })}
     >
       <Tab.Screen
@@ -80,6 +104,7 @@ function TabNavigator({
         name="Messages"
         component={Messages}
         options={{
+          title: 'Messages',
           tabBarBadge: unreadMessageCount > 0 ? unreadMessageCount : undefined,
         }}
       />
@@ -88,6 +113,7 @@ function TabNavigator({
         name="Friends"
         component={Friends}
         options={{
+          title: 'Friends',
           tabBarBadge: friendRequestCount > 0 ? friendRequestCount : undefined,
         }}
       />
@@ -258,3 +284,70 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 18,
+    height: 78,
+    borderRadius: 32,
+    backgroundColor: 'rgba(17, 24, 39, 0.96)',
+    borderTopWidth: 0,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    shadowColor: '#00c6ff',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 15,
+  },
+
+  tabBarItem: {
+    height: 60,
+  },
+
+  tabBarLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+
+  activeIconBox: {
+    width: 44,
+    height: 34,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00c6ff',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+
+  inactiveIconBox: {
+    width: 44,
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  badge: {
+    backgroundColor: '#ff3b5c',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    marginTop: 6,
+  },
+});
