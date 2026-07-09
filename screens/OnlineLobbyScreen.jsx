@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,9 +31,9 @@ export default function OnlineLobbyScreen({ navigation, route }) {
 
         setPlayerName(
           profileData.username ||
-          profileData.name ||
-          profileData.fullName ||
-          'Player 1'
+            profileData.name ||
+            profileData.fullName ||
+            'Player 1'
         );
 
         if (profileData.profileImage) {
@@ -51,7 +52,25 @@ export default function OnlineLobbyScreen({ navigation, route }) {
     { id: '4', name: 'Player 4', status: 'Waiting' },
   ];
 
+  const getGameScreenName = () => {
+    if (gameType === 1) return 'GameScreen';
+    if (gameType === 2) return 'GameScreen2';
+    if (gameType === 3) return 'GameScreen3';
+    if (gameType === 4) return 'GameScreen4';
+    if (gameType === 5) return 'GameScreen5';
+
+    return 'GameScreen';
+  };
+
   const handleInviteFriends = () => {
+    if (!roomId) {
+      Alert.alert(
+        'Room Not Found',
+        'Please create an online room first.'
+      );
+      return;
+    }
+
     navigation.navigate('Friends', {
       roomId: roomId,
       gameType: gameType,
@@ -60,17 +79,13 @@ export default function OnlineLobbyScreen({ navigation, route }) {
   };
 
   const handleStartGame = () => {
-    if (gameType === 1) {
-      navigation.navigate('GameScreen');
-    } else if (gameType === 2) {
-      navigation.navigate('GameScreen2');
-    } else if (gameType === 3) {
-      navigation.navigate('GameScreen3');
-    } else if (gameType === 4) {
-      navigation.navigate('GameScreen4');
-    } else if (gameType === 5) {
-      navigation.navigate('GameScreen5');
-    }
+    const screenName = getGameScreenName();
+
+    navigation.navigate(screenName, {
+      roomId: roomId,
+      gameType: gameType,
+      isOnline: true,
+    });
   };
 
   return (
@@ -80,14 +95,10 @@ export default function OnlineLobbyScreen({ navigation, route }) {
     >
       <Text style={styles.title}>Online Players</Text>
 
-      <Text style={styles.subtitle}>
-        Game Type {gameType}
-      </Text>
+      <Text style={styles.subtitle}>Game Type {gameType}</Text>
 
       {roomId ? (
-        <Text style={styles.roomIdText}>
-          Room ID: {roomId}
-        </Text>
+        <Text style={styles.roomIdText}>Room ID: {roomId}</Text>
       ) : null}
 
       <View style={styles.card}>
@@ -110,13 +121,8 @@ export default function OnlineLobbyScreen({ navigation, route }) {
               )}
 
               <View>
-                <Text style={styles.playerName}>
-                  {item.name}
-                </Text>
-
-                <Text style={styles.status}>
-                  {item.status}
-                </Text>
+                <Text style={styles.playerName}>{item.name}</Text>
+                <Text style={styles.status}>{item.status}</Text>
               </View>
             </View>
           )}
@@ -126,9 +132,7 @@ export default function OnlineLobbyScreen({ navigation, route }) {
           style={styles.inviteButton}
           onPress={handleInviteFriends}
         >
-          <Text style={styles.inviteText}>
-            Invite Friends
-          </Text>
+          <Text style={styles.inviteText}>Invite Friends</Text>
         </TouchableOpacity>
       </View>
 
@@ -136,9 +140,7 @@ export default function OnlineLobbyScreen({ navigation, route }) {
         style={styles.startButton}
         onPress={handleStartGame}
       >
-        <Text style={styles.startText}>
-          Start Game
-        </Text>
+        <Text style={styles.startText}>Start Game</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

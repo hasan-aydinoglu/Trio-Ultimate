@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,8 @@ import {
   doc,
   setDoc,
   writeBatch,
+  where,
+  updateDoc,
 } from 'firebase/firestore';
 
 export default function Messages({ navigation, route }) {
@@ -35,11 +38,22 @@ export default function Messages({ navigation, route }) {
   );
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
+  const [gameInvites, setGameInvites] = useState([]);
 
   const currentUser = auth.currentUser;
 
   const getChatId = (uid1, uid2) => {
     return [uid1, uid2].sort().join('_');
+  };
+
+  const getGameScreenName = (gameType) => {
+    if (gameType === 1) return 'GameScreen';
+    if (gameType === 2) return 'GameScreen2';
+    if (gameType === 3) return 'GameScreen3';
+    if (gameType === 4) return 'GameScreen4';
+    if (gameType === 5) return 'GameScreen5';
+
+    return 'GameScreen';
   };
 
   useEffect(() => {
@@ -57,6 +71,33 @@ export default function Messages({ navigation, route }) {
       },
       (error) => {
         console.log('Messages friends error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const gameInvitesQuery = query(
+      collection(db, 'gameInvites'),
+      where('toUserId', '==', currentUser.uid),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(
+      gameInvitesQuery,
+      (snapshot) => {
+        const inviteList = snapshot.docs.map((inviteDoc) => ({
+          id: inviteDoc.id,
+          ...inviteDoc.data(),
+        }));
+
+        setGameInvites(inviteList);
+      },
+      (error) => {
+        console.log('Game invites error:', error);
       }
     );
 
@@ -118,6 +159,39 @@ export default function Messages({ navigation, route }) {
     return () => unsubscribe();
   }, [selectedFriend]);
 
+  const acceptGameInvite = async (invite) => {
+    try {
+      await updateDoc(doc(db, 'gameInvites', invite.id), {
+        status: 'accepted',
+        acceptedAt: serverTimestamp(),
+      });
+
+      const screenName = getGameScreenName(invite.gameType);
+
+      navigation.navigate(screenName, {
+        roomId: invite.roomId,
+        gameType: invite.gameType,
+        isOnline: true,
+        inviteId: invite.id,
+      });
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  const rejectGameInvite = async (invite) => {
+    try {
+      await updateDoc(doc(db, 'gameInvites', invite.id), {
+        status: 'rejected',
+        rejectedAt: serverTimestamp(),
+      });
+
+      Alert.alert('Rejected', 'Game invitation rejected.');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
   const sendMessage = async () => {
     if (!messageText.trim()) return;
     if (!currentUser || !selectedFriend) return;
@@ -173,6 +247,49 @@ export default function Messages({ navigation, route }) {
     (item.name || item.username || item.email || '')
       .toLowerCase()
       .includes(search.toLowerCase())
+  );
+
+  const renderGameInvite = ({ item }) => (
+    <View style={styles.gameInviteCard}>
+      <View style={styles.gameInviteTop}>
+        <Image
+          source={{
+            uri:
+              item.fromProfileImage ||
+              'https://i.pravatar.cc/150?img=1',
+          }}
+          style={styles.gameInviteAvatar}
+        />
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.gameInviteTitle}>Game Invite</Text>
+
+          <Text style={styles.gameInviteText}>
+            {item.fromName || item.fromUsername || 'Player'} invited you to Game Type {item.gameType}
+          </Text>
+
+          {item.roomId ? (
+            <Text style={styles.gameInviteRoom}>Room ID: {item.roomId}</Text>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.gameInviteButtons}>
+        <TouchableOpacity
+          style={styles.acceptGameButton}
+          onPress={() => acceptGameInvite(item)}
+        >
+          <Text style={styles.gameInviteButtonText}>Accept</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.rejectGameButton}
+          onPress={() => rejectGameInvite(item)}
+        >
+          <Text style={styles.gameInviteButtonText}>Reject</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const renderFriend = ({ item }) => (
@@ -313,6 +430,19 @@ export default function Messages({ navigation, route }) {
         />
       </View>
 
+      {gameInvites.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Game Invites</Text>
+
+          <FlatList
+            data={gameInvites}
+            keyExtractor={(item) => item.id}
+            renderItem={renderGameInvite}
+            scrollEnabled={false}
+          />
+        </>
+      )}
+
       <Text style={styles.sectionTitle}>Chats</Text>
 
       <FlatList
@@ -377,6 +507,75 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
+  },
+
+  gameInviteCard: {
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: 20,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+
+  gameInviteTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  gameInviteAvatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+
+  gameInviteTitle: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
+
+  gameInviteText: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    marginTop: 3,
+  },
+
+  gameInviteRoom: {
+    color: '#b8eaff',
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  gameInviteButtons: {
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+
+  acceptGameButton: {
+    flex: 1,
+    backgroundColor: '#00ff88',
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+
+  rejectGameButton: {
+    flex: 1,
+    backgroundColor: '#e74c3c',
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+
+  gameInviteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 
   chatRow: {

@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +18,8 @@ import {
   query,
   where,
   onSnapshot,
+  doc,
+  updateDoc,
 } from 'firebase/firestore';
 
 import Home from './screens/home';
@@ -41,6 +46,7 @@ import UserProfileScreen from './screens/UserProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const navigationRef = createNavigationContainerRef();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -131,6 +137,8 @@ export default function App() {
   const [friendRequestCount, setFriendRequestCount] = useState(0);
   const [gameInviteCount, setGameInviteCount] = useState(0);
 
+  const processedAcceptedInvites = useRef({});
+
   useEffect(() => {
     async function prepare() {
       try {
@@ -156,6 +164,7 @@ export default function App() {
         setUnreadMessageCount(0);
         setFriendRequestCount(0);
         setGameInviteCount(0);
+        processedAcceptedInvites.current = {};
       }
     });
 
@@ -228,6 +237,64 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUserId]);
 
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const acceptedInvitesQuery = query(
+      collection(db, 'gameInvites'),
+      where('fromUserId', '==', currentUserId),
+      where('status', '==', 'accepted')
+    );
+
+    const unsubscribe = onSnapshot(
+      acceptedInvitesQuery,
+      async (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          const inviteId = change.doc.id;
+
+          if (processedAcceptedInvites.current[inviteId]) return;
+
+          const invite = {
+            id: inviteId,
+            ...change.doc.data(),
+          };
+
+          processedAcceptedInvites.current[inviteId] = true;
+
+          const gameScreens = {
+            1: 'GameScreen',
+            2: 'GameScreen2',
+            3: 'GameScreen3',
+            4: 'GameScreen4',
+            5: 'GameScreen5',
+          };
+
+          const screenName = gameScreens[invite.gameType] || 'GameScreen';
+
+          if (navigationRef.isReady()) {
+            navigationRef.navigate(screenName, {
+              roomId: invite.roomId,
+              gameType: invite.gameType,
+              isOnline: true,
+              inviteId: invite.id,
+              invitedBy: invite.fromUserId,
+              acceptedBy: invite.toUserId,
+            });
+          }
+
+          await updateDoc(doc(db, 'gameInvites', invite.id), {
+            status: 'started',
+          });
+        });
+      },
+      (error) => {
+        console.log('Accepted game invite listener error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUserId]);
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await SplashScreen.hideAsync();
@@ -239,7 +306,7 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer onReady={onLayoutRootView}>
+    <NavigationContainer ref={navigationRef} onReady={onLayoutRootView}>
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{ headerShown: false }}
@@ -270,6 +337,7 @@ export default function App() {
           name="OnlineRoomSetupScreen"
           component={OnlineRoomSetupScreen}
         />
+
         <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
 
         <Stack.Screen name="GameScreen" component={GameScreen} />
