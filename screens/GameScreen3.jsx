@@ -11,6 +11,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
 const originalCards = [
   3, 7, 3, 5, 8, 4, 9,
   5, 1, 8, 6, 5, 2, 7,
@@ -79,21 +82,102 @@ export default function GameScreen3() {
   const [playerTurn, setPlayerTurn] = useState(1);
   const [showRules, setShowRules] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
+  const [loggedInPlayerName, setLoggedInPlayerName] = useState('Player 1');
   const [scores, setScores] = useState({
     1: 0,
     2: 0,
   });
 
   useEffect(() => {
-    const loadProfileImage = async () => {
-      const savedImage = await AsyncStorage.getItem('profileImage');
+    const loadProfileData = async () => {
+      try {
+        const savedProfile = await AsyncStorage.getItem('userProfile');
+        const savedImage = await AsyncStorage.getItem('profileImage');
 
-      if (savedImage) {
-        setProfileImage(savedImage);
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+
+          setLoggedInPlayerName(
+            profileData.username ||
+            profileData.name ||
+            profileData.fullName ||
+            'Player 1'
+          );
+
+          if (
+            profileData.profileImage ||
+            profileData.photoURL ||
+            profileData.image ||
+            profileData.avatar
+          ) {
+            setProfileImage(
+              profileData.profileImage ||
+              profileData.photoURL ||
+              profileData.image ||
+              profileData.avatar
+            );
+            return;
+          }
+        }
+
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
+      } catch (error) {
+        console.log('Local profile load error:', error);
       }
     };
 
-    loadProfileImage();
+    const loadFirebaseProfileData = async () => {
+      try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+
+          setLoggedInPlayerName(
+            data.username ||
+            data.name ||
+            data.fullName ||
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+
+          if (
+            data.profileImage ||
+            data.photoURL ||
+            data.image ||
+            data.avatar
+          ) {
+            setProfileImage(
+              data.profileImage ||
+              data.photoURL ||
+              data.image ||
+              data.avatar
+            );
+          }
+        } else {
+          setLoggedInPlayerName(
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+        }
+      } catch (error) {
+        console.log('Firebase profile load error:', error);
+      }
+    };
+
+    loadProfileData();
+    loadFirebaseProfileData();
   }, []);
 
   const openedNumbers = useMemo(() => {
@@ -112,14 +196,14 @@ export default function GameScreen3() {
     if (availableBlueCards.length === 0) {
       const winner =
         scores[1] > scores[2]
-          ? 'Player 1 wins!'
+          ? `${loggedInPlayerName} wins!`
           : scores[2] > scores[1]
           ? 'Player 2 wins!'
           : 'Draw!';
 
       Alert.alert(
         'Game Over',
-        `Player 1: ${scores[1]} points\nPlayer 2: ${scores[2]} points\n\n${winner}`
+        `${loggedInPlayerName}: ${scores[1]} points\nPlayer 2: ${scores[2]} points\n\n${winner}`
       );
       return;
     }
@@ -158,7 +242,7 @@ export default function GameScreen3() {
 
       Alert.alert(
         '🎉 Round Winner!',
-        `Player ${playerTurn} reached ${targetNumber}\n\n${solution}\n\nPlayer ${playerTurn} wins ${targetNumber} points!`
+        `${playerTurn === 1 ? loggedInPlayerName : 'Player 2'} reached ${targetNumber}\n\n${solution}\n\n${playerTurn === 1 ? loggedInPlayerName : 'Player 2'} wins ${targetNumber} points!`
       );
 
       setTargetNumber(null);
@@ -241,7 +325,7 @@ export default function GameScreen3() {
               </View>
             )}
 
-            <Text style={styles.playerName}>Player 1</Text>
+            <Text style={styles.playerName}>{loggedInPlayerName}</Text>
             <Text style={styles.playerScore}>{scores[1]} pts</Text>
           </View>
 
@@ -260,7 +344,9 @@ export default function GameScreen3() {
           </View>
         </View>
 
-        <Text style={styles.turnText}>Turn: Player {playerTurn}</Text>
+        <Text style={styles.turnText}>
+          Turn: {playerTurn === 1 ? loggedInPlayerName : 'Player 2'}
+        </Text>
 
         <TouchableOpacity style={styles.blueButton} onPress={startRound}>
           <Text style={styles.buttonText}>

@@ -11,6 +11,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
 const tableNumbers = [
   3,7,3,5,8,4,9,
   5,1,8,6,5,2,7,
@@ -39,19 +42,98 @@ export default function GameScreen5({ route }) {
   const [playerTurn, setPlayerTurn] = useState(1);
   const [showRules, setShowRules] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
+  const [loggedInPlayerName, setLoggedInPlayerName] = useState('Player 1');
 
   const routePlayers = route?.params?.players || players;
 
   useEffect(() => {
     const loadProfileImage = async () => {
-      const savedImage = await AsyncStorage.getItem('profileImage');
+      try {
+        const savedProfile = await AsyncStorage.getItem('userProfile');
+        const savedImage = await AsyncStorage.getItem('profileImage');
 
-      if (savedImage) {
-        setProfileImage(savedImage);
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+
+          const storedProfileImage =
+            profileData.profileImage ||
+            profileData.photoURL ||
+            profileData.image ||
+            profileData.avatar ||
+            null;
+
+          const storedProfileName =
+            profileData.username ||
+            profileData.name ||
+            profileData.fullName ||
+            profileData.displayName ||
+            null;
+
+          if (storedProfileName) {
+            setLoggedInPlayerName(storedProfileName);
+          }
+
+          if (storedProfileImage) {
+            setProfileImage(storedProfileImage);
+            return;
+          }
+        }
+
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
+      } catch (error) {
+        console.log('Profile image load error:', error);
+      }
+    };
+
+    const loadLoggedInPlayerData = async () => {
+      try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          return;
+        }
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+
+          setLoggedInPlayerName(
+            data.username ||
+            data.name ||
+            data.fullName ||
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+
+          const firestoreProfileImage =
+            data.profileImage ||
+            data.photoURL ||
+            data.image ||
+            data.avatar ||
+            null;
+
+          if (firestoreProfileImage) {
+            setProfileImage(firestoreProfileImage);
+          }
+        } else {
+          setLoggedInPlayerName(
+            user.displayName ||
+            user.email ||
+            'Player 1'
+          );
+        }
+      } catch (error) {
+        console.log('User data load error:', error);
       }
     };
 
     loadProfileImage();
+    loadLoggedInPlayerData();
   }, []);
 
   const getPlayerPhoto = (playerId) => {
@@ -64,6 +146,10 @@ export default function GameScreen5({ route }) {
   };
 
   const getPlayerName = (playerId) => {
+    if (playerId === 1) {
+      return loggedInPlayerName;
+    }
+
     const player = routePlayers.find((p) => p.id === playerId);
     return player?.name || `Player ${playerId}`;
   };

@@ -84,10 +84,33 @@ const GameScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     const loadProfileImage = async () => {
-      const savedImage = await AsyncStorage.getItem('profileImage');
+      try {
+        const savedProfile = await AsyncStorage.getItem('userProfile');
+        const savedImage = await AsyncStorage.getItem('profileImage');
 
-      if (savedImage) {
-        setProfileImage(savedImage);
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+
+          const localProfileImage =
+            profileData.profileImage ||
+            profileData.photoURL ||
+            profileData.image ||
+            profileData.avatar ||
+            profileData.avatarUrl ||
+            profileData.profilePhoto ||
+            null;
+
+          if (localProfileImage) {
+            setProfileImage(localProfileImage);
+            return;
+          }
+        }
+
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
+      } catch (error) {
+        console.log('Profile image load error:', error);
       }
     };
 
@@ -113,12 +136,29 @@ const GameScreen = ({ navigation, route }) => {
             user.email ||
             'Player 1'
           );
+
+          const firestoreProfileImage =
+            data.profileImage ||
+            data.photoURL ||
+            data.image ||
+            data.avatar ||
+            data.avatarUrl ||
+            data.profilePhoto ||
+            null;
+
+          if (firestoreProfileImage) {
+            setProfileImage(firestoreProfileImage);
+          }
         } else {
           setLoggedInPlayerName(
             user.displayName ||
             user.email ||
             'Player 1'
           );
+
+          if (user.photoURL) {
+            setProfileImage(user.photoURL);
+          }
         }
       } catch (error) {
         console.log('User name load error:', error);
