@@ -11,18 +11,34 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import {
+  doc,
+  collection,
+  onSnapshot,
+} from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 
 const Profile = ({ navigation }) => {
   const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState({});
-  const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
+  const [friendsCount, setFriendsCount] = useState(0);
+  const [avatar, setAvatar] = useState(
+    require('../assets/avatar.png')
+  );
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribeAuth = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser);
+
+        if (!currentUser) {
+          setProfileData({});
+          setFriendsCount(0);
+          setAvatar(require('../assets/avatar.png'));
+        }
+      }
+    );
 
     return () => unsubscribeAuth();
   }, []);
@@ -31,61 +47,139 @@ const Profile = ({ navigation }) => {
     useCallback(() => {
       const currentUser = auth.currentUser;
 
-      if (!currentUser) return;
+      if (!currentUser) {
+        return undefined;
+      }
 
-      const unsubscribe = onSnapshot(
-        doc(db, 'users', currentUser.uid),
+      const userRef = doc(
+        db,
+        'users',
+        currentUser.uid
+      );
+
+      const friendsRef = collection(
+        db,
+        'users',
+        currentUser.uid,
+        'friends'
+      );
+
+      const unsubscribeProfile = onSnapshot(
+        userRef,
         (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
+
             setProfileData(data);
 
             if (data.profileImage) {
-              setAvatar({ uri: data.profileImage });
+              setAvatar({
+                uri: data.profileImage,
+              });
+            } else {
+              setAvatar(
+                require('../assets/avatar.png')
+              );
             }
+          } else {
+            setProfileData({});
+            setAvatar(
+              require('../assets/avatar.png')
+            );
           }
+        },
+        (error) => {
+          console.log(
+            'Profile listener error:',
+            error
+          );
         }
       );
 
-      return () => unsubscribe();
+      const unsubscribeFriends = onSnapshot(
+        friendsRef,
+        (querySnapshot) => {
+          setFriendsCount(querySnapshot.size);
+        },
+        (error) => {
+          console.log(
+            'Friends count listener error:',
+            error
+          );
+
+          setFriendsCount(0);
+        }
+      );
+
+      return () => {
+        unsubscribeProfile();
+        unsubscribeFriends();
+      };
     }, [])
   );
 
-  const handleLogout = () => {
-    signOut(auth).then(() => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
       navigation.navigate('Home');
-    });
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
   };
 
   return (
     <LinearGradient
-      colors={['#041b3d', '#0072ff', '#00c6ff']}
+      colors={[
+        '#041b3d',
+        '#0072ff',
+        '#00c6ff',
+      ]}
       style={styles.container}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={
+          styles.scrollContent
+        }
       >
-        <Text style={styles.title}>My Profile</Text>
+        <Text style={styles.title}>
+          My Profile
+        </Text>
 
         <View style={styles.profileCard}>
           <LinearGradient
-            colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.08)']}
+            colors={[
+              'rgba(255,255,255,0.25)',
+              'rgba(255,255,255,0.08)',
+            ]}
             style={styles.cardGradient}
           >
             <View style={styles.avatarWrapper}>
-              <Image source={avatar} style={styles.avatar} />
+              <Image
+                source={avatar}
+                style={styles.avatar}
+              />
 
               <TouchableOpacity
                 style={styles.cameraButton}
-                onPress={() => navigation.navigate('EditProfile')}
+                onPress={() =>
+                  navigation.navigate(
+                    'EditProfile'
+                  )
+                }
               >
-                <Ionicons name="camera-outline" size={18} color="#fff" />
+                <Ionicons
+                  name="camera-outline"
+                  size={18}
+                  color="#fff"
+                />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.name}>
-              {profileData.name ? profileData.name : 'No name set'}
+              {profileData.name
+                ? profileData.name
+                : 'No name set'}
             </Text>
 
             <Text style={styles.username}>
@@ -95,36 +189,69 @@ const Profile = ({ navigation }) => {
             </Text>
 
             <View style={styles.badge}>
-              <Ionicons name="sparkles-outline" size={16} color="#fff" />
-              <Text style={styles.badgeText}>Beginner Player</Text>
+              <Ionicons
+                name="sparkles-outline"
+                size={16}
+                color="#fff"
+              />
+
+              <Text style={styles.badgeText}>
+                Beginner Player
+              </Text>
             </View>
           </LinearGradient>
         </View>
 
         <View style={styles.statsRow}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.statBox}
+            onPress={() =>
+              navigation.navigate('Friends')
+            }
+          >
+            <Text style={styles.statNumber}>
+              {friendsCount}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              Friends
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Friends</Text>
+            <Text style={styles.statNumber}>
+              {profileData.games || 0}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              Games
+            </Text>
           </View>
 
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Games</Text>
-          </View>
+            <Text style={styles.statNumber}>
+              {profileData.wins || 0}
+            </Text>
 
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Wins</Text>
+            <Text style={styles.statLabel}>
+              Wins
+            </Text>
           </View>
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Profile Details</Text>
+          <Text style={styles.sectionTitle}>
+            Profile Details
+          </Text>
 
           <InfoItem
             icon="person-outline"
             label="Name"
-            value={profileData.name || 'No name set'}
+            value={
+              profileData.name ||
+              'No name set'
+            }
           />
 
           <InfoItem
@@ -140,24 +267,36 @@ const Profile = ({ navigation }) => {
           <InfoItem
             icon="chatbubble-ellipses-outline"
             label="Bio"
-            value={profileData.bio || 'No bio set'}
+            value={
+              profileData.bio ||
+              'No bio set'
+            }
           />
 
           <InfoItem
             icon="calendar-outline"
             label="Birth Date"
-            value={profileData.birthDate || 'Not set'}
+            value={
+              profileData.birthDate ||
+              'Not set'
+            }
           />
 
           <InfoItem
             icon="mail-outline"
             label="Email Address"
-            value={profileData.email || user?.email || 'Not signed in'}
+            value={
+              profileData.email ||
+              user?.email ||
+              'Not signed in'
+            }
           />
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Game Profile</Text>
+          <Text style={styles.sectionTitle}>
+            Game Profile
+          </Text>
 
           <InfoItem
             icon="game-controller-outline"
@@ -180,31 +319,65 @@ const Profile = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.editButton}
-          onPress={() => navigation.navigate('EditProfile')}
+          onPress={() =>
+            navigation.navigate(
+              'EditProfile'
+            )
+          }
         >
-          <Ionicons name="create-outline" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Edit Profile</Text>
+          <Ionicons
+            name="create-outline"
+            size={20}
+            color="#fff"
+          />
+
+          <Text style={styles.buttonText}>
+            Edit Profile
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Sign Out</Text>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color="#fff"
+          />
+
+          <Text style={styles.buttonText}>
+            Sign Out
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
 };
 
-const InfoItem = ({ icon, label, value }) => {
+const InfoItem = ({
+  icon,
+  label,
+  value,
+}) => {
   return (
     <View style={styles.infoItem}>
       <View style={styles.infoIcon}>
-        <Ionicons name={icon} size={20} color="#00c6ff" />
+        <Ionicons
+          name={icon}
+          size={20}
+          color="#00c6ff"
+        />
       </View>
 
       <View style={styles.infoTextBox}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={styles.infoLabel}>
+          {label}
+        </Text>
+
+        <Text style={styles.infoValue}>
+          {value}
+        </Text>
       </View>
     </View>
   );
@@ -229,7 +402,10 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     fontFamily: 'pacifico',
     textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
+    textShadowOffset: {
+      width: 2,
+      height: 2,
+    },
     textShadowRadius: 5,
   },
 
@@ -239,7 +415,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor:
+      'rgba(255,255,255,0.25)',
   },
 
   cardGradient: {
@@ -292,7 +469,8 @@ const styles = StyleSheet.create({
     marginTop: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor:
+      'rgba(255,255,255,0.18)',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -313,7 +491,8 @@ const styles = StyleSheet.create({
 
   statBox: {
     width: '31%',
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor:
+      'rgba(255,255,255,0.95)',
     borderRadius: 20,
     paddingVertical: 18,
     alignItems: 'center',
@@ -334,7 +513,8 @@ const styles = StyleSheet.create({
 
   infoCard: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    backgroundColor:
+      'rgba(255,255,255,0.96)',
     borderRadius: 24,
     padding: 18,
     marginBottom: 18,
