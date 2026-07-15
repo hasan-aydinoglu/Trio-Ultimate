@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  View,
   Text,
   StyleSheet,
   Image,
@@ -10,13 +11,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
 import { db } from '../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import {
+  doc,
+  collection,
+  onSnapshot,
+} from 'firebase/firestore';
 
 export default function UserProfileScreen({ navigation, route }) {
   const user = route.params?.user || {};
   const userId = route.params?.userId || user.uid || user.id;
 
   const [profileUser, setProfileUser] = useState(user);
+  const [friendsCount, setFriendsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +31,7 @@ export default function UserProfileScreen({ navigation, route }) {
       return;
     }
 
-    const unsubscribe = onSnapshot(
+    const unsubscribeProfile = onSnapshot(
       doc(db, 'users', userId),
       (snapshot) => {
         if (snapshot.exists()) {
@@ -44,13 +50,40 @@ export default function UserProfileScreen({ navigation, route }) {
       }
     );
 
-    return () => unsubscribe();
+    const unsubscribeFriends = onSnapshot(
+      collection(db, 'users', userId, 'friends'),
+      (snapshot) => {
+        setFriendsCount(snapshot.size);
+      },
+      (error) => {
+        console.log('Friends count error:', error);
+      }
+    );
+
+    return () => {
+      unsubscribeProfile();
+      unsubscribeFriends();
+    };
   }, [userId]);
 
   const avatarUri =
     profileUser.profileImage ||
     profileUser.avatar ||
     'https://i.pravatar.cc/150?img=1';
+
+  const gamesPlayed = Number(
+    profileUser.gamesPlayed ??
+      profileUser.totalGames ??
+      profileUser.games ??
+      0
+  );
+
+  const wins = Number(
+    profileUser.wins ??
+      profileUser.totalWins ??
+      profileUser.gamesWon ??
+      0
+  );
 
   if (loading) {
     return (
@@ -78,14 +111,62 @@ export default function UserProfileScreen({ navigation, route }) {
       <Image source={{ uri: avatarUri }} style={styles.bigAvatar} />
 
       <Text style={styles.name}>
-        {`${profileUser.name || 'Player'} ${profileUser.surname || ''}`.trim()}
+        {`${profileUser.name || 'Player'} ${
+          profileUser.surname || ''
+        }`.trim()}
       </Text>
 
       <Text style={styles.username}>
         {profileUser.username
-          ? `@${profileUser.username}`
+          ? `@${profileUser.username.replace('@', '')}`
           : profileUser.email || '@player'}
       </Text>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Ionicons name="people" size={25} color="#00e5ff" />
+
+          <Text style={styles.statNumber}>
+            {friendsCount}
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Friends
+          </Text>
+        </View>
+
+        <View style={styles.statDivider} />
+
+        <View style={styles.statBox}>
+          <Ionicons
+            name="game-controller"
+            size={25}
+            color="#ffd166"
+          />
+
+          <Text style={styles.statNumber}>
+            {gamesPlayed}
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Games
+          </Text>
+        </View>
+
+        <View style={styles.statDivider} />
+
+        <View style={styles.statBox}>
+          <Ionicons name="trophy" size={25} color="#00ff88" />
+
+          <Text style={styles.statNumber}>
+            {wins}
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Wins
+          </Text>
+        </View>
+      </View>
 
       <Text style={styles.infoText}>
         Status: {profileUser.online ? 'Online' : 'Offline'}
@@ -131,6 +212,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 55,
     left: 18,
+    zIndex: 10,
   },
 
   bigAvatar: {
@@ -153,7 +235,41 @@ const styles = StyleSheet.create({
     color: '#b8eaff',
     fontSize: 17,
     marginTop: 5,
-    marginBottom: 30,
+    marginBottom: 22,
+  },
+
+  statsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 18,
+    paddingVertical: 17,
+    marginBottom: 22,
+  },
+
+  statBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+
+  statNumber: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+
+  statLabel: {
+    color: '#ddd',
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  statDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
 
   infoText: {
