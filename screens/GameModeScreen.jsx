@@ -224,10 +224,11 @@ export default function GameModeScreen({ navigation }) {
             <TouchableOpacity
               style={styles.notificationButton}
               activeOpacity={0.8}
+              onPress={() => navigation.navigate('Notifications')}
             >
               <Ionicons
                 name="notifications-outline"
-                size={25}
+                size={24}
                 color="#FFFFFF"
               />
 

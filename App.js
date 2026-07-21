@@ -1,18 +1,38 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
+
+import {
+  View,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+
 import {
   NavigationContainer,
   createNavigationContainerRef,
 } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import {
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs';
+
+import {
+  createNativeStackNavigator,
+} from '@react-navigation/native-stack';
+
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+
 import {
   collection,
   query,
@@ -44,8 +64,12 @@ import OnlineRoomSetupScreen from './screens/OnlineRoomSetupScreen';
 import ChatScreen from './screens/ChatScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 
+// EKLENDİ
+import Notifications from './screens/Notifications';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
 const navigationRef = createNavigationContainerRef();
 
 SplashScreen.preventAutoHideAsync();
@@ -62,11 +86,17 @@ function TabNavigator({
         tabBarIcon: ({ focused, color }) => {
           let iconName = 'ellipse';
 
-          if (route.name === 'GameMode') iconName = 'game-controller';
-          else if (route.name === 'Messages') iconName = 'chatbubble-ellipses';
-          else if (route.name === 'Friends') iconName = 'people';
-          else if (route.name === 'Profile') iconName = 'person-circle';
-          else if (route.name === 'Settings') iconName = 'settings';
+          if (route.name === 'GameMode') {
+            iconName = 'game-controller';
+          } else if (route.name === 'Messages') {
+            iconName = 'chatbubble-ellipses';
+          } else if (route.name === 'Friends') {
+            iconName = 'people';
+          } else if (route.name === 'Profile') {
+            iconName = 'person-circle';
+          } else if (route.name === 'Settings') {
+            iconName = 'settings';
+          }
 
           if (focused) {
             return (
@@ -74,14 +104,22 @@ function TabNavigator({
                 colors={['#00c6ff', '#0072ff']}
                 style={styles.activeIconBox}
               >
-                <Ionicons name={iconName} size={23} color="#fff" />
+                <Ionicons
+                  name={iconName}
+                  size={23}
+                  color="#fff"
+                />
               </LinearGradient>
             );
           }
 
           return (
             <View style={styles.inactiveIconBox}>
-              <Ionicons name={iconName} size={22} color={color} />
+              <Ionicons
+                name={iconName}
+                size={22}
+                color={color}
+              />
             </View>
           );
         },
@@ -102,7 +140,10 @@ function TabNavigator({
         component={GameModeScreen}
         options={{
           title: 'Game',
-          tabBarBadge: gameInviteCount > 0 ? gameInviteCount : undefined,
+          tabBarBadge:
+            gameInviteCount > 0
+              ? gameInviteCount
+              : undefined,
         }}
       />
 
@@ -111,7 +152,10 @@ function TabNavigator({
         component={Messages}
         options={{
           title: 'Messages',
-          tabBarBadge: unreadMessageCount > 0 ? unreadMessageCount : undefined,
+          tabBarBadge:
+            unreadMessageCount > 0
+              ? unreadMessageCount
+              : undefined,
         }}
       />
 
@@ -120,22 +164,46 @@ function TabNavigator({
         component={Friends}
         options={{
           title: 'Friends',
-          tabBarBadge: friendRequestCount > 0 ? friendRequestCount : undefined,
+          tabBarBadge:
+            friendRequestCount > 0
+              ? friendRequestCount
+              : undefined,
         }}
       />
 
-      <Tab.Screen name="Profile" component={Profile} />
-      <Tab.Screen name="Settings" component={Settings} />
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+      />
+
+      <Tab.Screen
+        name="Settings"
+        component={Settings}
+      />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-  const [friendRequestCount, setFriendRequestCount] = useState(0);
-  const [gameInviteCount, setGameInviteCount] = useState(0);
+
+  const [currentUserId, setCurrentUserId] =
+    useState(null);
+
+  const [
+    unreadMessageCount,
+    setUnreadMessageCount,
+  ] = useState(0);
+
+  const [
+    friendRequestCount,
+    setFriendRequestCount,
+  ] = useState(0);
+
+  const [
+    gameInviteCount,
+    setGameInviteCount,
+  ] = useState(0);
 
   const processedAcceptedInvites = useRef({});
 
@@ -143,10 +211,12 @@ export default function App() {
     async function prepare() {
       try {
         await Font.loadAsync({
-          pacifico: require('./assets/fonts/Pacifico-Regular.ttf'),
+          pacifico: require(
+            './assets/fonts/Pacifico-Regular.ttf'
+          ),
         });
-      } catch (e) {
-        console.warn(e);
+      } catch (error) {
+        console.warn(error);
       } finally {
         setAppIsReady(true);
       }
@@ -156,28 +226,42 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUserId(user.uid);
-      } else {
-        setCurrentUserId(null);
-        setUnreadMessageCount(0);
-        setFriendRequestCount(0);
-        setGameInviteCount(0);
-        processedAcceptedInvites.current = {};
+    const unsubscribeAuth = onAuthStateChanged(
+      auth,
+      (user) => {
+        if (user) {
+          setCurrentUserId(user.uid);
+        } else {
+          setCurrentUserId(null);
+          setUnreadMessageCount(0);
+          setFriendRequestCount(0);
+          setGameInviteCount(0);
+
+          processedAcceptedInvites.current = {};
+        }
       }
-    });
+    );
 
     return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return undefined;
+    }
 
     const friendRequestsQuery = query(
       collection(db, 'friendRequests'),
-      where('toUserId', '==', currentUserId),
-      where('status', '==', 'pending')
+      where(
+        'toUserId',
+        '==',
+        currentUserId
+      ),
+      where(
+        'status',
+        '==',
+        'pending'
+      )
     );
 
     const unsubscribe = onSnapshot(
@@ -186,7 +270,10 @@ export default function App() {
         setFriendRequestCount(snapshot.size);
       },
       (error) => {
-        console.log('Friend request badge error:', error);
+        console.log(
+          'Friend request badge error:',
+          error
+        );
       }
     );
 
@@ -194,12 +281,22 @@ export default function App() {
   }, [currentUserId]);
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return undefined;
+    }
 
     const unreadMessagesQuery = query(
       collection(db, 'chats'),
-      where('lastMessageReceiverId', '==', currentUserId),
-      where('lastMessageRead', '==', false)
+      where(
+        'lastMessageReceiverId',
+        '==',
+        currentUserId
+      ),
+      where(
+        'lastMessageRead',
+        '==',
+        false
+      )
     );
 
     const unsubscribe = onSnapshot(
@@ -208,7 +305,10 @@ export default function App() {
         setUnreadMessageCount(snapshot.size);
       },
       (error) => {
-        console.log('Unread message badge error:', error);
+        console.log(
+          'Unread message badge error:',
+          error
+        );
       }
     );
 
@@ -216,12 +316,22 @@ export default function App() {
   }, [currentUserId]);
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return undefined;
+    }
 
     const gameInvitesQuery = query(
       collection(db, 'gameInvites'),
-      where('toUserId', '==', currentUserId),
-      where('status', '==', 'pending')
+      where(
+        'toUserId',
+        '==',
+        currentUserId
+      ),
+      where(
+        'status',
+        '==',
+        'pending'
+      )
     );
 
     const unsubscribe = onSnapshot(
@@ -230,7 +340,10 @@ export default function App() {
         setGameInviteCount(snapshot.size);
       },
       (error) => {
-        console.log('Game invite badge error:', error);
+        console.log(
+          'Game invite badge error:',
+          error
+        );
       }
     );
 
@@ -238,116 +351,230 @@ export default function App() {
   }, [currentUserId]);
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return undefined;
+    }
 
     const acceptedInvitesQuery = query(
       collection(db, 'gameInvites'),
-      where('fromUserId', '==', currentUserId),
-      where('status', '==', 'accepted')
+      where(
+        'fromUserId',
+        '==',
+        currentUserId
+      ),
+      where(
+        'status',
+        '==',
+        'accepted'
+      )
     );
 
     const unsubscribe = onSnapshot(
       acceptedInvitesQuery,
       async (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          const inviteId = change.doc.id;
+        snapshot.docChanges().forEach(
+          async (change) => {
+            const inviteId = change.doc.id;
 
-          if (processedAcceptedInvites.current[inviteId]) return;
+            if (
+              processedAcceptedInvites
+                .current[inviteId]
+            ) {
+              return;
+            }
 
-          const invite = {
-            id: inviteId,
-            ...change.doc.data(),
-          };
+            const invite = {
+              id: inviteId,
+              ...change.doc.data(),
+            };
 
-          processedAcceptedInvites.current[inviteId] = true;
+            processedAcceptedInvites.current[
+              inviteId
+            ] = true;
 
-          const gameScreens = {
-            1: 'GameScreen',
-            2: 'GameScreen2',
-            3: 'GameScreen3',
-            4: 'GameScreen4',
-            5: 'GameScreen5',
-          };
+            const gameScreens = {
+              1: 'GameScreen',
+              2: 'GameScreen2',
+              3: 'GameScreen3',
+              4: 'GameScreen4',
+              5: 'GameScreen5',
+            };
 
-          const screenName = gameScreens[invite.gameType] || 'GameScreen';
+            const screenName =
+              gameScreens[invite.gameType] ||
+              'GameScreen';
 
-          if (navigationRef.isReady()) {
-            navigationRef.navigate(screenName, {
-              roomId: invite.roomId,
-              gameType: invite.gameType,
-              isOnline: true,
-              inviteId: invite.id,
-              invitedBy: invite.fromUserId,
-              acceptedBy: invite.toUserId,
-            });
+            if (navigationRef.isReady()) {
+              navigationRef.navigate(
+                screenName,
+                {
+                  roomId: invite.roomId,
+                  gameType: invite.gameType,
+                  isOnline: true,
+                  inviteId: invite.id,
+                  invitedBy:
+                    invite.fromUserId,
+                  acceptedBy:
+                    invite.toUserId,
+                }
+              );
+            }
+
+            await updateDoc(
+              doc(
+                db,
+                'gameInvites',
+                invite.id
+              ),
+              {
+                status: 'started',
+              }
+            );
           }
-
-          await updateDoc(doc(db, 'gameInvites', invite.id), {
-            status: 'started',
-          });
-        });
+        );
       },
       (error) => {
-        console.log('Accepted game invite listener error:', error);
+        console.log(
+          'Accepted game invite listener error:',
+          error
+        );
       }
     );
 
     return () => unsubscribe();
   }, [currentUserId]);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
+  const onLayoutRootView =
+    useCallback(async () => {
+      if (appIsReady) {
+        await SplashScreen.hideAsync();
+      }
+    }, [appIsReady]);
 
   if (!appIsReady) {
     return null;
   }
 
   return (
-    <NavigationContainer ref={navigationRef} onReady={onLayoutRootView}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={onLayoutRootView}
+    >
       <Stack.Navigator
         initialRouteName="Home"
-        screenOptions={{ headerShown: false }}
+        screenOptions={{
+          headerShown: false,
+        }}
       >
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="SplashIntro" component={SplashIntro} />
+        <Stack.Screen
+          name="Home"
+          component={Home}
+        />
+
+        <Stack.Screen
+          name="SplashIntro"
+          component={SplashIntro}
+        />
 
         <Stack.Screen name="TabNavigator">
           {(props) => (
             <TabNavigator
               {...props}
-              unreadMessageCount={unreadMessageCount}
-              friendRequestCount={friendRequestCount}
-              gameInviteCount={gameInviteCount}
+              unreadMessageCount={
+                unreadMessageCount
+              }
+              friendRequestCount={
+                friendRequestCount
+              }
+              gameInviteCount={
+                gameInviteCount
+              }
             />
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="MainMenu" component={MainMenu} />
-        <Stack.Screen name="Friends" component={Friends} />
-        <Stack.Screen name="EditProfile" component={EditProfile} />
-        <Stack.Screen name="SignUp" component={SignUp} />
+        <Stack.Screen
+          name="MainMenu"
+          component={MainMenu}
+        />
 
-        <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+        <Stack.Screen
+          name="Friends"
+          component={Friends}
+        />
+
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
+        />
+
+        <Stack.Screen
+          name="SignUp"
+          component={SignUp}
+        />
+
+        <Stack.Screen
+          name="ChatScreen"
+          component={ChatScreen}
+        />
+
+        <Stack.Screen
+          name="UserProfileScreen"
+          component={UserProfileScreen}
+        />
+
+        {/* EKLENDİ */}
+        <Stack.Screen
+          name="Notifications"
+          component={Notifications}
+        />
 
         <Stack.Screen
           name="OnlineRoomSetupScreen"
-          component={OnlineRoomSetupScreen}
+          component={
+            OnlineRoomSetupScreen
+          }
         />
 
-        <Stack.Screen name="OnlineLobbyScreen" component={OnlineLobbyScreen} />
+        <Stack.Screen
+          name="OnlineLobbyScreen"
+          component={OnlineLobbyScreen}
+        />
 
-        <Stack.Screen name="GameScreen" component={GameScreen} />
-        <Stack.Screen name="GameScreen2" component={GameScreen2} />
-        <Stack.Screen name="GameScreen3" component={GameScreen3} />
-        <Stack.Screen name="GameScreen4" component={GameScreen4} />
-        <Stack.Screen name="GameScreen5" component={GameScreen5} />
+        <Stack.Screen
+          name="GameScreen"
+          component={GameScreen}
+        />
 
-        <Stack.Screen name="Privacy" component={PrivacyScreen} />
-        <Stack.Screen name="ContactUs" component={ContactUsScreen} />
+        <Stack.Screen
+          name="GameScreen2"
+          component={GameScreen2}
+        />
+
+        <Stack.Screen
+          name="GameScreen3"
+          component={GameScreen3}
+        />
+
+        <Stack.Screen
+          name="GameScreen4"
+          component={GameScreen4}
+        />
+
+        <Stack.Screen
+          name="GameScreen5"
+          component={GameScreen5}
+        />
+
+        <Stack.Screen
+          name="Privacy"
+          component={PrivacyScreen}
+        />
+
+        <Stack.Screen
+          name="ContactUs"
+          component={ContactUsScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -361,10 +588,15 @@ const styles = StyleSheet.create({
     bottom: 18,
     height: 78,
     borderRadius: 32,
-    backgroundColor: 'rgba(17, 24, 39, 0.96)',
+    backgroundColor:
+      'rgba(17, 24, 39, 0.96)',
     borderTopWidth: 0,
     paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    paddingBottom:
+      Platform.OS === 'ios'
+        ? 20
+        : 12,
+
     shadowColor: '#00c6ff',
     shadowOffset: {
       width: 0,
@@ -391,6 +623,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+
     shadowColor: '#00c6ff',
     shadowOffset: {
       width: 0,
