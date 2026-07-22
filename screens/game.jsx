@@ -153,7 +153,6 @@ const styles = StyleSheet.create({
         marginRight: 2,
         flex: 2,
         backgroundColor: '#fff',
-        // alignItems: 'center',
         justifyContent: 'left',
 
     },
@@ -164,7 +163,7 @@ const styles = StyleSheet.create({
         justifyContent: 'left',
         paddingVertical: 20,
         paddingHorizontal: 20,
-        //borderRadius: 120,
+       
         marginLeft: 150,
         marginRight: 150,
         borderBottomColor: 'white',

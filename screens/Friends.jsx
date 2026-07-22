@@ -1,5 +1,3 @@
-// FriendsScreen.jsx
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -10,8 +8,11 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 import { auth, db } from '../firebase';
 import {
@@ -28,6 +29,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 
+const DEFAULT_AVATAR = 'https://i.pravatar.cc/150?img=1';
 export default function FriendsScreen({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [addFriendText, setAddFriendText] = useState('');
@@ -48,9 +50,9 @@ export default function FriendsScreen({ navigation, route }) {
     const unsubscribe = onSnapshot(
       collection(db, 'users', currentUser.uid, 'friends'),
       (snapshot) => {
-        const friendsList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
+        const friendsList = snapshot.docs.map((friendDoc) => ({
+          id: friendDoc.id,
+          ...friendDoc.data(),
         }));
 
         setFriends(friendsList);
@@ -77,9 +79,9 @@ export default function FriendsScreen({ navigation, route }) {
     const unsubscribe = onSnapshot(
       requestsQuery,
       (snapshot) => {
-        const requestsList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
+        const requestsList = snapshot.docs.map((requestDoc) => ({
+          id: requestDoc.id,
+          ...requestDoc.data(),
         }));
 
         setFriendRequests(requestsList);
@@ -97,6 +99,17 @@ export default function FriendsScreen({ navigation, route }) {
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+
+  const getDisplayName = (user) =>
+    user?.name || user?.username || user?.email || 'Player';
+
+  const getSecondaryText = (user) => {
+    if (user?.username) return `@${user.username}`;
+    return user?.email || 'Trio Player';
+  };
+
+  const getAvatarUri = (user) =>
+    user?.profileImage || user?.avatar || DEFAULT_AVATAR;
 
   const addFriendPermanently = async (friend) => {
     const currentUser = auth.currentUser;
@@ -410,7 +423,9 @@ export default function FriendsScreen({ navigation, route }) {
 
     Alert.alert(
       'Remove Friend',
-      `Remove ${friend.name || friend.username || 'this player'} from your friends?`,
+      `Remove ${
+        friend.name || friend.username || 'this player'
+      } from your friends?`,
       [
         {
           text: 'Cancel',
@@ -462,227 +477,393 @@ export default function FriendsScreen({ navigation, route }) {
     }
   };
 
-  const renderFriendRequest = ({ item }) => (
-    <View style={styles.requestCard}>
-      <View style={styles.left}>
-        <Image
-          source={{
-            uri: item.fromProfileImage || 'https://i.pravatar.cc/150?img=1',
-          }}
-          style={styles.avatar}
-        />
+  const renderFriendRequest = (item) => (
+    <View key={item.id} style={styles.requestCard}>
+      <View style={styles.requestTopRow}>
+        <View style={styles.userInfoRow}>
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={{ uri: item.fromProfileImage || DEFAULT_AVATAR }}
+              style={styles.avatar}
+            />
+          </View>
 
-        <View>
-          <Text style={styles.name}>
-            {item.fromName || item.fromUsername || 'Player'}
-          </Text>
+          <View style={styles.userTextArea}>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.fromName || item.fromUsername || 'Player'}
+            </Text>
 
-          <Text style={styles.status}>
-            {item.fromUsername ? `@${item.fromUsername}` : item.fromEmail}
-          </Text>
+            <Text style={styles.secondaryText} numberOfLines={1}>
+              {item.fromUsername ? `@${item.fromUsername}` : item.fromEmail}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.pendingBadge}>
+          <Ionicons name="time-outline" size={13} color="#FFD166" />
+          <Text style={styles.pendingBadgeText}>Pending</Text>
         </View>
       </View>
 
       <View style={styles.requestButtons}>
         <TouchableOpacity
           style={styles.acceptButton}
+          activeOpacity={0.85}
           onPress={() => acceptFriendRequest(item)}
         >
-          <Text style={styles.buttonText}>Accept</Text>
+          <Ionicons name="checkmark" size={19} color="#002718" />
+          <Text style={styles.acceptButtonText}>Accept</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.rejectButton}
+          activeOpacity={0.85}
           onPress={() => rejectFriendRequest(item)}
         >
+          <Ionicons name="close" size={19} color="#FFFFFF" />
           <Text style={styles.buttonText}>Reject</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  return (
-    <LinearGradient
-      colors={['#00c6ff', '#0072ff', '#000']}
-      style={styles.container}
-    >
-      <Text style={styles.title}>
-        {inviteMode ? 'Invite Friends' : 'Friends'}
-      </Text>
+  const renderFriend = ({ item }) => (
+    <View style={styles.friendCard}>
+      <TouchableOpacity
+        style={styles.friendProfileArea}
+        activeOpacity={0.8}
+        onPress={() => openUserProfile(item)}
+      >
+        <View style={styles.avatarWrapper}>
+          <Image
+            source={{ uri: getAvatarUri(item) }}
+            style={styles.avatar}
+          />
 
-      <Text style={styles.subtitle}>
-        {inviteMode
-          ? `Invite a friend to Game Type ${gameType}`
-          : `Total Friends: ${filteredFriends.length}`}
-      </Text>
+          <View
+            style={[
+              styles.onlineDot,
+              item.online ? styles.onlineDotActive : styles.onlineDotInactive,
+            ]}
+          />
+        </View>
 
-      <TextInput
-        style={styles.search}
-        placeholder="Search Friend..."
-        placeholderTextColor="#ccc"
-        value={search}
-        onChangeText={setSearch}
-      />
+        <View style={styles.userTextArea}>
+          <Text style={styles.name} numberOfLines={1}>
+            {getDisplayName(item)}
+          </Text>
+
+          <Text style={styles.secondaryText} numberOfLines={1}>
+            {getSecondaryText(item)}
+          </Text>
+
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.miniStatusDot,
+                item.online
+                  ? styles.miniStatusDotOnline
+                  : styles.miniStatusDotOffline,
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                item.online
+                  ? styles.statusTextOnline
+                  : styles.statusTextOffline,
+              ]}
+            >
+              {item.online ? 'Online' : 'Offline'}
+            </Text>
+          </View>
+        </View>
+
+        <Ionicons name="chevron-forward" size={20} color="#C0D9ED" />
+      </TouchableOpacity>
+
+      <View style={styles.cardDivider} />
+
+      {inviteMode ? (
+        <TouchableOpacity
+          style={styles.fullInviteButton}
+          activeOpacity={0.85}
+          onPress={() => sendGameInvite(item)}
+        >
+          <Ionicons name="game-controller-outline" size={20} color="#001A33" />
+          <Text style={styles.fullInviteButtonText}>Invite to Game</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.friendActions}>
+          <TouchableOpacity
+            style={styles.messageButton}
+            activeOpacity={0.85}
+            onPress={() =>
+              navigation.navigate('Messages', {
+                selectedFriend: item,
+              })
+            }
+          >
+            <Ionicons name="chatbubble-outline" size={19} color="#001A33" />
+            <Text style={styles.messageButtonText}>Message</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.removeButton}
+            activeOpacity={0.85}
+            onPress={() => removeFriend(item)}
+          >
+            <Ionicons name="person-remove-outline" size={20} color="#FF7288" />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderHeader = () => (
+    <View>
+      <View style={styles.headerRow}>
+        <View style={styles.headerTextArea}>
+          <Text style={styles.eyebrow}>TRIO COMMUNITY</Text>
+          <Text style={styles.title}>
+            {inviteMode ? 'Invite Friends' : 'Friends'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {inviteMode
+              ? `Choose a friend for Game Type ${gameType}`
+              : 'Find players, chat and grow your Trio circle.'}
+          </Text>
+        </View>
+
+        <View style={styles.headerIconBox}>
+          <Ionicons
+            name={inviteMode ? 'game-controller' : 'people'}
+            size={28}
+            color="#00E5FF"
+          />
+          <Text style={styles.headerCount}>{friends.length}</Text>
+        </View>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#D0E7F8" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search your friends"
+          placeholderTextColor="#B5CEE4"
+          value={search}
+          onChangeText={setSearch}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+
+        {search.length > 0 && (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => setSearch('')}
+          >
+            <Ionicons name="close-circle" size={20} color="#B5CEE4" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {!inviteMode && (
         <>
-          <View style={styles.addFriendBox}>
-            <TextInput
-              style={styles.addFriendInput}
-              placeholder="Enter email or username..."
-              placeholderTextColor="#ccc"
-              value={addFriendText}
-              onChangeText={(text) => {
-                setAddFriendText(text);
-                setSearchedUser(null);
-                setRequestSent(false);
-              }}
-              autoCapitalize="none"
-            />
+          <View style={styles.addFriendPanel}>
+            <View style={styles.panelHeaderRow}>
+              <View style={styles.panelIconBox}>
+                <Ionicons name="person-add" size={21} color="#00E5FF" />
+              </View>
 
-            <TouchableOpacity
-              style={styles.smallAddButton}
-              onPress={handleAddFriend}
-            >
-              <Text style={styles.smallAddText}>Search</Text>
-            </TouchableOpacity>
+              <View style={styles.panelHeaderText}>
+                <Text style={styles.panelTitle}>Add a new friend</Text>
+                <Text style={styles.panelSubtitle}>
+                  Search by exact email address or username.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.addFriendBox}>
+              <View style={styles.addFriendInputWrapper}>
+                <Ionicons name="at" size={19} color="#D0E7F8" />
+                <TextInput
+                  style={styles.addFriendInput}
+                  placeholder="Email or username"
+                  placeholderTextColor="#B5CEE4"
+                  value={addFriendText}
+                  onChangeText={(text) => {
+                    setAddFriendText(text);
+                    setSearchedUser(null);
+                    setRequestSent(false);
+                  }}
+                  onSubmitEditing={handleAddFriend}
+                  returnKeyType="search"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.smallAddButton}
+                activeOpacity={0.85}
+                onPress={handleAddFriend}
+              >
+                <Ionicons name="search" size={20} color="#001A33" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {searchedUser && (
-            <View style={styles.friendCard}>
+            <View style={styles.searchedUserCard}>
               <TouchableOpacity
-                style={styles.left}
+                style={styles.searchedUserProfile}
                 activeOpacity={0.8}
                 onPress={() => openUserProfile(searchedUser)}
               >
-                <Image
-                  source={{
-                    uri:
-                      searchedUser.profileImage ||
-                      searchedUser.avatar ||
-                      'https://i.pravatar.cc/150?img=1',
-                  }}
-                  style={styles.avatar}
-                />
+                <View style={styles.avatarWrapper}>
+                  <Image
+                    source={{ uri: getAvatarUri(searchedUser) }}
+                    style={styles.avatar}
+                  />
+                </View>
 
-                <View>
-                  <Text style={styles.name}>
-                    {searchedUser.name || searchedUser.username || 'Player'}
+                <View style={styles.userTextArea}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {getDisplayName(searchedUser)}
                   </Text>
-
-                  <Text style={styles.status}>
-                    {searchedUser.username
-                      ? `@${searchedUser.username}`
-                      : searchedUser.email}
+                  <Text style={styles.secondaryText} numberOfLines={1}>
+                    {getSecondaryText(searchedUser)}
                   </Text>
                 </View>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.inviteButton,
+                  styles.addResultButton,
                   requestSent && styles.requestedButton,
                 ]}
                 disabled={requestSent}
+                activeOpacity={0.85}
                 onPress={() => sendFriendRequest(searchedUser)}
               >
-                <Text style={styles.buttonText}>
-                  {requestSent ? 'Requested' : 'Add Friend'}
+                <Ionicons
+                  name={requestSent ? 'checkmark' : 'person-add-outline'}
+                  size={18}
+                  color={requestSent ? '#D9E5F1' : '#001A33'}
+                />
+                <Text
+                  style={[
+                    styles.addResultButtonText,
+                    requestSent && styles.requestedButtonText,
+                  ]}
+                >
+                  {requestSent ? 'Requested' : 'Add'}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
 
           {friendRequests.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Friend Requests</Text>
+            <View style={styles.requestsSection}>
+              <View style={styles.sectionHeaderRow}>
+                <View>
+                  <Text style={styles.sectionTitle}>Friend Requests</Text>
+                  <Text style={styles.sectionSubtitle}>
+                    Players waiting for your response
+                  </Text>
+                </View>
 
-              <FlatList
-                data={friendRequests}
-                keyExtractor={(item) => item.id}
-                renderItem={renderFriendRequest}
-                scrollEnabled={false}
-              />
-            </>
+                <View style={styles.sectionCountBadge}>
+                  <Text style={styles.sectionCountText}>
+                    {friendRequests.length}
+                  </Text>
+                </View>
+              </View>
+
+              {friendRequests.map(renderFriendRequest)}
+            </View>
           )}
         </>
       )}
 
-      <Text style={styles.sectionTitle}>
-        {inviteMode ? 'Select Friend' : 'My Friends'}
-      </Text>
+      <View style={styles.friendsSectionHeader}>
+        <View>
+          <Text style={styles.sectionTitle}>
+            {inviteMode ? 'Select a Friend' : 'My Friends'}
+          </Text>
+          <Text style={styles.sectionSubtitle}>
+            {search
+              ? `${filteredFriends.length} matching player${
+                  filteredFriends.length === 1 ? '' : 's'
+                }`
+              : `${friends.length} friend${friends.length === 1 ? '' : 's'}`}
+          </Text>
+        </View>
 
-      <FlatList
-        data={filteredFriends}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.friendCard}>
-            <TouchableOpacity
-              style={styles.left}
-              activeOpacity={0.8}
-              onPress={() => openUserProfile(item)}
-            >
-              <Image
-                source={{
-                  uri:
-                    item.profileImage ||
-                    item.avatar ||
-                    'https://i.pravatar.cc/150?img=1',
-                }}
-                style={styles.avatar}
-              />
+        <View style={styles.friendsIconBox}>
+          <Ionicons name="people-outline" size={20} color="#00E5FF" />
+        </View>
+      </View>
+    </View>
+  );
 
-              <View>
-                <Text style={styles.name}>
-                  {item.name || item.username || 'Player'}
-                </Text>
+  return (
+    <LinearGradient
+      colors={['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']}
+      locations={[0, 0.26, 0.48, 0.72, 1]}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#00A8F3" />
 
-                <Text
-                  style={[
-                    styles.status,
-                    {
-                      color: item.online ? '#00ff88' : '#ff4444',
-                    },
-                  ]}
-                >
-                  {item.online ? 'Online' : 'Offline'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+      <View pointerEvents="none" style={styles.backgroundShade} />
 
-            <View style={styles.friendActions}>
-              {inviteMode ? (
-                <TouchableOpacity
-                  style={styles.gameInviteButton}
-                  onPress={() => sendGameInvite(item)}
-                >
-                  <Text style={styles.buttonText}>Invite</Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={styles.inviteButton}
-                    onPress={() =>
-                      navigation.navigate('Messages', {
-                        selectedFriend: item,
-                      })
-                    }
-                  >
-                    <Text style={styles.buttonText}>Message</Text>
-                  </TouchableOpacity>
+      <View pointerEvents="none" style={styles.glowTop} />
+      <View pointerEvents="none" style={styles.glowBottom} />
 
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeFriend(item)}
-                  >
-                    <Text style={styles.buttonText}>Remove</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-        )}
+      <View pointerEvents="none" style={styles.backgroundLogoHalo} />
+      <Image
+        pointerEvents="none"
+        source={require('../assets/trio-logo.png')}
+        resizeMode="contain"
+        fadeDuration={0}
+        style={styles.backgroundLogo}
       />
+
+      <SafeAreaView style={styles.safeArea}>
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={(item) => item.id || item.uid}
+          renderItem={renderFriend}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconBox}>
+                <Ionicons
+                  name={search ? 'search-outline' : 'people-outline'}
+                  size={34}
+                  color="#00E5FF"
+                />
+              </View>
+
+              <Text style={styles.emptyTitle}>
+                {search ? 'No matching friends' : 'No friends yet'}
+              </Text>
+
+              <Text style={styles.emptyText}>
+                {search
+                  ? 'Try searching with another name, username or email.'
+                  : inviteMode
+                  ? 'You need to add friends before sending a game invite.'
+                  : 'Use the search box above to find your first Trio friend.'}
+              </Text>
+            </View>
+          }
+          ListFooterComponent={<View style={styles.footerSpace} />}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -690,166 +871,618 @@ export default function FriendsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+
+  safeArea: {
+    flex: 1,
+    zIndex: 3,
+  },
+
+  backgroundLogoHalo: {
+    position: 'absolute',
+    top: 92,
+    left: '12%',
+    width: '76%',
+    height: 330,
+    borderRadius: 180,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    zIndex: 1,
+  },
+
+  backgroundLogo: {
+    position: 'absolute',
+    top: 72,
+    left: '4%',
+    width: '92%',
+    height: 370,
+    opacity: 0.34,
+    zIndex: 2,
+  },
+
+  backgroundShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 10, 34, 0.08)',
+    zIndex: 0,
+  },
+
+
+  listContent: {
+    paddingHorizontal: 18,
+    paddingTop: 18,
+  },
+
+  glowTop: {
+    position: 'absolute',
+    top: -110,
+    right: -90,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+  },
+
+  glowBottom: {
+    position: 'absolute',
+    bottom: 40,
+    left: -120,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(0, 229, 255, 0.10)',
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22,
+  },
+
+  headerTextArea: {
+    flex: 1,
+    paddingRight: 16,
+  },
+
+  eyebrow: {
+    color: '#00E5FF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.7,
+    marginBottom: 6,
   },
 
   title: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 50,
+    color: '#FFFFFF',
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '800',
+    letterSpacing: -0.8,
   },
 
   subtitle: {
-    color: '#ddd',
-    textAlign: 'center',
-    marginBottom: 20,
+    color: '#D8E8F7',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 6,
   },
 
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    marginTop: 5,
+  headerIconBox: {
+    width: 66,
+    height: 66,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
   },
 
-  search: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 15,
-    padding: 12,
-    color: '#fff',
-    marginBottom: 12,
+  headerCount: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+
+  searchContainer: {
+    height: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 28, 78, 0.72)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.20)',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+
+  searchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+  },
+
+  clearButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  addFriendPanel: {
+    backgroundColor: 'rgba(0, 31, 88, 0.76)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.20)',
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+
+  panelHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+
+  panelIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.18)',
+    marginRight: 11,
+  },
+
+  panelHeaderText: {
+    flex: 1,
+  },
+
+  panelTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  panelSubtitle: {
+    color: '#C2D7EA',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
   },
 
   addFriendBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+  },
+
+  addFriendInputWrapper: {
+    flex: 1,
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 20, 62, 0.76)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    paddingHorizontal: 14,
+    marginRight: 10,
   },
 
   addFriendInput: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 15,
-    padding: 12,
-    color: '#fff',
-    marginRight: 10,
+    color: '#FFFFFF',
+    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 0,
   },
 
   smallAddButton: {
-    backgroundColor: '#00ff88',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 15,
-  },
-
-  smallAddText: {
-    color: '#000',
-    fontWeight: 'bold',
-  },
-
-  friendCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#00E5FF',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    padding: 15,
-    borderRadius: 18,
+    justifyContent: 'center',
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+
+  searchedUserCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 48, 112, 0.80)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    padding: 13,
+    marginBottom: 18,
+  },
+
+  searchedUserProfile: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  addResultButton: {
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00E5FF',
+    borderRadius: 13,
+    paddingHorizontal: 13,
+    marginLeft: 10,
+  },
+
+  addResultButtonText: {
+    color: '#001A33',
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+  },
+
+  requestedButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.20)',
+  },
+
+  requestedButtonText: {
+    color: '#D9E5F1',
+  },
+
+  requestsSection: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 19,
+    fontWeight: '800',
+    letterSpacing: -0.25,
+  },
+
+  sectionSubtitle: {
+    color: '#B5CEE4',
+    fontSize: 12,
+    marginTop: 3,
+  },
+
+  sectionCountBadge: {
+    minWidth: 30,
+    height: 30,
+    paddingHorizontal: 9,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 209, 102, 0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 209, 102, 0.22)',
+  },
+
+  sectionCountText: {
+    color: '#FFD166',
+    fontSize: 13,
+    fontWeight: '800',
   },
 
   requestCard: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: 'rgba(0, 27, 76, 0.82)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
     padding: 15,
-    borderRadius: 18,
     marginBottom: 12,
   },
 
-  left: {
+  requestTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    justifyContent: 'space-between',
   },
 
-  avatar: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
+  userInfoRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 10,
+  },
+
+  pendingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 209, 102, 0.1)',
+    borderRadius: 11,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+
+  pendingBadgeText: {
+    color: '#FFD166',
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+
+  requestButtons: {
+    flexDirection: 'row',
+    marginTop: 15,
+  },
+
+  acceptButton: {
+    flex: 1,
+    height: 43,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00FF88',
+    borderRadius: 14,
+    marginRight: 7,
+  },
+
+  rejectButton: {
+    flex: 1,
+    height: 43,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 100, 124, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 100, 124, 0.28)',
+    borderRadius: 14,
+    marginLeft: 7,
+  },
+
+  acceptButtonText: {
+    color: '#002718',
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+  },
+
+  friendsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    marginBottom: 13,
+  },
+
+  friendsIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+  },
+
+  friendCard: {
+    backgroundColor: 'rgba(0, 27, 76, 0.82)',
+    borderRadius: 23,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    padding: 15,
+    marginBottom: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.16,
+    shadowRadius: 15,
+    elevation: 4,
+  },
+
+  friendProfileArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  avatarWrapper: {
+    position: 'relative',
     marginRight: 12,
   },
 
-  name: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    backgroundColor: '#00458A',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
 
-  status: {
+  onlineDot: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 3,
+    borderColor: '#003269',
+  },
+
+  onlineDotActive: {
+    backgroundColor: '#00FF88',
+  },
+
+  onlineDotInactive: {
+    backgroundColor: '#8CA0B8',
+  },
+
+  userTextArea: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  name: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+
+  secondaryText: {
+    color: '#D8E8F7',
+    fontSize: 12,
     marginTop: 3,
-    color: '#ddd',
+  },
+
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+
+  miniStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 5,
+  },
+
+  miniStatusDotOnline: {
+    backgroundColor: '#00FF88',
+  },
+
+  miniStatusDotOffline: {
+    backgroundColor: '#8CA0B8',
+  },
+
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  statusTextOnline: {
+    color: '#00FF88',
+  },
+
+  statusTextOffline: {
+    color: '#B5C8DD',
+  },
+
+  cardDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    marginVertical: 14,
   },
 
   friendActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
   },
 
-  inviteButton: {
-    backgroundColor: '#00c6ff',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginLeft: 10,
+  messageButton: {
+    flex: 1,
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00E5FF',
+    borderRadius: 14,
+    marginRight: 10,
   },
 
-  gameInviteButton: {
-    backgroundColor: '#1abc9c',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginLeft: 10,
+  messageButtonText: {
+    color: '#001A33',
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 7,
   },
 
   removeButton: {
-    backgroundColor: '#e74c3c',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginLeft: 8,
+    width: 46,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 100, 124, 0.1)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 100, 124, 0.2)',
   },
 
-  requestedButton: {
-    backgroundColor: '#7f8c8d',
-  },
-
-  requestButtons: {
+  fullInviteButton: {
+    height: 46,
     flexDirection: 'row',
-    marginTop: 12,
-  },
-
-  acceptButton: {
-    flex: 1,
-    backgroundColor: '#00ff88',
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginRight: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00FF88',
+    borderRadius: 15,
   },
 
-  rejectButton: {
-    flex: 1,
-    backgroundColor: '#e74c3c',
-    paddingVertical: 10,
-    borderRadius: 12,
+  fullInviteButtonText: {
+    color: '#001A33',
+    fontSize: 14,
+    fontWeight: '800',
     marginLeft: 8,
-    alignItems: 'center',
   },
 
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 27, 76, 0.70)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    paddingHorizontal: 30,
+    paddingVertical: 34,
+  },
+
+  emptyIconBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.16)',
+    marginBottom: 15,
+  },
+
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+
+  emptyText: {
+    color: '#C4D5E7',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginTop: 7,
+  },
+
+  footerSpace: {
+    height: 32,
   },
 });
