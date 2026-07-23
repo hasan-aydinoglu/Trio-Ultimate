@@ -624,14 +624,14 @@ export default function FriendsScreen({ navigation, route }) {
     <View>
       <View style={styles.headerRow}>
         <View style={styles.headerTextArea}>
-          <Text style={styles.eyebrow}>TRIO COMMUNITY</Text>
+          <Text style={styles.eyebrow}>TRIO</Text>
           <Text style={styles.title}>
             {inviteMode ? 'Invite Friends' : 'Friends'}
           </Text>
           <Text style={styles.subtitle}>
             {inviteMode
               ? `Choose a friend for Game Type ${gameType}`
-              : 'Find players, chat and grow your Trio circle.'}
+              : ''}
           </Text>
         </View>
 
@@ -677,9 +677,7 @@ export default function FriendsScreen({ navigation, route }) {
 
               <View style={styles.panelHeaderText}>
                 <Text style={styles.panelTitle}>Add a new friend</Text>
-                <Text style={styles.panelSubtitle}>
-                  Search by exact email address or username.
-                </Text>
+                
               </View>
             </View>
 
