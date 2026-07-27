@@ -35,6 +35,7 @@ const DEFAULT_AVATAR = 'https://i.pravatar.cc/150?img=1';
 export default function Messages({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [friends, setFriends] = useState([]);
+  const [conversations, setConversations] = useState([]);
   // Messages tab always opens on the conversations list.
   // A friend is selected only when the screen receives an intentional route param.
   const [selectedFriend, setSelectedFriend] = useState(null);
@@ -158,6 +159,43 @@ export default function Messages({ navigation, route }) {
   }, []);
 
   useEffect(() => {
+    if (!currentUser) return;
+
+    const unsubscribe = onSnapshot(
+      collection(db, 'chats'),
+      (snapshot) => {
+        const conversationList = snapshot.docs
+          .map((chatDoc) => ({
+            id: chatDoc.id,
+            ...chatDoc.data(),
+          }))
+          .filter(
+            (chat) =>
+              Array.isArray(chat.users) &&
+              chat.users.includes(currentUser.uid)
+          )
+          .sort((a, b) => {
+            const aTime = a.updatedAt?.toMillis
+              ? a.updatedAt.toMillis()
+              : 0;
+            const bTime = b.updatedAt?.toMillis
+              ? b.updatedAt.toMillis()
+              : 0;
+
+            return bTime - aTime;
+          });
+
+        setConversations(conversationList);
+      },
+      (error) => {
+        console.log('Messages conversations error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUser?.uid]);
+
+  useEffect(() => {
     if (!currentUser || !selectedFriend) return;
 
     const friendId = selectedFriend.uid || selectedFriend.id;
@@ -279,7 +317,34 @@ export default function Messages({ navigation, route }) {
     }
   };
 
-  const filteredFriends = friends.filter((item) =>
+  const conversationFriends = friends
+    .map((friend) => {
+      const friendId = friend.uid || friend.id;
+      const chatId = getChatId(currentUser?.uid || '', friendId);
+      const conversation = conversations.find((chat) => chat.id === chatId);
+
+      const hasUnreadMessage =
+        conversation?.lastMessageReceiverId === currentUser?.uid &&
+        conversation?.lastMessageRead === false;
+
+      return {
+        ...friend,
+        conversation,
+        hasUnreadMessage,
+      };
+    })
+    .sort((a, b) => {
+      const aTime = a.conversation?.updatedAt?.toMillis
+        ? a.conversation.updatedAt.toMillis()
+        : 0;
+      const bTime = b.conversation?.updatedAt?.toMillis
+        ? b.conversation.updatedAt.toMillis()
+        : 0;
+
+      return bTime - aTime;
+    });
+
+  const filteredFriends = conversationFriends.filter((item) =>
     (item.name || item.username || item.email || '')
       .toLowerCase()
       .includes(search.toLowerCase())
@@ -287,7 +352,10 @@ export default function Messages({ navigation, route }) {
 
   const renderFriend = ({ item }) => (
     <TouchableOpacity
-      style={styles.chatCard}
+      style={[
+        styles.chatCard,
+        item.hasUnreadMessage && styles.unreadChatCard,
+      ]}
       activeOpacity={0.86}
       onPress={() => setSelectedFriend(item)}
     >
@@ -308,7 +376,13 @@ export default function Messages({ navigation, route }) {
 
       <View style={styles.messageInfo}>
         <View style={styles.friendNameRow}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text
+            style={[
+              styles.name,
+              item.hasUnreadMessage && styles.unreadName,
+            ]}
+            numberOfLines={1}
+          >
             {getDisplayName(item)}
           </Text>
 
@@ -333,8 +407,14 @@ export default function Messages({ navigation, route }) {
           </View>
         </View>
 
-        <Text style={styles.lastMessage} numberOfLines={1}>
-          Tap to open your conversation
+        <Text
+          style={[
+            styles.lastMessage,
+            item.hasUnreadMessage && styles.unreadLastMessage,
+          ]}
+          numberOfLines={1}
+        >
+          {item.conversation?.lastMessage || 'Tap to open your conversation'}
         </Text>
 
         <Text style={styles.username} numberOfLines={1}>
@@ -342,8 +422,17 @@ export default function Messages({ navigation, route }) {
         </Text>
       </View>
 
-      <View style={styles.openChatButton}>
-        <Ionicons name="chatbubble-ellipses" size={20} color="#001A33" />
+      <View
+        style={[
+          styles.openChatButton,
+          item.hasUnreadMessage && styles.unreadOpenChatButton,
+        ]}
+      >
+        {item.hasUnreadMessage ? (
+          <View style={styles.unreadDot} />
+        ) : (
+          <Ionicons name="chatbubble-ellipses" size={20} color="#001A33" />
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -866,6 +955,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(156, 225, 255, 0.18)',
   },
 
+  unreadChatCard: {
+    backgroundColor: 'rgba(0, 45, 105, 0.96)',
+    borderColor: 'rgba(0, 229, 255, 0.72)',
+  },
+
   avatarWrapper: {
     position: 'relative',
     marginRight: 13,
@@ -916,6 +1010,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
 
+  unreadName: {
+    fontWeight: '900',
+  },
+
   statusBadge: {
     paddingHorizontal: 7,
     paddingVertical: 3,
@@ -949,6 +1047,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
+  unreadLastMessage: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+
   username: {
     color: '#8DDFF3',
     fontSize: 12,
@@ -963,6 +1066,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#00E5FF',
+  },
+
+  unreadOpenChatButton: {
+    backgroundColor: '#FFFFFF',
+  },
+
+  unreadDot: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    backgroundColor: '#0072FF',
   },
 
   emptyState: {
