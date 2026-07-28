@@ -28,6 +28,8 @@ import {
 
 export default function GameModeScreen({ navigation }) {
   const [gameInvites, setGameInvites] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [unreadChats, setUnreadChats] = useState([]);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -59,6 +61,75 @@ export default function GameModeScreen({ navigation }) {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      setFriendRequests([]);
+      return;
+    }
+
+    const friendRequestsQuery = query(
+      collection(db, 'friendRequests'),
+      where('toUserId', '==', currentUser.uid),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(
+      friendRequestsQuery,
+      (snapshot) => {
+        const requests = snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }));
+
+        setFriendRequests(requests);
+      },
+      (error) => {
+        console.log('Friend requests load error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      setUnreadChats([]);
+      return;
+    }
+
+    const unreadChatsQuery = query(
+      collection(db, 'chats'),
+      where('lastMessageReceiverId', '==', currentUser.uid),
+      where('lastMessageRead', '==', false)
+    );
+
+    const unsubscribe = onSnapshot(
+      unreadChatsQuery,
+      (snapshot) => {
+        const chats = snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }));
+
+        setUnreadChats(chats);
+      },
+      (error) => {
+        console.log('Unread chats load error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const hasNotifications =
+    gameInvites.length > 0 ||
+    friendRequests.length > 0 ||
+    unreadChats.length > 0;
 
   const createOnlineRoom = () => {
     navigation.navigate('OnlineRoomSetupScreen');
@@ -232,14 +303,8 @@ export default function GameModeScreen({ navigation }) {
                 color="#FFFFFF"
               />
 
-              {gameInvites.length > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {gameInvites.length > 9
-                      ? '9+'
-                      : gameInvites.length}
-                  </Text>
-                </View>
+              {hasNotifications && (
+                <View style={styles.notificationDot} />
               )}
             </TouchableOpacity>
           </View>
@@ -590,23 +655,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  notificationBadge: {
+  notificationDot: {
     position: 'absolute',
-    top: -6,
-    right: -6,
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
+    top: 5,
+    right: 5,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
     backgroundColor: '#FF4169',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-
-  notificationBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '900',
+    borderWidth: 2,
+    borderColor: '#003B9F',
   },
 
   brandArea: {

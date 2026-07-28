@@ -379,6 +379,12 @@ export default function FriendsScreen({ navigation, route }) {
   };
 
   const acceptFriendRequest = async (request) => {
+    // Remove the request immediately so the UI responds without waiting
+    // for Firestore writes and without showing a delayed native alert.
+    setFriendRequests((currentRequests) =>
+      currentRequests.filter((item) => item.id !== request.id)
+    );
+
     try {
       const friendData = {
         id: request.fromUserId,
@@ -394,9 +400,18 @@ export default function FriendsScreen({ navigation, route }) {
       await addFriendPermanently(friendData);
 
       await deleteDoc(doc(db, 'friendRequests', request.id));
-
-      Alert.alert('Accepted', 'Friend request accepted.');
     } catch (error) {
+      // Restore the request if the operation fails.
+      setFriendRequests((currentRequests) => {
+        const alreadyExists = currentRequests.some(
+          (item) => item.id === request.id
+        );
+
+        return alreadyExists
+          ? currentRequests
+          : [request, ...currentRequests];
+      });
+
       Alert.alert('Error', error.message);
     }
   };
@@ -509,6 +524,8 @@ export default function FriendsScreen({ navigation, route }) {
         <TouchableOpacity
           style={styles.acceptButton}
           activeOpacity={0.85}
+          delayPressIn={0}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           onPress={() => acceptFriendRequest(item)}
         >
           <Ionicons name="checkmark" size={19} color="#002718" />
@@ -832,7 +849,7 @@ export default function FriendsScreen({ navigation, route }) {
           data={filteredFriends}
           keyExtractor={(item) => item.id || item.uid}
           renderItem={renderFriend}
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={renderHeader()}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <View style={styles.emptyIconBox}>
@@ -859,7 +876,8 @@ export default function FriendsScreen({ navigation, route }) {
           ListFooterComponent={<View style={styles.footerSpace} />}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
         />
       </SafeAreaView>
     </LinearGradient>
