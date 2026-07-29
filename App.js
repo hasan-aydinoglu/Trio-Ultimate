@@ -63,8 +63,6 @@ import OnlineLobbyScreen from './screens/OnlineLobbyScreen';
 import OnlineRoomSetupScreen from './screens/OnlineRoomSetupScreen';
 import ChatScreen from './screens/ChatScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
-
-// EKLENDİ
 import Notifications from './screens/Notifications';
 
 const Tab = createBottomTabNavigator();
@@ -83,6 +81,10 @@ function TabNavigator({
     <Tab.Navigator
       initialRouteName="GameMode"
       screenOptions={({ route }) => ({
+        headerShown: false,
+
+        animation: 'fade',
+
         tabBarIcon: ({ focused, color }) => {
           let iconName = 'ellipse';
 
@@ -126,12 +128,10 @@ function TabNavigator({
 
         tabBarActiveTintColor: '#ffffff',
         tabBarInactiveTintColor: '#8A94A6',
-        headerShown: false,
 
         tabBarStyle: styles.tabBar,
         tabBarItemStyle: styles.tabBarItem,
         tabBarLabelStyle: styles.tabBarLabel,
-
         tabBarBadgeStyle: styles.badge,
       })}
     >
@@ -464,19 +464,36 @@ export default function App() {
         initialRouteName="Home"
         screenOptions={{
           headerShown: false,
+
+          animation: 'slide_from_right',
+          animationDuration: 320,
+
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
         }}
       >
         <Stack.Screen
           name="Home"
           component={Home}
+          options={{
+            animation: 'fade',
+          }}
         />
 
         <Stack.Screen
           name="SplashIntro"
           component={SplashIntro}
+          options={{
+            animation: 'fade',
+          }}
         />
 
-        <Stack.Screen name="TabNavigator">
+        <Stack.Screen
+          name="TabNavigator"
+          options={{
+            animation: 'fade',
+          }}
+        >
           {(props) => (
             <TabNavigator
               {...props}
@@ -496,84 +513,135 @@ export default function App() {
         <Stack.Screen
           name="MainMenu"
           component={MainMenu}
+          options={{
+            animation: 'fade_from_bottom',
+          }}
         />
 
         <Stack.Screen
           name="Friends"
           component={Friends}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
         <Stack.Screen
           name="EditProfile"
           component={EditProfile}
+          options={{
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+          }}
         />
 
         <Stack.Screen
           name="SignUp"
           component={SignUp}
+          options={{
+            animation: 'fade_from_bottom',
+          }}
         />
 
         <Stack.Screen
           name="ChatScreen"
           component={ChatScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
         <Stack.Screen
           name="UserProfileScreen"
           component={UserProfileScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
-        {/* EKLENDİ */}
         <Stack.Screen
           name="Notifications"
           component={Notifications}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
         <Stack.Screen
           name="OnlineRoomSetupScreen"
-          component={
-            OnlineRoomSetupScreen
-          }
+          component={OnlineRoomSetupScreen}
+          options={{
+            animation: 'fade_from_bottom',
+          }}
         />
 
         <Stack.Screen
           name="OnlineLobbyScreen"
           component={OnlineLobbyScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
         <Stack.Screen
           name="GameScreen"
           component={GameScreen}
+          options={{
+            animation: 'fade_from_bottom',
+            gestureEnabled: false,
+          }}
         />
 
         <Stack.Screen
           name="GameScreen2"
           component={GameScreen2}
+          options={{
+            animation: 'fade_from_bottom',
+            gestureEnabled: false,
+          }}
         />
 
         <Stack.Screen
           name="GameScreen3"
           component={GameScreen3}
+          options={{
+            animation: 'fade_from_bottom',
+            gestureEnabled: false,
+          }}
         />
 
         <Stack.Screen
           name="GameScreen4"
           component={GameScreen4}
+          options={{
+            animation: 'fade_from_bottom',
+            gestureEnabled: false,
+          }}
         />
 
         <Stack.Screen
           name="GameScreen5"
           component={GameScreen5}
+          options={{
+            animation: 'fade_from_bottom',
+            gestureEnabled: false,
+          }}
         />
 
         <Stack.Screen
           name="Privacy"
           component={PrivacyScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
 
         <Stack.Screen
           name="ContactUs"
           component={ContactUsScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
