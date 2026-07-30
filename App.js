@@ -39,6 +39,7 @@ import {
   where,
   onSnapshot,
   doc,
+  getDoc,
   updateDoc,
 } from 'firebase/firestore';
 
@@ -70,6 +71,91 @@ const Stack = createNativeStackNavigator();
 
 const navigationRef = createNavigationContainerRef();
 
+/*
+ * Firestore'dan oyuncunun gerçek adını ve
+ * profil fotoğrafını getirir.
+ */
+const getUserGameProfile = async (
+  userId,
+  playerId
+) => {
+  try {
+    if (!userId) {
+      return {
+        id: playerId,
+        uid: null,
+        name: `Player ${playerId}`,
+        photo: null,
+        image: null,
+        avatar: null,
+      };
+    }
+
+    const userRef = doc(
+      db,
+      'users',
+      userId
+    );
+
+    const userSnapshot = await getDoc(
+      userRef
+    );
+
+    if (!userSnapshot.exists()) {
+      return {
+        id: playerId,
+        uid: userId,
+        name: `Player ${playerId}`,
+        photo: null,
+        image: null,
+        avatar: null,
+      };
+    }
+
+    const userData = userSnapshot.data();
+
+    const playerName =
+      userData.username ||
+      userData.name ||
+      userData.fullName ||
+      userData.displayName ||
+      userData.email ||
+      `Player ${playerId}`;
+
+    const playerPhoto =
+      userData.profileImage ||
+      userData.photoURL ||
+      userData.image ||
+      userData.avatar ||
+      userData.avatarUrl ||
+      userData.profilePhoto ||
+      null;
+
+    return {
+      id: playerId,
+      uid: userId,
+      name: playerName,
+      photo: playerPhoto,
+      image: playerPhoto,
+      avatar: playerPhoto,
+    };
+  } catch (error) {
+    console.log(
+      'Game player profile load error:',
+      error
+    );
+
+    return {
+      id: playerId,
+      uid: userId,
+      name: `Player ${playerId}`,
+      photo: null,
+      image: null,
+      avatar: null,
+    };
+  }
+};
+
 SplashScreen.preventAutoHideAsync();
 
 function TabNavigator({
@@ -85,26 +171,43 @@ function TabNavigator({
 
         animation: 'fade',
 
-        tabBarIcon: ({ focused, color }) => {
+        tabBarIcon: ({
+          focused,
+          color,
+        }) => {
           let iconName = 'ellipse';
 
           if (route.name === 'GameMode') {
             iconName = 'game-controller';
-          } else if (route.name === 'Messages') {
-            iconName = 'chatbubble-ellipses';
-          } else if (route.name === 'Friends') {
+          } else if (
+            route.name === 'Messages'
+          ) {
+            iconName =
+              'chatbubble-ellipses';
+          } else if (
+            route.name === 'Friends'
+          ) {
             iconName = 'people';
-          } else if (route.name === 'Profile') {
+          } else if (
+            route.name === 'Profile'
+          ) {
             iconName = 'person-circle';
-          } else if (route.name === 'Settings') {
+          } else if (
+            route.name === 'Settings'
+          ) {
             iconName = 'settings';
           }
 
           if (focused) {
             return (
               <LinearGradient
-                colors={['#00c6ff', '#0072ff']}
-                style={styles.activeIconBox}
+                colors={[
+                  '#00c6ff',
+                  '#0072ff',
+                ]}
+                style={
+                  styles.activeIconBox
+                }
               >
                 <Ionicons
                   name={iconName}
@@ -116,7 +219,11 @@ function TabNavigator({
           }
 
           return (
-            <View style={styles.inactiveIconBox}>
+            <View
+              style={
+                styles.inactiveIconBox
+              }
+            >
               <Ionicons
                 name={iconName}
                 size={22}
@@ -126,13 +233,22 @@ function TabNavigator({
           );
         },
 
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: '#8A94A6',
+        tabBarActiveTintColor:
+          '#ffffff',
+
+        tabBarInactiveTintColor:
+          '#8A94A6',
 
         tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabBarItem,
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarBadgeStyle: styles.badge,
+
+        tabBarItemStyle:
+          styles.tabBarItem,
+
+        tabBarLabelStyle:
+          styles.tabBarLabel,
+
+        tabBarBadgeStyle:
+          styles.badge,
       })}
     >
       <Tab.Screen
@@ -140,6 +256,7 @@ function TabNavigator({
         component={GameModeScreen}
         options={{
           title: 'Game',
+
           tabBarBadge:
             gameInviteCount > 0
               ? gameInviteCount
@@ -152,6 +269,7 @@ function TabNavigator({
         component={Messages}
         options={{
           title: 'Messages',
+
           tabBarBadge:
             unreadMessageCount > 0
               ? unreadMessageCount
@@ -164,6 +282,7 @@ function TabNavigator({
         component={Friends}
         options={{
           title: 'Friends',
+
           tabBarBadge:
             friendRequestCount > 0
               ? friendRequestCount
@@ -185,10 +304,15 @@ function TabNavigator({
 }
 
 export default function App() {
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [
+    appIsReady,
+    setAppIsReady,
+  ] = useState(false);
 
-  const [currentUserId, setCurrentUserId] =
-    useState(null);
+  const [
+    currentUserId,
+    setCurrentUserId,
+  ] = useState(null);
 
   const [
     unreadMessageCount,
@@ -205,7 +329,8 @@ export default function App() {
     setGameInviteCount,
   ] = useState(0);
 
-  const processedAcceptedInvites = useRef({});
+  const processedAcceptedInvites =
+    useRef({});
 
   useEffect(() => {
     async function prepare() {
@@ -225,49 +350,69 @@ export default function App() {
     prepare();
   }, []);
 
+  /*
+   * Giriş yapan kullanıcıyı takip eder.
+   */
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          setCurrentUserId(user.uid);
-        } else {
-          setCurrentUserId(null);
-          setUnreadMessageCount(0);
-          setFriendRequestCount(0);
-          setGameInviteCount(0);
+    const unsubscribeAuth =
+      onAuthStateChanged(
+        auth,
+        (user) => {
+          if (user) {
+            setCurrentUserId(
+              user.uid
+            );
+          } else {
+            setCurrentUserId(null);
 
-          processedAcceptedInvites.current = {};
+            setUnreadMessageCount(0);
+
+            setFriendRequestCount(0);
+
+            setGameInviteCount(0);
+
+            processedAcceptedInvites.current =
+              {};
+          }
         }
-      }
-    );
+      );
 
-    return () => unsubscribeAuth();
+    return () =>
+      unsubscribeAuth();
   }, []);
 
+  /*
+   * Arkadaşlık isteklerini takip eder.
+   */
   useEffect(() => {
     if (!currentUserId) {
       return undefined;
     }
 
-    const friendRequestsQuery = query(
-      collection(db, 'friendRequests'),
-      where(
-        'toUserId',
-        '==',
-        currentUserId
-      ),
-      where(
-        'status',
-        '==',
-        'pending'
-      )
-    );
+    const friendRequestsQuery =
+      query(
+        collection(
+          db,
+          'friendRequests'
+        ),
+        where(
+          'toUserId',
+          '==',
+          currentUserId
+        ),
+        where(
+          'status',
+          '==',
+          'pending'
+        )
+      );
 
     const unsubscribe = onSnapshot(
       friendRequestsQuery,
       (snapshot) => {
-        setFriendRequestCount(snapshot.size);
+        setFriendRequestCount(
+          snapshot.size
+        );
       },
       (error) => {
         console.log(
@@ -280,29 +425,35 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUserId]);
 
+  /*
+   * Okunmamış mesajları takip eder.
+   */
   useEffect(() => {
     if (!currentUserId) {
       return undefined;
     }
 
-    const unreadMessagesQuery = query(
-      collection(db, 'chats'),
-      where(
-        'lastMessageReceiverId',
-        '==',
-        currentUserId
-      ),
-      where(
-        'lastMessageRead',
-        '==',
-        false
-      )
-    );
+    const unreadMessagesQuery =
+      query(
+        collection(db, 'chats'),
+        where(
+          'lastMessageReceiverId',
+          '==',
+          currentUserId
+        ),
+        where(
+          'lastMessageRead',
+          '==',
+          false
+        )
+      );
 
     const unsubscribe = onSnapshot(
       unreadMessagesQuery,
       (snapshot) => {
-        setUnreadMessageCount(snapshot.size);
+        setUnreadMessageCount(
+          snapshot.size
+        );
       },
       (error) => {
         console.log(
@@ -315,13 +466,19 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUserId]);
 
+  /*
+   * Bekleyen oyun davetlerini takip eder.
+   */
   useEffect(() => {
     if (!currentUserId) {
       return undefined;
     }
 
     const gameInvitesQuery = query(
-      collection(db, 'gameInvites'),
+      collection(
+        db,
+        'gameInvites'
+      ),
       where(
         'toUserId',
         '==',
@@ -337,7 +494,9 @@ export default function App() {
     const unsubscribe = onSnapshot(
       gameInvitesQuery,
       (snapshot) => {
-        setGameInviteCount(snapshot.size);
+        setGameInviteCount(
+          snapshot.size
+        );
       },
       (error) => {
         console.log(
@@ -350,47 +509,88 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUserId]);
 
+  /*
+   * Gönderilen oyun daveti kabul edilince:
+   *
+   * 1. Davet eden oyuncunun profilini getirir.
+   * 2. Daveti kabul eden rakibin profilini getirir.
+   * 3. Gerçek isimleri ve fotoğrafları
+   *    oyun ekranına players parametresiyle yollar.
+   * 4. Oyunu otomatik açar.
+   */
   useEffect(() => {
     if (!currentUserId) {
       return undefined;
     }
 
-    const acceptedInvitesQuery = query(
-      collection(db, 'gameInvites'),
-      where(
-        'fromUserId',
-        '==',
-        currentUserId
-      ),
-      where(
-        'status',
-        '==',
-        'accepted'
-      )
-    );
+    const acceptedInvitesQuery =
+      query(
+        collection(
+          db,
+          'gameInvites'
+        ),
+        where(
+          'fromUserId',
+          '==',
+          currentUserId
+        ),
+        where(
+          'status',
+          '==',
+          'accepted'
+        )
+      );
 
     const unsubscribe = onSnapshot(
       acceptedInvitesQuery,
       async (snapshot) => {
-        snapshot.docChanges().forEach(
-          async (change) => {
-            const inviteId = change.doc.id;
+        const changes =
+          snapshot.docChanges();
 
-            if (
-              processedAcceptedInvites
-                .current[inviteId]
-            ) {
-              return;
-            }
+        for (const change of changes) {
+          const inviteId =
+            change.doc.id;
 
-            const invite = {
-              id: inviteId,
-              ...change.doc.data(),
-            };
+          if (
+            processedAcceptedInvites
+              .current[inviteId]
+          ) {
+            continue;
+          }
 
-            processedAcceptedInvites.current[
-              inviteId
-            ] = true;
+          const invite = {
+            id: inviteId,
+            ...change.doc.data(),
+          };
+
+          processedAcceptedInvites.current[
+            inviteId
+          ] = true;
+
+          try {
+            /*
+             * Davet eden kişi Player 1,
+             * daveti kabul eden kişi Player 2.
+             */
+            const [
+              invitingPlayer,
+              invitedPlayer,
+            ] = await Promise.all([
+              getUserGameProfile(
+                invite.fromUserId,
+                1
+              ),
+
+              getUserGameProfile(
+                invite.toUserId,
+                2
+              ),
+            ]);
+
+            const gamePlayers = [
+              invitingPlayer,
+              invitedPlayer,
+            ];
 
             const gameScreens = {
               1: 'GameScreen',
@@ -401,21 +601,38 @@ export default function App() {
             };
 
             const screenName =
-              gameScreens[invite.gameType] ||
-              'GameScreen';
+              gameScreens[
+                invite.gameType
+              ] || 'GameScreen';
 
-            if (navigationRef.isReady()) {
+            if (
+              navigationRef.isReady()
+            ) {
               navigationRef.navigate(
                 screenName,
                 {
-                  roomId: invite.roomId,
-                  gameType: invite.gameType,
+                  roomId:
+                    invite.roomId,
+
+                  gameType:
+                    invite.gameType,
+
                   isOnline: true,
-                  inviteId: invite.id,
+
+                  inviteId:
+                    invite.id,
+
                   invitedBy:
                     invite.fromUserId,
+
                   acceptedBy:
                     invite.toUserId,
+
+                  opponentUserId:
+                    invite.toUserId,
+
+                  players:
+                    gamePlayers,
                 }
               );
             }
@@ -430,8 +647,16 @@ export default function App() {
                 status: 'started',
               }
             );
+          } catch (error) {
+            console.log(
+              'Online game start error:',
+              error
+            );
+
+            delete processedAcceptedInvites
+              .current[inviteId];
           }
-        );
+        }
       },
       (error) => {
         console.log(
@@ -465,11 +690,15 @@ export default function App() {
         screenOptions={{
           headerShown: false,
 
-          animation: 'slide_from_right',
+          animation:
+            'slide_from_right',
+
           animationDuration: 320,
 
           gestureEnabled: true,
-          fullScreenGestureEnabled: true,
+
+          fullScreenGestureEnabled:
+            true,
         }}
       >
         <Stack.Screen
@@ -514,7 +743,8 @@ export default function App() {
           name="MainMenu"
           component={MainMenu}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
           }}
         />
 
@@ -522,7 +752,8 @@ export default function App() {
           name="Friends"
           component={Friends}
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
@@ -530,7 +761,9 @@ export default function App() {
           name="EditProfile"
           component={EditProfile}
           options={{
-            animation: 'slide_from_bottom',
+            animation:
+              'slide_from_bottom',
+
             gestureEnabled: true,
           }}
         />
@@ -539,7 +772,8 @@ export default function App() {
           name="SignUp"
           component={SignUp}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
           }}
         />
 
@@ -547,15 +781,19 @@ export default function App() {
           name="ChatScreen"
           component={ChatScreen}
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
         <Stack.Screen
           name="UserProfileScreen"
-          component={UserProfileScreen}
+          component={
+            UserProfileScreen
+          }
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
@@ -563,23 +801,30 @@ export default function App() {
           name="Notifications"
           component={Notifications}
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
         <Stack.Screen
           name="OnlineRoomSetupScreen"
-          component={OnlineRoomSetupScreen}
+          component={
+            OnlineRoomSetupScreen
+          }
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
           }}
         />
 
         <Stack.Screen
           name="OnlineLobbyScreen"
-          component={OnlineLobbyScreen}
+          component={
+            OnlineLobbyScreen
+          }
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
@@ -587,7 +832,9 @@ export default function App() {
           name="GameScreen"
           component={GameScreen}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
+
             gestureEnabled: false,
           }}
         />
@@ -596,7 +843,9 @@ export default function App() {
           name="GameScreen2"
           component={GameScreen2}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
+
             gestureEnabled: false,
           }}
         />
@@ -605,7 +854,9 @@ export default function App() {
           name="GameScreen3"
           component={GameScreen3}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
+
             gestureEnabled: false,
           }}
         />
@@ -614,7 +865,9 @@ export default function App() {
           name="GameScreen4"
           component={GameScreen4}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
+
             gestureEnabled: false,
           }}
         />
@@ -623,7 +876,9 @@ export default function App() {
           name="GameScreen5"
           component={GameScreen5}
           options={{
-            animation: 'fade_from_bottom',
+            animation:
+              'fade_from_bottom',
+
             gestureEnabled: false,
           }}
         />
@@ -632,15 +887,19 @@ export default function App() {
           name="Privacy"
           component={PrivacyScreen}
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
 
         <Stack.Screen
           name="ContactUs"
-          component={ContactUsScreen}
+          component={
+            ContactUsScreen
+          }
           options={{
-            animation: 'slide_from_right',
+            animation:
+              'slide_from_right',
           }}
         />
       </Stack.Navigator>
@@ -651,27 +910,38 @@ export default function App() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
+
     left: 18,
     right: 18,
     bottom: 18,
+
     height: 78,
+
     borderRadius: 32,
+
     backgroundColor:
       'rgba(17, 24, 39, 0.96)',
+
     borderTopWidth: 0,
+
     paddingTop: 10,
+
     paddingBottom:
       Platform.OS === 'ios'
         ? 20
         : 12,
 
     shadowColor: '#00c6ff',
+
     shadowOffset: {
       width: 0,
       height: 8,
     },
+
     shadowOpacity: 0.25,
+
     shadowRadius: 18,
+
     elevation: 15,
   },
 
@@ -681,42 +951,62 @@ const styles = StyleSheet.create({
 
   tabBarLabel: {
     fontSize: 11,
+
     fontWeight: '700',
+
     marginTop: 4,
   },
 
   activeIconBox: {
     width: 44,
+
     height: 34,
+
     borderRadius: 18,
+
     justifyContent: 'center',
+
     alignItems: 'center',
 
     shadowColor: '#00c6ff',
+
     shadowOffset: {
       width: 0,
       height: 4,
     },
+
     shadowOpacity: 0.45,
+
     shadowRadius: 8,
+
     elevation: 8,
   },
 
   inactiveIconBox: {
     width: 44,
+
     height: 34,
+
     justifyContent: 'center',
+
     alignItems: 'center',
   },
 
   badge: {
     backgroundColor: '#ff3b5c',
+
     color: '#fff',
+
     fontSize: 10,
+
     fontWeight: '800',
+
     minWidth: 18,
+
     height: 18,
+
     borderRadius: 9,
+
     marginTop: 6,
   },
 });
