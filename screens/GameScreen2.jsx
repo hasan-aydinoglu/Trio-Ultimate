@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import {
   View,
   Text,
@@ -8,11 +9,19 @@ import {
   ImageBackground,
   Image,
 } from 'react-native';
+
 import { LinearGradient } from 'expo-linear-gradient';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
@@ -25,232 +34,637 @@ const tableData = [
 ];
 
 const cellColors = [
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#e67e22'],
-  ['#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#8e44ad', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e84393', '#8e44ad', '#e84393'],
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#8e44ad'],
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e84393', '#e84393', '#e67e22'],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+    '#e84393',
+  ],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+  ],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e84393',
+    '#e84393',
+    '#e67e22',
+  ],
 ];
 
 const players = [
-  { id: 1, name: 'Player 1', photo: null },
-  { id: 2, name: 'Player 2', photo: null },
-  { id: 3, name: 'Player 3', photo: null },
-  { id: 4, name: 'Player 4', photo: null },
+  {
+    id: 1,
+    name: 'Player 1',
+    photo: null,
+  },
+  {
+    id: 2,
+    name: 'Player 2',
+    photo: null,
+  },
+  {
+    id: 3,
+    name: 'Player 3',
+    photo: null,
+  },
+  {
+    id: 4,
+    name: 'Player 4',
+    photo: null,
+  },
 ];
 
-const GameScreen2 = ({ route }) => {
-  const [selectedCells, setSelectedCells] = useState([]);
-  const [randomNumber, setRandomNumber] = useState(null);
-  const [showRules, setShowRules] = useState(true);
-  const [profileImage, setProfileImage] = useState(null);
-  const [loggedInPlayerName, setLoggedInPlayerName] = useState('Player 1');
+const GameScreen2 = ({
+  navigation,
+  route,
+}) => {
+  const [
+    selectedCells,
+    setSelectedCells,
+  ] = useState([]);
 
-  const routePlayers = route?.params?.players || players;
+  const [
+    randomNumber,
+    setRandomNumber,
+  ] = useState(null);
+
+  const [
+    showRules,
+    setShowRules,
+  ] = useState(true);
+
+  const [
+    profileImage,
+    setProfileImage,
+  ] = useState(null);
+
+  const [
+    loggedInPlayerName,
+    setLoggedInPlayerName,
+  ] = useState('Player 1');
+
+  const routePlayers =
+    route?.params?.players ||
+    players;
+
+  const goToGameMenu = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'TabNavigator',
+          params: {
+            screen: 'GameMode',
+          },
+        },
+      ],
+    });
+  };
+
+  const leaveGame = () => {
+    const isOnline =
+      route?.params?.isOnline ===
+      true;
+
+    Alert.alert(
+      'Leave Game?',
+      isOnline
+        ? 'If you leave now, the match will end and your opponent will be declared the winner.'
+        : 'Are you sure you want to leave this game?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Leave Game',
+          style: 'destructive',
+
+          onPress: async () => {
+            try {
+              const inviteId =
+                route?.params
+                  ?.inviteId;
+
+              const currentUser =
+                auth.currentUser;
+
+              if (
+                isOnline &&
+                inviteId
+              ) {
+                const invitedBy =
+                  route?.params
+                    ?.invitedBy;
+
+                const acceptedBy =
+                  route?.params
+                    ?.acceptedBy;
+
+                const winnerId =
+                  currentUser?.uid ===
+                  invitedBy
+                    ? acceptedBy ||
+                      null
+                    : invitedBy ||
+                      null;
+
+                await updateDoc(
+                  doc(
+                    db,
+                    'gameInvites',
+                    inviteId
+                  ),
+                  {
+                    status:
+                      'abandoned',
+
+                    leftBy:
+                      currentUser?.uid ||
+                      null,
+
+                    winnerId,
+
+                    endedAt:
+                      serverTimestamp(),
+                  }
+                );
+              }
+            } catch (error) {
+              console.log(
+                'Leave game update error:',
+                error
+              );
+            } finally {
+              goToGameMenu();
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderExitButton = () => {
+    return (
+      <TouchableOpacity
+        style={styles.exitButton}
+        onPress={leaveGame}
+        activeOpacity={0.8}
+      >
+        <Text
+          style={
+            styles.exitButtonText
+          }
+        >
+          ✕ Exit
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   useEffect(() => {
-    const loadProfileImage = async () => {
-      try {
-        const savedProfile = await AsyncStorage.getItem('userProfile');
-        const savedImage = await AsyncStorage.getItem('profileImage');
+    const loadProfileImage =
+      async () => {
+        try {
+          const savedProfile =
+            await AsyncStorage.getItem(
+              'userProfile'
+            );
 
-        if (savedProfile) {
-          const profileData = JSON.parse(savedProfile);
+          const savedImage =
+            await AsyncStorage.getItem(
+              'profileImage'
+            );
 
-          const imageFromProfile =
-            profileData.profileImage ||
-            profileData.photoURL ||
-            profileData.image ||
-            profileData.avatar ||
-            null;
+          if (savedProfile) {
+            const profileData =
+              JSON.parse(
+                savedProfile
+              );
 
-          if (imageFromProfile) {
-            setProfileImage(imageFromProfile);
+            const imageFromProfile =
+              profileData.profileImage ||
+              profileData.photoURL ||
+              profileData.image ||
+              profileData.avatar ||
+              null;
+
+            if (
+              imageFromProfile
+            ) {
+              setProfileImage(
+                imageFromProfile
+              );
+
+              return;
+            }
+          }
+
+          if (savedImage) {
+            setProfileImage(
+              savedImage
+            );
+          }
+        } catch (error) {
+          console.log(
+            'Profile image load error:',
+            error
+          );
+        }
+      };
+
+    const loadLoggedInPlayerData =
+      async () => {
+        try {
+          const savedProfile =
+            await AsyncStorage.getItem(
+              'userProfile'
+            );
+
+          if (savedProfile) {
+            const profileData =
+              JSON.parse(
+                savedProfile
+              );
+
+            setLoggedInPlayerName(
+              profileData.username ||
+                profileData.name ||
+                profileData.fullName ||
+                'Player 1'
+            );
+          }
+
+          const user =
+            auth.currentUser;
+
+          if (!user) {
             return;
           }
-        }
 
-        if (savedImage) {
-          setProfileImage(savedImage);
-        }
-      } catch (error) {
-        console.log('Profile image load error:', error);
-      }
-    };
-
-    const loadLoggedInPlayerData = async () => {
-      try {
-        const savedProfile = await AsyncStorage.getItem('userProfile');
-
-        if (savedProfile) {
-          const profileData = JSON.parse(savedProfile);
-
-          setLoggedInPlayerName(
-            profileData.username ||
-            profileData.name ||
-            profileData.fullName ||
-            'Player 1'
-          );
-        }
-
-        const user = auth.currentUser;
-
-        if (!user) {
-          return;
-        }
-
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-
-          setLoggedInPlayerName(
-            data.username ||
-            data.name ||
-            data.fullName ||
-            user.displayName ||
-            user.email ||
-            'Player 1'
+          const userRef = doc(
+            db,
+            'users',
+            user.uid
           );
 
-          const imageFromFirestore =
-            data.profileImage ||
-            data.photoURL ||
-            data.image ||
-            data.avatar ||
-            null;
+          const userSnap =
+            await getDoc(userRef);
 
-          if (imageFromFirestore) {
-            setProfileImage(imageFromFirestore);
+          if (
+            userSnap.exists()
+          ) {
+            const data =
+              userSnap.data();
+
+            setLoggedInPlayerName(
+              data.username ||
+                data.name ||
+                data.fullName ||
+                user.displayName ||
+                user.email ||
+                'Player 1'
+            );
+
+            const imageFromFirestore =
+              data.profileImage ||
+              data.photoURL ||
+              data.image ||
+              data.avatar ||
+              null;
+
+            if (
+              imageFromFirestore
+            ) {
+              setProfileImage(
+                imageFromFirestore
+              );
+            }
+          } else {
+            setLoggedInPlayerName(
+              user.displayName ||
+                user.email ||
+                'Player 1'
+            );
+
+            if (user.photoURL) {
+              setProfileImage(
+                user.photoURL
+              );
+            }
           }
-        } else {
-          setLoggedInPlayerName(
-            user.displayName ||
-            user.email ||
-            'Player 1'
+        } catch (error) {
+          console.log(
+            'User profile load error:',
+            error
           );
         }
-      } catch (error) {
-        console.log('User profile load error:', error);
-      }
-    };
+      };
 
     loadProfileImage();
+
     loadLoggedInPlayerData();
   }, []);
 
-  const getPlayerPhoto = (playerId) => {
-    if (playerId === 1 && profileImage) {
+  const getPlayerPhoto = (
+    playerId
+  ) => {
+    if (
+      playerId === 1 &&
+      profileImage
+    ) {
       return profileImage;
     }
 
-    const player = routePlayers.find((p) => p.id === playerId);
-    return player?.photo || player?.image || player?.avatar || null;
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    return (
+      player?.photo ||
+      player?.image ||
+      player?.avatar ||
+      null
+    );
   };
 
-  const getPlayerName = (playerId) => {
+  const getPlayerName = (
+    playerId
+  ) => {
     if (playerId === 1) {
       return loggedInPlayerName;
     }
 
-    const player = routePlayers.find((p) => p.id === playerId);
-    return player?.name || `Player ${playerId}`;
-  };
-
-  const renderPlayerCard = (playerId) => {
-    const photo = getPlayerPhoto(playerId);
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
 
     return (
-      <View style={styles.playerCard}>
+      player?.name ||
+      `Player ${playerId}`
+    );
+  };
+
+  const renderPlayerCard = (
+    playerId
+  ) => {
+    const photo =
+      getPlayerPhoto(playerId);
+
+    return (
+      <View
+        style={
+          styles.playerCard
+        }
+      >
         <LinearGradient
-          colors={['#005f73', '#0a9396', '#94d2bd']}
-          style={styles.avatarGlow}
+          colors={[
+            '#005f73',
+            '#0a9396',
+            '#94d2bd',
+          ]}
+          style={
+            styles.avatarGlow
+          }
         >
           {photo ? (
-            <Image source={{ uri: photo }} style={styles.profileImage} />
+            <Image
+              source={{
+                uri: photo,
+              }}
+              style={
+                styles.profileImage
+              }
+            />
           ) : (
-            <View style={styles.defaultAvatar}>
-              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+            <View
+              style={
+                styles.defaultAvatar
+              }
+            >
+              <Text
+                style={
+                  styles.defaultAvatarText
+                }
+              >
+                P{playerId}
+              </Text>
             </View>
           )}
         </LinearGradient>
 
-        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
+        <Text
+          style={
+            styles.playerName
+          }
+        >
+          {getPlayerName(
+            playerId
+          )}
+        </Text>
       </View>
     );
   };
 
-  const handleCellPress = (rowIndex, colIndex, value) => {
-    const alreadySelected = selectedCells.find(
-      (c) => c.row === rowIndex && c.col === colIndex
-    );
+  const handleCellPress = (
+    rowIndex,
+    colIndex,
+    value
+  ) => {
+    const alreadySelected =
+      selectedCells.find(
+        (cell) =>
+          cell.row === rowIndex &&
+          cell.col === colIndex
+      );
 
     if (alreadySelected) {
       setSelectedCells(
         selectedCells.filter(
-          (c) => !(c.row === rowIndex && c.col === colIndex)
+          (cell) =>
+            !(
+              cell.row ===
+                rowIndex &&
+              cell.col ===
+                colIndex
+            )
         )
       );
+
       return;
     }
 
-    if (selectedCells.length < 3) {
-      setSelectedCells([...selectedCells, { row: rowIndex, col: colIndex, value }]);
+    if (
+      selectedCells.length < 3
+    ) {
+      setSelectedCells([
+        ...selectedCells,
+        {
+          row: rowIndex,
+          col: colIndex,
+          value,
+        },
+      ]);
     } else {
-      Alert.alert('Limit Reached', 'You can only select 3 numbers.');
+      Alert.alert(
+        'Limit Reached',
+        'You can only select 3 numbers.'
+      );
     }
   };
 
   const checkResult = () => {
-    if (randomNumber === null) {
-      Alert.alert('Generate a number first!');
+    if (
+      randomNumber === null
+    ) {
+      Alert.alert(
+        'Generate a number first!'
+      );
+
       return;
     }
 
-    if (selectedCells.length !== 3) {
-      Alert.alert('Pick 3 numbers first!');
+    if (
+      selectedCells.length !== 3
+    ) {
+      Alert.alert(
+        'Pick 3 numbers first!'
+      );
+
       return;
     }
 
-    const values = selectedCells.map((c) => c.value);
+    const values =
+      selectedCells.map(
+        (cell) => cell.value
+      );
+
     const [a, b, c] = values;
 
     const possibleResults = [
-      { expression: `(${a} + ${b}) × ${c}`, value: (a + b) * c },
-      { expression: `(${a} - ${b}) × ${c}`, value: (a - b) * c },
-      { expression: `(${a} + ${c}) × ${b}`, value: (a + c) * b },
-      { expression: `(${a} - ${c}) × ${b}`, value: (a - c) * b },
-      { expression: `(${b} + ${c}) × ${a}`, value: (b + c) * a },
-      { expression: `(${b} - ${c}) × ${a}`, value: (b - c) * a },
+      {
+        expression: `(${a} + ${b}) × ${c}`,
+        value: (a + b) * c,
+      },
+      {
+        expression: `(${a} - ${b}) × ${c}`,
+        value: (a - b) * c,
+      },
+      {
+        expression: `(${a} + ${c}) × ${b}`,
+        value: (a + c) * b,
+      },
+      {
+        expression: `(${a} - ${c}) × ${b}`,
+        value: (a - c) * b,
+      },
+      {
+        expression: `(${b} + ${c}) × ${a}`,
+        value: (b + c) * a,
+      },
+      {
+        expression: `(${b} - ${c}) × ${a}`,
+        value: (b - c) * a,
+      },
     ];
 
     if (c !== 0) {
       possibleResults.push(
-        { expression: `(${a} + ${b}) ÷ ${c}`, value: (a + b) / c },
-        { expression: `(${a} - ${b}) ÷ ${c}`, value: (a - b) / c }
+        {
+          expression: `(${a} + ${b}) ÷ ${c}`,
+          value: (a + b) / c,
+        },
+        {
+          expression: `(${a} - ${b}) ÷ ${c}`,
+          value: (a - b) / c,
+        }
       );
     }
 
     if (b !== 0) {
       possibleResults.push(
-        { expression: `(${a} + ${c}) ÷ ${b}`, value: (a + c) / b },
-        { expression: `(${a} - ${c}) ÷ ${b}`, value: (a - c) / b }
+        {
+          expression: `(${a} + ${c}) ÷ ${b}`,
+          value: (a + c) / b,
+        },
+        {
+          expression: `(${a} - ${c}) ÷ ${b}`,
+          value: (a - c) / b,
+        }
       );
     }
 
     if (a !== 0) {
       possibleResults.push(
-        { expression: `(${b} + ${c}) ÷ ${a}`, value: (b + c) / a },
-        { expression: `(${b} - ${c}) ÷ ${a}`, value: (b - c) / a }
+        {
+          expression: `(${b} + ${c}) ÷ ${a}`,
+          value: (b + c) / a,
+        },
+        {
+          expression: `(${b} - ${c}) ÷ ${a}`,
+          value: (b - c) / a,
+        }
       );
     }
 
-    const matchedResult = possibleResults.find(
-      (item) => item.value === randomNumber
-    );
+    const matchedResult =
+      possibleResults.find(
+        (item) =>
+          item.value ===
+          randomNumber
+      );
 
     if (matchedResult) {
       Alert.alert(
@@ -258,9 +672,13 @@ const GameScreen2 = ({ route }) => {
         `You reached the target!\n\n${matchedResult.expression} = ${randomNumber}`
       );
     } else {
-      const resultText = possibleResults
-        .map((item) => `${item.expression} = ${item.value}`)
-        .join('\n');
+      const resultText =
+        possibleResults
+          .map(
+            (item) =>
+              `${item.expression} = ${item.value}`
+          )
+          .join('\n');
 
       Alert.alert(
         '❌ Not quite',
@@ -271,57 +689,139 @@ const GameScreen2 = ({ route }) => {
     setSelectedCells([]);
   };
 
-  const generateRandomNumber = () => {
-    const number = Math.floor(Math.random() * 50) + 1;
-    setRandomNumber(number);
+  const generateRandomNumber =
+    () => {
+      const number =
+        Math.floor(
+          Math.random() * 50
+        ) + 1;
 
-    setTimeout(() => {
-      setRandomNumber(null);
-      setSelectedCells([]);
-    }, 30000);
-  };
+      setRandomNumber(number);
+
+      setTimeout(() => {
+        setRandomNumber(null);
+
+        setSelectedCells([]);
+      }, 30000);
+    };
 
   if (showRules) {
     return (
       <ImageBackground
-        source={require('../assets/trioabout.png')}
-        style={styles.backgroundImage}
+        source={require(
+          '../assets/trioabout.png'
+        )}
+        style={
+          styles.backgroundImage
+        }
       >
         <LinearGradient
-          colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
-          style={styles.rulesContainer}
+          colors={[
+            '#001219',
+            '#005f73',
+            '#0a9396',
+            '#94d2bd',
+          ]}
+          style={
+            styles.rulesContainer
+          }
         >
-          <Text style={styles.rulesTitle}>TRIO GAME TYPE 2</Text>
+          {renderExitButton()}
 
-          <Text style={styles.rulesSubtitle}>Game Rules</Text>
+          <Text
+            style={
+              styles.rulesTitle
+            }
+          >
+            TRIO GAME TYPE 2
+          </Text>
 
-          <View style={styles.rulesCard}>
-            <Text style={styles.ruleText}>• Generate a target number</Text>
+          <Text
+            style={
+              styles.rulesSubtitle
+            }
+          >
+            Game Rules
+          </Text>
 
-            <Text style={styles.ruleText}>
-              • Select exactly 3 numbers from the board
+          <View
+            style={
+              styles.rulesCard
+            }
+          >
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • Generate a target
+              number
             </Text>
 
-            <Text style={styles.ruleText}>
-              • First use addition or subtraction inside brackets
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • Select exactly 3
+              numbers from the
+              board
             </Text>
 
-            <Text style={styles.ruleText}>
-              • Then multiply or divide the result by the third number
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • First use addition
+              or subtraction
+              inside brackets
             </Text>
 
-            <Text style={styles.ruleText}>• Example: (3 + 7) × 5 = 50</Text>
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • Then multiply or
+              divide the result by
+              the third number
+            </Text>
 
-            <Text style={styles.ruleText}>
-              • Press Check Result to verify your answer
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • Example: (3 + 7) ×
+              5 = 50
+            </Text>
+
+            <Text
+              style={
+                styles.ruleText
+              }
+            >
+              • Press Check Result
+              to verify your answer
             </Text>
           </View>
 
           <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => setShowRules(false)}
+            style={
+              styles.startButton
+            }
+            onPress={() =>
+              setShowRules(false)
+            }
           >
-            <Text style={styles.buttonText}>START GAME</Text>
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              START GAME
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
       </ImageBackground>
@@ -330,260 +830,514 @@ const GameScreen2 = ({ route }) => {
 
   return (
     <ImageBackground
-      source={require('../assets/trioabout.png')}
-      style={styles.backgroundImage}
+      source={require(
+        '../assets/trioabout.png'
+      )}
+      style={
+        styles.backgroundImage
+      }
     >
       <LinearGradient
-        colors={['#001219', '#005f73', '#0a9396', '#94d2bd']}
+        colors={[
+          '#001219',
+          '#005f73',
+          '#0a9396',
+          '#94d2bd',
+        ]}
         style={styles.container}
       >
-        <Text style={styles.title}>Game Type 2</Text>
-        <Text style={styles.subtitle}>
-          Addition/Subtraction first, then Multiplication/Division
+        {renderExitButton()}
+
+        <Text
+          style={styles.title}
+        >
+          Game Type 2
         </Text>
 
-        <View style={styles.playersBox}>
+        <Text
+          style={styles.subtitle}
+        >
+          Addition/Subtraction
+          first, then
+          Multiplication/Division
+        </Text>
+
+        <View
+          style={
+            styles.playersBox
+          }
+        >
           {renderPlayerCard(1)}
+
           {renderPlayerCard(2)}
+
           {renderPlayerCard(3)}
+
           {renderPlayerCard(4)}
         </View>
 
-        <TouchableOpacity style={styles.randomButton} onPress={generateRandomNumber}>
-          <Text style={styles.buttonText}>🎲 Generate Number</Text>
+        <TouchableOpacity
+          style={
+            styles.randomButton
+          }
+          onPress={
+            generateRandomNumber
+          }
+        >
+          <Text
+            style={
+              styles.buttonText
+            }
+          >
+            🎲 Generate Number
+          </Text>
         </TouchableOpacity>
 
         {randomNumber !== null && (
-          <View style={styles.randomNumberBox}>
-            <Text style={styles.randomNumberText}>{randomNumber}</Text>
+          <View
+            style={
+              styles.randomNumberBox
+            }
+          >
+            <Text
+              style={
+                styles.randomNumberText
+              }
+            >
+              {randomNumber}
+            </Text>
           </View>
         )}
 
-        <View style={styles.table}>
-          {tableData.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
-              {row.map((cellValue, colIndex) => (
-                <TouchableOpacity
-                  key={colIndex}
-                  style={[
-                    styles.cell,
-                    { backgroundColor: cellColors[rowIndex][colIndex] },
-                    selectedCells.find(
-                      (c) => c.row === rowIndex && c.col === colIndex
-                    )
-                      ? styles.selected
-                      : null,
-                  ]}
-                  onPress={() => handleCellPress(rowIndex, colIndex, cellValue)}
-                >
-                  <Text style={styles.cellText}>{cellValue}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ))}
+        <View
+          style={styles.table}
+        >
+          {tableData.map(
+            (
+              row,
+              rowIndex
+            ) => (
+              <View
+                key={rowIndex}
+                style={styles.row}
+              >
+                {row.map(
+                  (
+                    cellValue,
+                    colIndex
+                  ) => (
+                    <TouchableOpacity
+                      key={
+                        colIndex
+                      }
+                      style={[
+                        styles.cell,
+
+                        {
+                          backgroundColor:
+                            cellColors[
+                              rowIndex
+                            ][
+                              colIndex
+                            ],
+                        },
+
+                        selectedCells.find(
+                          (
+                            cell
+                          ) =>
+                            cell.row ===
+                              rowIndex &&
+                            cell.col ===
+                              colIndex
+                        )
+                          ? styles.selected
+                          : null,
+                      ]}
+                      onPress={() =>
+                        handleCellPress(
+                          rowIndex,
+                          colIndex,
+                          cellValue
+                        )
+                      }
+                    >
+                      <Text
+                        style={
+                          styles.cellText
+                        }
+                      >
+                        {
+                          cellValue
+                        }
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+            )
+          )}
         </View>
 
-        <TouchableOpacity style={styles.checkButton} onPress={checkResult}>
-          <Text style={styles.buttonText}>✅ Check Result</Text>
+        <TouchableOpacity
+          style={
+            styles.checkButton
+          }
+          onPress={checkResult}
+        >
+          <Text
+            style={
+              styles.buttonText
+            }
+          >
+            ✅ Check Result
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
     </ImageBackground>
   );
 };
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
+const styles =
+  StyleSheet.create({
+    backgroundImage: {
+      flex: 1,
+      resizeMode: 'cover',
+    },
 
-  container: {
-    flex: 1,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    container: {
+      flex: 1,
+      padding: 10,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+    },
 
-  title: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
+    exitButton: {
+      position: 'absolute',
 
-  subtitle: {
-    color: '#fff',
-    fontSize: 13,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+      top: 52,
+      right: 18,
 
-  playersBox: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-    flexWrap: 'wrap',
-  },
+      zIndex: 20,
 
-  playerCard: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
+      backgroundColor:
+        'rgba(173, 24, 24, 0.92)',
 
-  avatarGlow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 60,
-    padding: 7,
-    marginBottom: 4,
-  },
+      paddingVertical: 10,
 
-  profileImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 3,
-    borderColor: '#ffffff',
-  },
+      paddingHorizontal: 16,
 
-  defaultAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderWidth: 3,
-    borderColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      borderRadius: 22,
 
-  defaultAvatarText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '900',
-  },
+      borderWidth: 1,
 
-  playerName: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
+      borderColor:
+        'rgba(255,255,255,0.65)',
 
-  randomButton: {
-    backgroundColor: '#3498db',
-    padding: 15,
-    borderRadius: 30,
-    marginBottom: 15,
-  },
+      shadowColor: '#000',
 
-  checkButton: {
-    backgroundColor: '#27ae60',
-    padding: 15,
-    borderRadius: 30,
-    marginTop: 20,
-  },
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
 
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+      shadowOpacity: 0.25,
 
-  table: {
-    marginVertical: 10,
-  },
+      shadowRadius: 6,
 
-  row: {
-    flexDirection: 'row',
-  },
+      elevation: 8,
+    },
 
-  cell: {
-    width: 45,
-    height: 45,
-    margin: 4,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    exitButtonText: {
+      color: '#fff',
 
-  selected: {
-    borderWidth: 3,
-    borderColor: '#fff',
-    transform: [{ scale: 1.08 }],
-  },
+      fontSize: 14,
 
-  cellText: {
-    fontSize: 20,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+      fontWeight: '900',
+    },
 
-  randomNumberBox: {
-    backgroundColor: '#2980b9',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
+    title: {
+      color: '#fff',
 
-  randomNumberText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
+      fontSize: 24,
 
-  rulesContainer: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      fontWeight: 'bold',
 
-  rulesTitle: {
-    fontSize: 30,
-    color: '#fff',
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
+      marginBottom: 5,
+    },
 
-  rulesSubtitle: {
-    fontSize: 22,
-    color: '#fff',
-    marginBottom: 25,
-    fontWeight: '600',
-  },
+    subtitle: {
+      color: '#fff',
 
-  rulesCard: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 22,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
+      fontSize: 13,
 
-  ruleText: {
-    color: '#fff',
-    fontSize: 17,
-    marginBottom: 15,
-    lineHeight: 24,
-  },
+      marginBottom: 12,
 
-  startButton: {
-    marginTop: 28,
-    backgroundColor: '#27ae60',
-    paddingVertical: 16,
-    paddingHorizontal: 45,
-    borderRadius: 30,
-  },
-});
+      textAlign: 'center',
+    },
+
+    playersBox: {
+      flexDirection: 'row',
+
+      justifyContent:
+        'center',
+
+      alignItems: 'center',
+
+      gap: 10,
+
+      marginBottom: 12,
+
+      flexWrap: 'wrap',
+    },
+
+    playerCard: {
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+
+      paddingVertical: 4,
+
+      paddingHorizontal: 4,
+    },
+
+    avatarGlow: {
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+
+      borderRadius: 60,
+
+      padding: 7,
+
+      marginBottom: 4,
+    },
+
+    profileImage: {
+      width: 56,
+
+      height: 56,
+
+      borderRadius: 28,
+
+      borderWidth: 3,
+
+      borderColor:
+        '#ffffff',
+    },
+
+    defaultAvatar: {
+      width: 56,
+
+      height: 56,
+
+      borderRadius: 28,
+
+      backgroundColor:
+        'rgba(0,0,0,0.55)',
+
+      borderWidth: 3,
+
+      borderColor:
+        '#ffffff',
+
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+    },
+
+    defaultAvatarText: {
+      color: '#fff',
+
+      fontSize: 18,
+
+      fontWeight: '900',
+    },
+
+    playerName: {
+      color: '#fff',
+
+      fontSize: 11,
+
+      fontWeight: '900',
+
+      textAlign: 'center',
+    },
+
+    randomButton: {
+      backgroundColor:
+        '#3498db',
+
+      padding: 15,
+
+      borderRadius: 30,
+
+      marginBottom: 15,
+    },
+
+    checkButton: {
+      backgroundColor:
+        '#27ae60',
+
+      padding: 15,
+
+      borderRadius: 30,
+
+      marginTop: 20,
+    },
+
+    buttonText: {
+      color: '#fff',
+
+      fontSize: 16,
+
+      fontWeight: 'bold',
+    },
+
+    table: {
+      marginVertical: 10,
+    },
+
+    row: {
+      flexDirection: 'row',
+    },
+
+    cell: {
+      width: 45,
+
+      height: 45,
+
+      margin: 4,
+
+      borderRadius: 8,
+
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+    },
+
+    selected: {
+      borderWidth: 3,
+
+      borderColor: '#fff',
+
+      transform: [
+        {
+          scale: 1.08,
+        },
+      ],
+    },
+
+    cellText: {
+      fontSize: 20,
+
+      color: '#fff',
+
+      fontWeight: 'bold',
+    },
+
+    randomNumberBox: {
+      backgroundColor:
+        '#2980b9',
+
+      width: 80,
+
+      height: 80,
+
+      borderRadius: 40,
+
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+
+      marginBottom: 10,
+    },
+
+    randomNumberText: {
+      color: '#fff',
+
+      fontSize: 28,
+
+      fontWeight: 'bold',
+    },
+
+    rulesContainer: {
+      flex: 1,
+
+      padding: 24,
+
+      alignItems: 'center',
+
+      justifyContent:
+        'center',
+    },
+
+    rulesTitle: {
+      fontSize: 30,
+
+      color: '#fff',
+
+      fontWeight: 'bold',
+
+      marginBottom: 10,
+
+      textAlign: 'center',
+    },
+
+    rulesSubtitle: {
+      fontSize: 22,
+
+      color: '#fff',
+
+      marginBottom: 25,
+
+      fontWeight: '600',
+    },
+
+    rulesCard: {
+      width: '100%',
+
+      backgroundColor:
+        'rgba(255,255,255,0.15)',
+
+      borderRadius: 22,
+
+      padding: 22,
+
+      borderWidth: 1,
+
+      borderColor:
+        'rgba(255,255,255,0.3)',
+    },
+
+    ruleText: {
+      color: '#fff',
+
+      fontSize: 17,
+
+      marginBottom: 15,
+
+      lineHeight: 24,
+    },
+
+    startButton: {
+      marginTop: 28,
+
+      backgroundColor:
+        '#27ae60',
+
+      paddingVertical: 16,
+
+      paddingHorizontal: 45,
+
+      borderRadius: 30,
+    },
+  });
 
 export default GameScreen2;

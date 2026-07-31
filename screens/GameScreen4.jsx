@@ -12,7 +12,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 const tableData = [
   [3, 7, 3, 5, 8, 4, 9],
@@ -25,16 +30,85 @@ const tableData = [
 ];
 
 const cellColors = [
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#e67e22'],
-  ['#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#8e44ad', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e84393', '#8e44ad', '#e84393'],
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e67e22', '#e84393', '#e67e22'],
-  ['#8e44ad', '#e67e22', '#e84393', '#e67e22', '#e67e22', '#e84393', '#8e44ad'],
-  ['#e67e22', '#e84393', '#e67e22', '#8e44ad', '#e84393', '#e84393', '#e67e22'],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+    '#e84393',
+  ],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+  ],
+  [
+    '#8e44ad',
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#e67e22',
+    '#e84393',
+    '#8e44ad',
+  ],
+  [
+    '#e67e22',
+    '#e84393',
+    '#e67e22',
+    '#8e44ad',
+    '#e84393',
+    '#e84393',
+    '#e67e22',
+  ],
 ];
 
-const blueCards = [10, 20, 24, 27, 30, 32, 36, 40, 44, 45, 48, 50];
+const blueCards = [
+  10,
+  20,
+  24,
+  27,
+  30,
+  32,
+  36,
+  40,
+  44,
+  45,
+  48,
+  50,
+];
 
 const players = [
   {
@@ -49,30 +123,120 @@ const players = [
   },
 ];
 
-export default function GameScreen4({ route }) {
+export default function GameScreen4({
+  navigation,
+  route,
+}) {
   const [selectedCells, setSelectedCells] = useState([]);
   const [targetNumber, setTargetNumber] = useState(null);
   const [mode, setMode] = useState('doubleMinus');
   const [playerTurn, setPlayerTurn] = useState(1);
-  const [scores, setScores] = useState({ 1: 0, 2: 0 });
+  const [scores, setScores] = useState({
+    1: 0,
+    2: 0,
+  });
   const [showRules, setShowRules] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
-  const [loggedInPlayerName, setLoggedInPlayerName] = useState('Player 1');
+  const [loggedInPlayerName, setLoggedInPlayerName] =
+    useState('Player 1');
 
   const routePlayers = route?.params?.players || players;
+
+  const goToGameMenu = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'TabNavigator',
+          params: {
+            screen: 'GameMode',
+          },
+        },
+      ],
+    });
+  };
+
+  const leaveGame = () => {
+    const isOnline = route?.params?.isOnline === true;
+
+    Alert.alert(
+      'Leave Game?',
+      isOnline
+        ? 'If you leave now, the match will end and your opponent will be declared the winner.'
+        : 'Are you sure you want to leave this game?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Leave Game',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const inviteId = route?.params?.inviteId;
+              const currentUser = auth.currentUser;
+
+              if (isOnline && inviteId) {
+                const invitedBy = route?.params?.invitedBy;
+                const acceptedBy = route?.params?.acceptedBy;
+
+                const winnerId =
+                  currentUser?.uid === invitedBy
+                    ? acceptedBy || null
+                    : invitedBy || null;
+
+                await updateDoc(
+                  doc(db, 'gameInvites', inviteId),
+                  {
+                    status: 'abandoned',
+                    leftBy: currentUser?.uid || null,
+                    winnerId,
+                    endedAt: serverTimestamp(),
+                  }
+                );
+              }
+            } catch (error) {
+              console.log('Leave game update error:', error);
+            } finally {
+              goToGameMenu();
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderExitButton = () => {
+    return (
+      <TouchableOpacity
+        style={styles.exitButton}
+        onPress={leaveGame}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.exitButtonText}>✕ Exit</Text>
+      </TouchableOpacity>
+    );
+  };
 
   useEffect(() => {
     const getFirstValidValue = (...values) => {
       return values.find(
-        (value) => typeof value === 'string' && value.trim().length > 0
+        (value) =>
+          typeof value === 'string' &&
+          value.trim().length > 0
       );
     };
 
     const loadProfileData = async () => {
       try {
         const user = auth.currentUser;
-        const savedProfile = await AsyncStorage.getItem('userProfile');
-        const savedImage = await AsyncStorage.getItem('profileImage');
+
+        const savedProfile =
+          await AsyncStorage.getItem('userProfile');
+
+        const savedImage =
+          await AsyncStorage.getItem('profileImage');
 
         let localProfile = null;
 
@@ -115,6 +279,8 @@ export default function GameScreen4({ route }) {
               data.photoURL,
               data.image,
               data.avatar,
+              data.avatarUrl,
+              data.profilePhoto,
               user.photoURL
             );
           }
@@ -143,16 +309,23 @@ export default function GameScreen4({ route }) {
                 localProfile.profileImage,
                 localProfile.photoURL,
                 localProfile.image,
-                localProfile.avatar
+                localProfile.avatar,
+                localProfile.avatarUrl,
+                localProfile.profilePhoto
               )
             : null;
 
         setLoggedInPlayerName(
-          getFirstValidValue(firebaseName, localName) || 'Player 1'
+          getFirstValidValue(firebaseName, localName) ||
+            'Player 1'
         );
 
         setProfileImage(
-          getFirstValidValue(firebaseImage, localImage, savedImage) || null
+          getFirstValidValue(
+            firebaseImage,
+            localImage,
+            savedImage
+          ) || null
         );
       } catch (error) {
         console.log('Profile data load error:', error);
@@ -167,8 +340,19 @@ export default function GameScreen4({ route }) {
       return profileImage;
     }
 
-    const player = routePlayers.find((p) => p.id === playerId);
-    return player?.photo || player?.image || player?.avatar || null;
+    const player = routePlayers.find(
+      (item) => item.id === playerId
+    );
+
+    return (
+      player?.photo ||
+      player?.image ||
+      player?.avatar ||
+      player?.avatarUrl ||
+      player?.profileImage ||
+      player?.photoURL ||
+      null
+    );
   };
 
   const getPlayerName = (playerId) => {
@@ -176,44 +360,79 @@ export default function GameScreen4({ route }) {
       return loggedInPlayerName;
     }
 
-    const player = routePlayers.find((p) => p.id === playerId);
-    return player?.name || `Player ${playerId}`;
+    const player = routePlayers.find(
+      (item) => item.id === playerId
+    );
+
+    return (
+      player?.name ||
+      player?.username ||
+      player?.displayName ||
+      `Player ${playerId}`
+    );
   };
 
   const changeTurn = () => {
-    setPlayerTurn((prev) => (prev === 1 ? 2 : 1));
+    setPlayerTurn((previousTurn) =>
+      previousTurn === 1 ? 2 : 1
+    );
   };
 
   const drawBlueCard = () => {
     const randomBlueCard =
-      blueCards[Math.floor(Math.random() * blueCards.length)];
+      blueCards[
+        Math.floor(Math.random() * blueCards.length)
+      ];
 
     setTargetNumber(randomBlueCard);
     setSelectedCells([]);
   };
 
-  const handleCellPress = (rowIndex, colIndex, value) => {
+  const handleCellPress = (
+    rowIndex,
+    colIndex,
+    value
+  ) => {
     const alreadySelected = selectedCells.find(
-      (c) => c.row === rowIndex && c.col === colIndex
+      (cell) =>
+        cell.row === rowIndex &&
+        cell.col === colIndex
     );
 
     if (alreadySelected) {
       setSelectedCells(
         selectedCells.filter(
-          (c) => !(c.row === rowIndex && c.col === colIndex)
+          (cell) =>
+            !(
+              cell.row === rowIndex &&
+              cell.col === colIndex
+            )
         )
       );
+
       return;
     }
 
-    const maxCards = mode === 'doubleMinus' ? 4 : 3;
+    const maxCards =
+      mode === 'doubleMinus' ? 4 : 3;
 
     if (selectedCells.length >= maxCards) {
-      Alert.alert('Limit Reached', `You can only select ${maxCards} cards.`);
+      Alert.alert(
+        'Limit Reached',
+        `You can only select ${maxCards} cards.`
+      );
+
       return;
     }
 
-    setSelectedCells([...selectedCells, { row: rowIndex, col: colIndex, value }]);
+    setSelectedCells([
+      ...selectedCells,
+      {
+        row: rowIndex,
+        col: colIndex,
+        value,
+      },
+    ]);
   };
 
   const checkResult = () => {
@@ -224,25 +443,35 @@ export default function GameScreen4({ route }) {
 
     if (mode === 'doubleMinus') {
       if (selectedCells.length !== 4) {
-        Alert.alert('Pick 4 numbers first!', 'Format: [ ][ ] - [ ][ ] = target');
+        Alert.alert(
+          'Pick 4 numbers first!',
+          'Format: [ ][ ] - [ ][ ] = target'
+        );
+
         return;
       }
 
-      const [a, b, c, d] = selectedCells.map((cell) => cell.value);
+      const [a, b, c, d] = selectedCells.map(
+        (cell) => cell.value
+      );
 
       const firstNumber = Number(`${a}${b}`);
       const secondNumber = Number(`${c}${d}`);
       const result = firstNumber - secondNumber;
 
       if (result === targetNumber) {
-        setScores({
-          ...scores,
-          [playerTurn]: scores[playerTurn] + targetNumber,
-        });
+        setScores((previousScores) => ({
+          ...previousScores,
+          [playerTurn]:
+            previousScores[playerTurn] +
+            targetNumber,
+        }));
 
         Alert.alert(
           '🎉 Correct!',
-          `${getPlayerName(playerTurn)} wins ${targetNumber} points!\n\n${firstNumber} - ${secondNumber} = ${targetNumber}`
+          `${getPlayerName(
+            playerTurn
+          )} wins ${targetNumber} points!\n\n${firstNumber} - ${secondNumber} = ${targetNumber}`
         );
 
         setTargetNumber(null);
@@ -257,22 +486,33 @@ export default function GameScreen4({ route }) {
 
     if (mode === 'multiplyMinus') {
       if (selectedCells.length !== 3) {
-        Alert.alert('Pick 3 numbers first!', 'Format: [ ] × [ ] - [ ] = target');
+        Alert.alert(
+          'Pick 3 numbers first!',
+          'Format: [ ] × [ ] - [ ] = target'
+        );
+
         return;
       }
 
-      const [a, b, c] = selectedCells.map((cell) => cell.value);
+      const [a, b, c] = selectedCells.map(
+        (cell) => cell.value
+      );
+
       const result = a * b - c;
 
       if (result === targetNumber) {
-        setScores({
-          ...scores,
-          [playerTurn]: scores[playerTurn] + targetNumber,
-        });
+        setScores((previousScores) => ({
+          ...previousScores,
+          [playerTurn]:
+            previousScores[playerTurn] +
+            targetNumber,
+        }));
 
         Alert.alert(
           '🎉 Correct!',
-          `${getPlayerName(playerTurn)} wins ${targetNumber} points!\n\n${a} × ${b} - ${c} = ${targetNumber}`
+          `${getPlayerName(
+            playerTurn
+          )} wins ${targetNumber} points!\n\n${a} × ${b} - ${c} = ${targetNumber}`
         );
 
         setTargetNumber(null);
@@ -289,10 +529,30 @@ export default function GameScreen4({ route }) {
   };
 
   const resetGame = () => {
-    setSelectedCells([]);
-    setTargetNumber(null);
-    setPlayerTurn(1);
-    setScores({ 1: 0, 2: 0 });
+    Alert.alert(
+      'Reset Game?',
+      'All scores and selected cards will be reset.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: () => {
+            setSelectedCells([]);
+            setTargetNumber(null);
+            setPlayerTurn(1);
+            setMode('doubleMinus');
+            setScores({
+              1: 0,
+              2: 0,
+            });
+          },
+        },
+      ]
+    );
   };
 
   const renderPlayerCard = (playerId) => {
@@ -310,21 +570,34 @@ export default function GameScreen4({ route }) {
           colors={
             isActive
               ? ['#2563eb', '#60a5fa']
-              : ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.02)']
+              : [
+                  'rgba(255,255,255,0.10)',
+                  'rgba(255,255,255,0.02)',
+                ]
           }
           style={styles.avatarGlow}
         >
           {photo ? (
-            <Image source={{ uri: photo }} style={styles.profileImage} />
+            <Image
+              source={{ uri: photo }}
+              style={styles.profileImage}
+            />
           ) : (
             <View style={styles.defaultAvatar}>
-              <Text style={styles.defaultAvatarText}>P{playerId}</Text>
+              <Text style={styles.defaultAvatarText}>
+                P{playerId}
+              </Text>
             </View>
           )}
         </LinearGradient>
 
-        <Text style={styles.playerName}>{getPlayerName(playerId)}</Text>
-        <Text style={styles.playerScore}>{scores[playerId]} pts</Text>
+        <Text style={styles.playerName}>
+          {getPlayerName(playerId)}
+        </Text>
+
+        <Text style={styles.playerScore}>
+          {scores[playerId]} pts
+        </Text>
       </View>
     );
   };
@@ -336,28 +609,68 @@ export default function GameScreen4({ route }) {
         style={styles.backgroundImage}
       >
         <LinearGradient
-          colors={['#000000', '#434343', '#FFFFFF']}
+          colors={[
+            '#000000',
+            '#434343',
+            '#FFFFFF',
+          ]}
           style={styles.rulesContainer}
         >
-          <Text style={styles.rulesTitle}>TRIO GAME TYPE 4</Text>
-          <Text style={styles.rulesSubtitle}>Fixed Formula Challenge</Text>
+          {renderExitButton()}
+
+          <Text style={styles.rulesTitle}>
+            TRIO GAME TYPE 4
+          </Text>
+
+          <Text style={styles.rulesSubtitle}>
+            Fixed Formula Challenge
+          </Text>
 
           <View style={styles.rulesCard}>
-            <Text style={styles.ruleText}>• This mode is played by 2 players.</Text>
-            <Text style={styles.ruleText}>• Draw a blue card to get the target number.</Text>
-            <Text style={styles.ruleText}>• Choose one of the fixed formula modes.</Text>
-            <Text style={styles.ruleText}>• Mode 1: [ ][ ] - [ ][ ] = Target</Text>
-            <Text style={styles.ruleText}>• Mode 2: [ ] × [ ] - [ ] = Target</Text>
-            <Text style={styles.ruleText}>• Select the required amount of numbers from the board.</Text>
-            <Text style={styles.ruleText}>• Press Check Formula to verify your answer.</Text>
-            <Text style={styles.ruleText}>• Correct answers add the target number to your score.</Text>
+            <Text style={styles.ruleText}>
+              • This mode is played by 2 players.
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Draw a blue card to get the target
+              number.
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Choose one of the fixed formula modes.
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Mode 1: [ ][ ] - [ ][ ] = Target
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Mode 2: [ ] × [ ] - [ ] = Target
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Select the required amount of numbers
+              from the board.
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Press Check Formula to verify your
+              answer.
+            </Text>
+
+            <Text style={styles.ruleText}>
+              • Correct answers add the target number
+              to your score.
+            </Text>
           </View>
 
           <TouchableOpacity
             style={styles.startButton}
             onPress={() => setShowRules(false)}
           >
-            <Text style={styles.buttonText}>START GAME</Text>
+            <Text style={styles.buttonText}>
+              START GAME
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
       </ImageBackground>
@@ -370,50 +683,74 @@ export default function GameScreen4({ route }) {
       style={styles.backgroundImage}
     >
       <LinearGradient
-        colors={['#000000', '#434343', '#FFFFFF']}
+        colors={[
+          '#000000',
+          '#434343',
+          '#FFFFFF',
+        ]}
         style={styles.container}
       >
-        <Text style={styles.title}>Game Type 4</Text>
-        <Text style={styles.subtitle}>Fixed Formula Challenge</Text>
+        {renderExitButton()}
+
+        <Text style={styles.title}>
+          Game Type 4
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Fixed Formula Challenge
+        </Text>
 
         <View style={styles.playersBox}>
           {renderPlayerCard(1)}
           {renderPlayerCard(2)}
         </View>
 
-        <Text style={styles.turnText}>Turn: {getPlayerName(playerTurn)}</Text>
+        <Text style={styles.turnText}>
+          Turn: {getPlayerName(playerTurn)}
+        </Text>
 
         <View style={styles.modeBox}>
           <TouchableOpacity
             style={[
               styles.modeButton,
-              mode === 'doubleMinus' && styles.activeMode,
+              mode === 'doubleMinus' &&
+                styles.activeMode,
             ]}
             onPress={() => {
               setMode('doubleMinus');
               setSelectedCells([]);
             }}
           >
-            <Text style={styles.modeText}>[][] - [][]</Text>
+            <Text style={styles.modeText}>
+              [][] - [][]
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.modeButton,
-              mode === 'multiplyMinus' && styles.activeMode,
+              mode === 'multiplyMinus' &&
+                styles.activeMode,
             ]}
             onPress={() => {
               setMode('multiplyMinus');
               setSelectedCells([]);
             }}
           >
-            <Text style={styles.modeText}>[] × [] - []</Text>
+            <Text style={styles.modeText}>
+              [] × [] - []
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.blueButton} onPress={drawBlueCard}>
+        <TouchableOpacity
+          style={styles.blueButton}
+          onPress={drawBlueCard}
+        >
           <Text style={styles.buttonText}>
-            {targetNumber === null ? 'Draw Blue Card' : `Target: ${targetNumber}`}
+            {targetNumber === null
+              ? 'Draw Blue Card'
+              : `Target: ${targetNumber}`}
           </Text>
         </TouchableOpacity>
 
@@ -425,45 +762,79 @@ export default function GameScreen4({ route }) {
 
         <View style={styles.selectedBox}>
           <Text style={styles.selectedText}>
-            Selected: {selectedCells.map((cell) => cell.value).join('  ') || '-'}
+            Selected:{' '}
+            {selectedCells
+              .map((cell) => cell.value)
+              .join('  ') || '-'}
           </Text>
         </View>
 
         <View style={styles.table}>
           {tableData.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
-              {row.map((cellValue, colIndex) => {
-                const isSelected = selectedCells.find(
-                  (c) => c.row === rowIndex && c.col === colIndex
-                );
+            <View
+              key={rowIndex}
+              style={styles.row}
+            >
+              {row.map(
+                (cellValue, colIndex) => {
+                  const isSelected =
+                    selectedCells.find(
+                      (cell) =>
+                        cell.row === rowIndex &&
+                        cell.col === colIndex
+                    );
 
-                return (
-                  <TouchableOpacity
-                    key={colIndex}
-                    style={[
-                      styles.cell,
-                      { backgroundColor: cellColors[rowIndex][colIndex] },
-                      isSelected ? styles.selected : null,
-                    ]}
-                    onPress={() =>
-                      handleCellPress(rowIndex, colIndex, cellValue)
-                    }
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.cellText}>{cellValue}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+                  return (
+                    <TouchableOpacity
+                      key={colIndex}
+                      style={[
+                        styles.cell,
+                        {
+                          backgroundColor:
+                            cellColors[rowIndex][
+                              colIndex
+                            ],
+                        },
+                        isSelected
+                          ? styles.selected
+                          : null,
+                      ]}
+                      onPress={() =>
+                        handleCellPress(
+                          rowIndex,
+                          colIndex,
+                          cellValue
+                        )
+                      }
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.cellText}>
+                        {cellValue}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }
+              )}
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.checkButton} onPress={checkResult}>
-          <Text style={styles.buttonText}>✅ Check Formula</Text>
+        <TouchableOpacity
+          style={styles.checkButton}
+          onPress={checkResult}
+        >
+          <Text style={styles.buttonText}>
+            ✅ Check Formula
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
-          <Text style={styles.buttonText}>Reset Game</Text>
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={resetGame}
+        >
+          <Text style={styles.buttonText}>
+            Reset Game
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
     </ImageBackground>
@@ -481,6 +852,43 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  exitButton: {
+    position: 'absolute',
+    top: 52,
+    right: 18,
+    zIndex: 20,
+
+    backgroundColor:
+      'rgba(173,24,24,0.92)',
+
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+
+    borderRadius: 22,
+
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.65)',
+
+    shadowColor: '#000',
+
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+
+    elevation: 8,
+  },
+
+  exitButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '900',
   },
 
   title: {
@@ -513,7 +921,11 @@ const styles = StyleSheet.create({
   },
 
   activePlayerCard: {
-    transform: [{ scale: 1.12 }],
+    transform: [
+      {
+        scale: 1.12,
+      },
+    ],
   },
 
   avatarGlow: {
@@ -536,9 +948,13 @@ const styles = StyleSheet.create({
     width: 74,
     height: 74,
     borderRadius: 37,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+
+    backgroundColor:
+      'rgba(0,0,0,0.55)',
+
     borderWidth: 3,
     borderColor: '#ffffff',
+
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -577,12 +993,17 @@ const styles = StyleSheet.create({
   },
 
   modeButton: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor:
+      'rgba(255,255,255,0.18)',
+
     paddingVertical: 8,
     paddingHorizontal: 12,
+
     borderRadius: 16,
+
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor:
+      'rgba(255,255,255,0.25)',
   },
 
   activeMode: {
@@ -634,10 +1055,14 @@ const styles = StyleSheet.create({
   },
 
   selectedBox: {
-    backgroundColor: 'rgba(0,0,0,0.22)',
+    backgroundColor:
+      'rgba(0,0,0,0.22)',
+
     borderRadius: 14,
+
     paddingVertical: 6,
     paddingHorizontal: 14,
+
     marginBottom: 6,
   },
 
@@ -666,7 +1091,12 @@ const styles = StyleSheet.create({
   selected: {
     borderWidth: 3,
     borderColor: '#fff',
-    transform: [{ scale: 1.08 }],
+
+    transform: [
+      {
+        scale: 1.08,
+      },
+    ],
   },
 
   cellText: {
@@ -700,11 +1130,16 @@ const styles = StyleSheet.create({
 
   rulesCard: {
     width: '100%',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+
+    backgroundColor:
+      'rgba(0,0,0,0.35)',
+
     borderRadius: 22,
     padding: 22,
+
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor:
+      'rgba(255,255,255,0.35)',
   },
 
   ruleText: {
