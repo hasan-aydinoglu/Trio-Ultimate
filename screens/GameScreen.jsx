@@ -311,6 +311,70 @@ const GameScreen = ({
     );
   };
 
+  const renderBackgroundDecor = () => (
+    <View
+      pointerEvents="none"
+      style={styles.backgroundDecor}
+    >
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbOne,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbTwo,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbThree,
+        ]}
+      />
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolOne,
+        ]}
+      >
+        ×
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolTwo,
+        ]}
+      >
+        +
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolThree,
+        ]}
+      >
+        ÷
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolFour,
+        ]}
+      >
+        −
+      </Text>
+    </View>
+  );
+
   const renderExitButton = () => (
     <TouchableOpacity
       style={styles.exitButton}
@@ -550,21 +614,31 @@ const GameScreen = ({
     const photo =
       getPlayerPhoto(playerId);
 
+    const isActive =
+      currentPlayer === playerId;
+
     return (
       <View
         style={[
           styles.playerCard,
-
-          currentPlayer ===
-            playerId &&
+          isActive &&
             styles.activePlayerCard,
         ]}
       >
-        <LinearGradient
-          colors={[
-            '#2563eb',
-            '#60a5fa',
+        <View
+          style={[
+            styles.playerStatusDot,
+            isActive &&
+              styles.activeStatusDot,
           ]}
+        />
+
+        <LinearGradient
+          colors={
+            isActive
+              ? ['#7C3AED', '#2563EB']
+              : ['#26324A', '#111827']
+          }
           style={
             styles.avatarGlow
           }
@@ -596,20 +670,39 @@ const GameScreen = ({
         </LinearGradient>
 
         <Text
-          style={
-            styles.playerName
-          }
+          numberOfLines={1}
+          style={[
+            styles.playerName,
+            isActive &&
+              styles.activePlayerName,
+          ]}
         >
           {getPlayerName(
             playerId
           )}
         </Text>
 
-        <Text
-          style={styles.scoreText}
+        <View
+          style={
+            styles.scoreBadge
+          }
         >
-          Score: {scores[playerId]}
-        </Text>
+          <Text
+            style={
+              styles.scoreLabel
+            }
+          >
+            SCORE
+          </Text>
+
+          <Text
+            style={
+              styles.scoreText
+            }
+          >
+            {scores[playerId]}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -852,32 +945,52 @@ const GameScreen = ({
 
   if (showRules) {
     return (
-      <ImageBackground
-        source={require(
-          '../assets/trioabout.png'
-        )}
+      <View
         style={
           styles.backgroundImage
         }
       >
         <LinearGradient
           colors={[
-            '#00c6ff',
-            '#0072ff',
-            '#000',
+            '#07111F',
+            '#111A36',
+            '#21154A',
           ]}
           style={
             styles.rulesContainer
           }
         >
+          {renderBackgroundDecor()}
           {renderExitButton()}
+
+          <View
+            style={
+              styles.brandBadge
+            }
+          >
+            <Text
+              style={
+                styles.brandBadgeText
+              }
+            >
+              TRIO
+            </Text>
+          </View>
+
+          <Text
+            style={
+              styles.rulesEyebrow
+            }
+          >
+            GAME TYPE 1
+          </Text>
 
           <Text
             style={
               styles.rulesTitle
             }
           >
-            TRIO GAME TYPE 1
+            Reach the Target
           </Text>
 
           <Text
@@ -885,7 +998,7 @@ const GameScreen = ({
               styles.rulesSubtitle
             }
           >
-            Game Rules
+            Think fast, connect three numbers and build the correct result.
           </Text>
 
           <View
@@ -893,79 +1006,45 @@ const GameScreen = ({
               styles.rulesCard
             }
           >
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Generate a target
-              number
-            </Text>
+            {[
+              ['01', 'Generate a target number'],
+              ['02', 'Select exactly 3 connected numbers'],
+              ['03', 'Horizontal, vertical and diagonal moves are allowed'],
+              ['04', 'Multiply or divide before adding or subtracting'],
+              ['05', 'Every correct result gives the active player 1 point'],
+              ['06', 'The highest score wins when the number pool finishes'],
+            ].map(
+              ([number, rule]) => (
+                <View
+                  key={number}
+                  style={
+                    styles.ruleRow
+                  }
+                >
+                  <View
+                    style={
+                      styles.ruleNumber
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.ruleNumberText
+                      }
+                    >
+                      {number}
+                    </Text>
+                  </View>
 
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Select 3 numbers
-              from the board
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Numbers must be
-              next to each other
-              or diagonal
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Try to reach the
-              target number
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Use multiplication
-              or division first
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Then use addition
-              or subtraction
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Each correct
-              answer gives 1 point
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • When all target
-              numbers finish, the
-              winner is announced
-            </Text>
+                  <Text
+                    style={
+                      styles.ruleText
+                    }
+                  >
+                    {rule}
+                  </Text>
+                </View>
+              )
+            )}
           </View>
 
           <TouchableOpacity
@@ -975,46 +1054,95 @@ const GameScreen = ({
             onPress={() =>
               setShowRules(false)
             }
+            activeOpacity={0.86}
           >
-            <Text
+            <LinearGradient
+              colors={[
+                '#8B5CF6',
+                '#2563EB',
+              ]}
+              start={{
+                x: 0,
+                y: 0,
+              }}
+              end={{
+                x: 1,
+                y: 1,
+              }}
               style={
-                styles.buttonText
+                styles.primaryButtonGradient
               }
             >
-              START GAME
-            </Text>
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Start Game
+              </Text>
+
+              <Text
+                style={
+                  styles.buttonArrow
+                }
+              >
+                →
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     );
   }
 
   if (gameOver) {
     return (
-      <ImageBackground
-        source={require(
-          '../assets/trioabout.png'
-        )}
+      <View
         style={
           styles.backgroundImage
         }
       >
         <LinearGradient
           colors={[
-            '#00c6ff',
-            '#0072ff',
-            '#000',
+            '#07111F',
+            '#111A36',
+            '#21154A',
           ]}
-          style={styles.container}
+          style={
+            styles.container
+          }
         >
+          {renderBackgroundDecor()}
           {renderExitButton()}
+
+          <View
+            style={
+              styles.gameOverIcon
+            }
+          >
+            <Text
+              style={
+                styles.gameOverEmoji
+              }
+            >
+              🏆
+            </Text>
+          </View>
+
+          <Text
+            style={
+              styles.gameOverEyebrow
+            }
+          >
+            MATCH COMPLETE
+          </Text>
 
           <Text
             style={
               styles.gameOverTitle
             }
           >
-            🏆 GAME OVER
+            Game Over
           </Text>
 
           <View
@@ -1024,48 +1152,61 @@ const GameScreen = ({
           >
             <Text
               style={
+                styles.winnerLabel
+              }
+            >
+              WINNER
+            </Text>
+
+            <Text
+              style={
                 styles.winnerText
               }
             >
-              Winner:{' '}
               {getWinner()}
             </Text>
 
-            <Text
+            <View
               style={
-                styles.finalScoreText
+                styles.scoreDivider
               }
-            >
-              {getPlayerName(1)}:{' '}
-              {scores[1]} points
-            </Text>
+            />
 
-            <Text
-              style={
-                styles.finalScoreText
-              }
-            >
-              {getPlayerName(2)}:{' '}
-              {scores[2]} points
-            </Text>
+            {[1, 2, 3, 4].map(
+              (playerId) => (
+                <View
+                  key={playerId}
+                  style={
+                    styles.finalScoreRow
+                  }
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      styles.finalPlayerName
+                    }
+                  >
+                    {getPlayerName(
+                      playerId
+                    )}
+                  </Text>
 
-            <Text
-              style={
-                styles.finalScoreText
-              }
-            >
-              {getPlayerName(3)}:{' '}
-              {scores[3]} points
-            </Text>
-
-            <Text
-              style={
-                styles.finalScoreText
-              }
-            >
-              {getPlayerName(4)}:{' '}
-              {scores[4]} points
-            </Text>
+                  <View
+                    style={
+                      styles.finalScoreBadge
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.finalScoreText
+                      }
+                    >
+                      {scores[playerId]}
+                    </Text>
+                  </View>
+                </View>
+              )
+            )}
           </View>
 
           <TouchableOpacity
@@ -1073,14 +1214,25 @@ const GameScreen = ({
               styles.playAgainButton
             }
             onPress={resetGame}
+            activeOpacity={0.86}
           >
-            <Text
+            <LinearGradient
+              colors={[
+                '#8B5CF6',
+                '#2563EB',
+              ]}
               style={
-                styles.buttonText
+                styles.primaryButtonGradient
               }
             >
-              🔄 Play Again
-            </Text>
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Play Again
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -1088,70 +1240,173 @@ const GameScreen = ({
               styles.homeButton
             }
             onPress={goToGameMenu}
+            activeOpacity={0.82}
           >
             <Text
               style={
-                styles.buttonText
+                styles.homeButtonText
               }
             >
-              🏠 Home
+              Back to Game Modes
             </Text>
           </TouchableOpacity>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require(
-        '../assets/trioabout.png'
-      )}
+    <View
       style={
         styles.backgroundImage
       }
     >
       <LinearGradient
         colors={[
-          '#00c6ff',
-          '#0072ff',
-          '#000',
+          '#07111F',
+          '#111A36',
+          '#21154A',
         ]}
         style={styles.container}
       >
+        {renderBackgroundDecor()}
         {renderExitButton()}
 
         <View
           style={
-            styles.playersBox
+            styles.gameHeader
           }
         >
-          {renderPlayerCard(1)}
+          <View>
+            <Text
+              style={
+                styles.gameEyebrow
+              }
+            >
+              TRIO · TYPE 1
+            </Text>
 
-          {renderPlayerCard(2)}
+            <Text
+              style={
+                styles.gameTitle
+              }
+            >
+              Reach the Target
+            </Text>
+          </View>
 
-          {renderPlayerCard(3)}
+          <View
+            style={
+              styles.remainingBadge
+            }
+          >
+            <Text
+              style={
+                styles.remainingBadgeValue
+              }
+            >
+              {numberPool.length}
+            </Text>
 
-          {renderPlayerCard(4)}
+            <Text
+              style={
+                styles.remainingBadgeLabel
+              }
+            >
+              LEFT
+            </Text>
+          </View>
         </View>
 
-        <Text
-          style={styles.turnText}
-        >
-          Turn:{' '}
-          {getPlayerName(
-            currentPlayer
-          )}
-        </Text>
-
-        <Text
+        <View
           style={
-            styles.remainingText
+            styles.playersPanel
           }
         >
-          Remaining Numbers:{' '}
-          {numberPool.length}
-        </Text>
+          <View
+            style={
+              styles.playersBox
+            }
+          >
+            {renderPlayerCard(1)}
+            {renderPlayerCard(2)}
+            {renderPlayerCard(3)}
+            {renderPlayerCard(4)}
+          </View>
+        </View>
+
+        <View
+          style={
+            styles.turnBanner
+          }
+        >
+          <View
+            style={
+              styles.liveDot
+            }
+          />
+
+          <Text
+            style={
+              styles.turnLabel
+            }
+          >
+            CURRENT TURN
+          </Text>
+
+          <Text
+            numberOfLines={1}
+            style={
+              styles.turnText
+            }
+          >
+            {getPlayerName(
+              currentPlayer
+            )}
+          </Text>
+        </View>
+
+        <View
+          style={
+            styles.targetSection
+          }
+        >
+          <View>
+            <Text
+              style={
+                styles.targetLabel
+              }
+            >
+              TARGET NUMBER
+            </Text>
+
+            <Text
+              style={
+                styles.targetHint
+              }
+            >
+              Build this result with 3 tiles
+            </Text>
+          </View>
+
+          <View
+            style={
+              styles.randomNumberBox
+            }
+          >
+            <Text
+              style={[
+                styles.randomNumberText,
+                randomNumber === null &&
+                  styles.randomNumberPlaceholder,
+              ]}
+            >
+              {randomNumber === null
+                ? '?'
+                : randomNumber}
+            </Text>
+          </View>
+        </View>
 
         <TouchableOpacity
           style={
@@ -1160,99 +1415,171 @@ const GameScreen = ({
           onPress={
             generateRandomNumber
           }
+          activeOpacity={0.84}
         >
-          <Text
+          <LinearGradient
+            colors={[
+              '#2563EB',
+              '#06B6D4',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
             style={
-              styles.buttonText
-            }
-          >
-            🎲 Generate Number
-          </Text>
-        </TouchableOpacity>
-
-        {randomNumber !== null && (
-          <View
-            style={
-              styles.randomNumberBox
+              styles.secondaryButtonGradient
             }
           >
             <Text
               style={
-                styles.randomNumberText
+                styles.buttonIcon
               }
             >
-              {randomNumber}
+              ◈
             </Text>
-          </View>
-        )}
+
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              Generate Number
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
         <View
-          style={styles.table}
+          style={
+            styles.boardCard
+          }
         >
-          {currentTableData.map(
-            (
-              row,
-              rowIndex
-            ) => (
-              <View
-                key={rowIndex}
-                style={styles.row}
-              >
-                {row.map(
-                  (
-                    cellValue,
-                    colIndex
-                  ) => (
-                    <TouchableOpacity
-                      key={
-                        colIndex
-                      }
-                      style={[
-                        styles.cell,
-                        {
-                          backgroundColor:
-                            cellColors[
-                              rowIndex
-                            ][
-                              colIndex
-                            ],
-                        },
+          <View
+            style={
+              styles.boardTopRow
+            }
+          >
+            <Text
+              style={
+                styles.boardTitle
+              }
+            >
+              NUMBER GRID
+            </Text>
 
+            <Text
+              style={
+                styles.selectionCounter
+              }
+            >
+              {selectedCells.length}/3 selected
+            </Text>
+          </View>
+
+          <View
+            style={styles.table}
+          >
+            {currentTableData.map(
+              (
+                row,
+                rowIndex
+              ) => (
+                <View
+                  key={rowIndex}
+                  style={styles.row}
+                >
+                  {row.map(
+                    (
+                      cellValue,
+                      colIndex
+                    ) => {
+                      const isSelected =
                         selectedCells.find(
-                          (
-                            cell
-                          ) =>
+                          (cell) =>
                             cell.row ===
                               rowIndex &&
                             cell.col ===
                               colIndex
-                        )
-                          ? styles.selected
-                          : null,
-                      ]}
-                      onPress={() =>
-                        handleCellPress(
-                          rowIndex,
-                          colIndex,
-                          cellValue
-                        )
-                      }
-                    >
-                      <Text
-                        style={
-                          styles.cellText
-                        }
-                      >
-                        {
-                          cellValue
-                        }
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-            )
-          )}
+                        );
+
+                      return (
+                        <TouchableOpacity
+                          key={
+                            colIndex
+                          }
+                          style={[
+                            styles.cell,
+                            {
+                              backgroundColor:
+                                cellColors[
+                                  rowIndex
+                                ][
+                                  colIndex
+                                ],
+                            },
+                            isSelected
+                              ? styles.selected
+                              : null,
+                          ]}
+                          onPress={() =>
+                            handleCellPress(
+                              rowIndex,
+                              colIndex,
+                              cellValue
+                            )
+                          }
+                          activeOpacity={0.78}
+                        >
+                          <View
+                            style={
+                              styles.cellHighlight
+                            }
+                          />
+
+                          <Text
+                            style={
+                              styles.cellText
+                            }
+                          >
+                            {
+                              cellValue
+                            }
+                          </Text>
+
+                          {isSelected && (
+                            <View
+                              style={
+                                styles.selectedIndex
+                              }
+                            >
+                              <Text
+                                style={
+                                  styles.selectedIndexText
+                                }
+                              >
+                                {
+                                  selectedCells.findIndex(
+                                    (cell) =>
+                                      cell.row ===
+                                        rowIndex &&
+                                      cell.col ===
+                                        colIndex
+                                  ) + 1
+                                }
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    }
+                  )}
+                </View>
+              )
+            )}
+          </View>
         </View>
 
         <TouchableOpacity
@@ -1260,17 +1587,44 @@ const GameScreen = ({
             styles.checkButton
           }
           onPress={checkResult}
+          activeOpacity={0.86}
         >
-          <Text
+          <LinearGradient
+            colors={[
+              '#8B5CF6',
+              '#2563EB',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
             style={
-              styles.buttonText
+              styles.primaryButtonGradient
             }
           >
-            ✅ Check Result
-          </Text>
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              Check Result
+            </Text>
+
+            <Text
+              style={
+                styles.buttonArrow
+              }
+            >
+              →
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
       </LinearGradient>
-    </ImageBackground>
+    </View>
   );
 };
 
@@ -1278,219 +1632,494 @@ const styles =
   StyleSheet.create({
     backgroundImage: {
       flex: 1,
-      resizeMode: 'cover',
+      backgroundColor: '#07111F',
+    },
+
+    backgroundDecor: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: 'hidden',
+    },
+
+    glowOrb: {
+      position: 'absolute',
+      borderRadius: 999,
+    },
+
+    glowOrbOne: {
+      width: 280,
+      height: 280,
+      top: -110,
+      right: -100,
+      backgroundColor:
+        'rgba(59,130,246,0.19)',
+    },
+
+    glowOrbTwo: {
+      width: 230,
+      height: 230,
+      bottom: -85,
+      left: -95,
+      backgroundColor:
+        'rgba(139,92,246,0.20)',
+    },
+
+    glowOrbThree: {
+      width: 150,
+      height: 150,
+      top: '43%',
+      right: -85,
+      backgroundColor:
+        'rgba(6,182,212,0.10)',
+    },
+
+    mathSymbol: {
+      position: 'absolute',
+      color:
+        'rgba(255,255,255,0.035)',
+      fontWeight: '900',
+    },
+
+    mathSymbolOne: {
+      top: 105,
+      left: 20,
+      fontSize: 92,
+      transform: [
+        { rotate: '-14deg' },
+      ],
+    },
+
+    mathSymbolTwo: {
+      top: '34%',
+      right: 26,
+      fontSize: 84,
+      transform: [
+        { rotate: '12deg' },
+      ],
+    },
+
+    mathSymbolThree: {
+      bottom: 125,
+      left: 36,
+      fontSize: 88,
+      transform: [
+        { rotate: '10deg' },
+      ],
+    },
+
+    mathSymbolFour: {
+      bottom: 42,
+      right: 34,
+      fontSize: 102,
+      transform: [
+        { rotate: '-8deg' },
+      ],
     },
 
     container: {
       flex: 1,
-      padding: 10,
+      paddingTop: 52,
+      paddingHorizontal: 14,
+      paddingBottom: 18,
       alignItems: 'center',
-      justifyContent:
-        'center',
     },
 
     exitButton: {
       position: 'absolute',
       top: 52,
-      right: 18,
+      right: 16,
       zIndex: 20,
-
+      minHeight: 38,
+      paddingVertical: 9,
+      paddingHorizontal: 14,
+      borderRadius: 14,
       backgroundColor:
-        'rgba(173, 24, 24, 0.92)',
-
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-
-      borderRadius: 22,
-
+        'rgba(15,23,42,0.88)',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.65)',
-
+        'rgba(255,255,255,0.14)',
       shadowColor: '#000',
-
       shadowOffset: {
         width: 0,
-        height: 4,
+        height: 6,
       },
-
       shadowOpacity: 0.25,
-      shadowRadius: 6,
+      shadowRadius: 10,
       elevation: 8,
     },
 
     exitButtonText: {
-      color: '#fff',
-      fontSize: 14,
+      color: '#F8FAFC',
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: 0.2,
+    },
+
+    gameHeader: {
+      width: '100%',
+      minHeight: 56,
+      marginBottom: 10,
+      paddingRight: 72,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    gameEyebrow: {
+      color: '#818CF8',
+      fontSize: 10,
       fontWeight: '900',
+      letterSpacing: 1.8,
+      marginBottom: 3,
+    },
+
+    gameTitle: {
+      color: '#F8FAFC',
+      fontSize: 22,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+
+    remainingBadge: {
+      width: 48,
+      height: 48,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.14)',
+    },
+
+    remainingBadgeValue: {
+      color: '#F8FAFC',
+      fontSize: 17,
+      fontWeight: '900',
+      lineHeight: 19,
+    },
+
+    remainingBadgeLabel: {
+      color: '#94A3B8',
+      fontSize: 8,
+      fontWeight: '900',
+      letterSpacing: 1,
+    },
+
+    playersPanel: {
+      width: '100%',
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      marginBottom: 8,
+      borderRadius: 22,
+      backgroundColor:
+        'rgba(15,23,42,0.72)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.09)',
     },
 
     playersBox: {
+      width: '100%',
       flexDirection: 'row',
       justifyContent:
-        'center',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 8,
-      flexWrap: 'wrap',
+        'space-between',
+      alignItems: 'stretch',
     },
 
     playerCard: {
+      position: 'relative',
+      width: '24%',
+      minHeight: 103,
+      paddingVertical: 7,
+      paddingHorizontal: 3,
       alignItems: 'center',
-
       justifyContent:
         'center',
-
-      paddingVertical: 4,
-
-      paddingHorizontal: 4,
-
-      borderRadius: 16,
+      borderRadius: 17,
+      borderWidth: 1,
+      borderColor:
+        'transparent',
     },
 
     activePlayerCard: {
       backgroundColor:
-        'rgba(255,255,255,0.2)',
+        'rgba(99,102,241,0.14)',
+      borderColor:
+        'rgba(129,140,248,0.7)',
+    },
 
-      borderWidth: 2,
+    playerStatusDot: {
+      position: 'absolute',
+      top: 7,
+      right: 7,
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: '#475569',
+    },
 
-      borderColor: '#fff',
+    activeStatusDot: {
+      backgroundColor: '#22C55E',
+      shadowColor: '#22C55E',
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.8,
+      shadowRadius: 5,
+      elevation: 4,
     },
 
     avatarGlow: {
+      width: 48,
+      height: 48,
+      padding: 2,
+      marginBottom: 5,
       alignItems: 'center',
-
       justifyContent:
         'center',
-
-      borderRadius: 60,
-
-      padding: 7,
-
-      marginBottom: 4,
+      borderRadius: 16,
     },
 
     profileImage: {
-      width: 58,
-      height: 58,
-      borderRadius: 29,
-
-      borderWidth: 3,
-
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      borderWidth: 1,
       borderColor:
-        '#ffffff',
+        'rgba(255,255,255,0.75)',
     },
 
     defaultAvatar: {
-      width: 58,
-      height: 58,
-      borderRadius: 29,
-
+      width: 44,
+      height: 44,
+      borderRadius: 14,
       backgroundColor:
-        'rgba(0,0,0,0.55)',
-
-      borderWidth: 3,
-
-      borderColor:
-        '#ffffff',
-
+        '#0F172A',
       alignItems: 'center',
-
       justifyContent:
         'center',
     },
 
     defaultAvatarText: {
-      color: '#fff',
-      fontSize: 18,
+      color: '#F8FAFC',
+      fontSize: 14,
       fontWeight: '900',
     },
 
     playerName: {
-      color: '#fff',
-      fontSize: 11,
-      fontWeight: '900',
-      textAlign: 'center',
-    },
-
-    scoreText: {
-      color: '#fff',
-      fontSize: 10,
+      width: '100%',
+      color: '#CBD5E1',
+      fontSize: 9,
       fontWeight: '800',
-      marginTop: 2,
-    },
-
-    turnText: {
-      color: '#fff',
-      fontSize: 17,
-      fontWeight: '900',
+      textAlign: 'center',
       marginBottom: 5,
     },
 
-    remainingText: {
-      color: '#fff',
-      fontSize: 13,
-      fontWeight: '700',
-      marginBottom: 10,
+    activePlayerName: {
+      color: '#FFFFFF',
+    },
+
+    scoreBadge: {
+      minWidth: 44,
+      height: 22,
+      paddingHorizontal: 6,
+      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        'rgba(255,255,255,0.07)',
+    },
+
+    scoreLabel: {
+      color: '#64748B',
+      fontSize: 6,
+      fontWeight: '900',
+      letterSpacing: 0.7,
+      marginRight: 4,
+    },
+
+    scoreText: {
+      color: '#F8FAFC',
+      fontSize: 11,
+      fontWeight: '900',
+    },
+
+    turnBanner: {
+      width: '100%',
+      height: 36,
+      paddingHorizontal: 12,
+      marginBottom: 8,
+      borderRadius: 13,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor:
+        'rgba(30,41,59,0.8)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.08)',
+    },
+
+    liveDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      marginRight: 8,
+      backgroundColor: '#22C55E',
+    },
+
+    turnLabel: {
+      color: '#64748B',
+      fontSize: 8,
+      fontWeight: '900',
+      letterSpacing: 1.1,
+      marginRight: 8,
+    },
+
+    turnText: {
+      flex: 1,
+      color: '#F8FAFC',
+      fontSize: 12,
+      fontWeight: '900',
+    },
+
+    targetSection: {
+      width: '100%',
+      minHeight: 72,
+      paddingVertical: 10,
+      paddingLeft: 15,
+      paddingRight: 9,
+      marginBottom: 8,
+      borderRadius: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+      backgroundColor:
+        'rgba(15,23,42,0.72)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.1)',
+    },
+
+    targetLabel: {
+      color: '#A5B4FC',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.4,
+      marginBottom: 4,
+    },
+
+    targetHint: {
+      maxWidth: 220,
+      color: '#94A3B8',
+      fontSize: 11,
+      fontWeight: '600',
+    },
+
+    randomNumberBox: {
+      width: 54,
+      height: 54,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor: '#F8FAFC',
+      shadowColor: '#60A5FA',
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+      shadowOpacity: 0.28,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+
+    randomNumberText: {
+      color: '#111827',
+      fontSize: 25,
+      fontWeight: '900',
+    },
+
+    randomNumberPlaceholder: {
+      color: '#94A3B8',
     },
 
     randomButton: {
-      backgroundColor:
-        '#3498db',
-
-      padding: 15,
-
-      borderRadius: 30,
-
-      marginBottom: 15,
+      width: '100%',
+      height: 44,
+      marginBottom: 8,
+      borderRadius: 15,
+      overflow: 'hidden',
     },
 
-    checkButton: {
-      backgroundColor:
-        '#27ae60',
-
-      padding: 15,
-
-      borderRadius: 30,
-
-      marginTop: 20,
+    secondaryButtonGradient: {
+      flex: 1,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 15,
     },
 
-    playAgainButton: {
-      backgroundColor:
-        '#27ae60',
-
-      paddingVertical: 16,
-
-      paddingHorizontal: 45,
-
-      borderRadius: 30,
-
-      marginTop: 25,
+    buttonIcon: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: '900',
+      marginRight: 9,
     },
 
-    homeButton: {
+    boardCard: {
+      width: '100%',
+      paddingTop: 10,
+      paddingHorizontal: 8,
+      paddingBottom: 8,
+      borderRadius: 22,
       backgroundColor:
-        '#3498db',
-
-      paddingVertical: 16,
-
-      paddingHorizontal: 60,
-
-      borderRadius: 30,
-
-      marginTop: 15,
+        'rgba(15,23,42,0.82)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.1)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 18,
+      elevation: 8,
     },
 
-    buttonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
+    boardTopRow: {
+      width: '100%',
+      paddingHorizontal: 4,
+      marginBottom: 7,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    boardTitle: {
+      color: '#CBD5E1',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.4,
+    },
+
+    selectionCounter: {
+      color: '#818CF8',
+      fontSize: 9,
+      fontWeight: '800',
     },
 
     table: {
-      marginVertical: 10,
+      width: '100%',
+      alignItems: 'center',
     },
 
     row: {
@@ -1498,150 +2127,385 @@ const styles =
     },
 
     cell: {
-      width: 45,
-      height: 45,
-      margin: 4,
-      borderRadius: 8,
-
+      position: 'relative',
+      width: 41,
+      height: 41,
+      margin: 2,
+      borderRadius: 12,
+      overflow: 'hidden',
       alignItems: 'center',
-
       justifyContent:
         'center',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.15)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+
+    cellHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '42%',
+      backgroundColor:
+        'rgba(255,255,255,0.13)',
     },
 
     selected: {
-      borderWidth: 2,
-      borderColor: '#fff',
+      borderWidth: 3,
+      borderColor: '#F8FAFC',
+      transform: [
+        {
+          scale: 1.05,
+        },
+      ],
+      shadowColor: '#FFFFFF',
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.55,
+      shadowRadius: 8,
+      elevation: 10,
+    },
+
+    selectedIndex: {
+      position: 'absolute',
+      top: 3,
+      right: 3,
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        '#0F172A',
+    },
+
+    selectedIndexText: {
+      color: '#FFFFFF',
+      fontSize: 8,
+      fontWeight: '900',
     },
 
     cellText: {
-      fontSize: 20,
-      color: '#fff',
-      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: '900',
+      textShadowColor:
+        'rgba(0,0,0,0.22)',
+      textShadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      textShadowRadius: 2,
     },
 
-    randomNumberBox: {
-      backgroundColor:
-        '#2980b9',
+    checkButton: {
+      width: '100%',
+      height: 48,
+      marginTop: 10,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#4F46E5',
+      shadowOffset: {
+        width: 0,
+        height: 7,
+      },
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      elevation: 8,
+    },
 
-      width: 80,
-      height: 80,
-
-      borderRadius: 40,
-
+    primaryButtonGradient: {
+      flex: 1,
+      minHeight: 48,
+      paddingHorizontal: 20,
+      borderRadius: 16,
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
+    },
 
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '900',
+      letterSpacing: 0.2,
+    },
+
+    buttonArrow: {
+      position: 'absolute',
+      right: 19,
+      color: '#FFFFFF',
+      fontSize: 21,
+      fontWeight: '700',
+    },
+
+    brandBadge: {
+      width: 66,
+      height: 66,
+      marginBottom: 18,
+      borderRadius: 22,
+      alignItems: 'center',
       justifyContent:
         'center',
-
-      marginBottom: 10,
-    },
-
-    randomNumberText: {
-      color: '#fff',
-      fontSize: 28,
-      fontWeight: 'bold',
-    },
-
-    gameOverTitle: {
-      fontSize: 34,
-      color: '#fff',
-      fontWeight: '900',
-      marginBottom: 25,
-    },
-
-    resultCard: {
-      width: '90%',
-
       backgroundColor:
-        'rgba(255,255,255,0.18)',
-
-      borderRadius: 24,
-
-      padding: 24,
-
+        'rgba(99,102,241,0.16)',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.35)',
-
-      alignItems: 'center',
+        'rgba(129,140,248,0.55)',
     },
 
-    winnerText: {
-      color: '#fff',
-      fontSize: 24,
+    brandBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 17,
       fontWeight: '900',
-      marginBottom: 18,
-      textAlign: 'center',
-    },
-
-    finalScoreText: {
-      color: '#fff',
-      fontSize: 18,
-      fontWeight: '700',
-      marginBottom: 8,
+      letterSpacing: 1,
     },
 
     rulesContainer: {
       flex: 1,
-      padding: 24,
-
+      paddingTop: 62,
+      paddingHorizontal: 22,
+      paddingBottom: 28,
       alignItems: 'center',
-
       justifyContent:
         'center',
     },
 
+    rulesEyebrow: {
+      color: '#818CF8',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 7,
+    },
+
     rulesTitle: {
-      fontSize: 30,
-      color: '#fff',
-      fontWeight: 'bold',
-      marginBottom: 10,
+      color: '#F8FAFC',
+      fontSize: 31,
+      fontWeight: '900',
+      letterSpacing: -0.8,
       textAlign: 'center',
+      marginBottom: 9,
     },
 
     rulesSubtitle: {
-      fontSize: 22,
-      color: '#fff',
-      marginBottom: 25,
+      maxWidth: 330,
+      color: '#94A3B8',
+      fontSize: 13,
       fontWeight: '600',
+      lineHeight: 19,
+      textAlign: 'center',
+      marginBottom: 22,
     },
 
     rulesCard: {
       width: '100%',
-
-      backgroundColor:
-        'rgba(255,255,255,0.15)',
-
+      paddingVertical: 9,
+      paddingHorizontal: 13,
       borderRadius: 22,
-
-      padding: 22,
-
+      backgroundColor:
+        'rgba(15,23,42,0.78)',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.3)',
+        'rgba(255,255,255,0.1)',
+    },
+
+    ruleRow: {
+      minHeight: 46,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor:
+        'rgba(255,255,255,0.06)',
+    },
+
+    ruleNumber: {
+      width: 30,
+      height: 30,
+      marginRight: 11,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        'rgba(99,102,241,0.16)',
+    },
+
+    ruleNumberText: {
+      color: '#A5B4FC',
+      fontSize: 9,
+      fontWeight: '900',
     },
 
     ruleText: {
-      color: '#fff',
-      fontSize: 17,
-      marginBottom: 15,
-      lineHeight: 24,
+      flex: 1,
+      color: '#E2E8F0',
+      fontSize: 12,
+      fontWeight: '700',
+      lineHeight: 17,
     },
 
     startButton: {
-      marginTop: 28,
+      width: '100%',
+      height: 50,
+      marginTop: 20,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#4F46E5',
+      shadowOffset: {
+        width: 0,
+        height: 7,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 8,
+    },
 
+    gameOverIcon: {
+      width: 76,
+      height: 76,
+      marginTop: 36,
+      marginBottom: 16,
+      borderRadius: 25,
+      alignItems: 'center',
+      justifyContent:
+        'center',
       backgroundColor:
-        '#27ae60',
+        'rgba(245,158,11,0.13)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(245,158,11,0.4)',
+    },
 
-      paddingVertical: 16,
+    gameOverEmoji: {
+      fontSize: 34,
+    },
 
-      paddingHorizontal: 45,
+    gameOverEyebrow: {
+      color: '#F59E0B',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 6,
+    },
 
-      borderRadius: 30,
+    gameOverTitle: {
+      color: '#F8FAFC',
+      fontSize: 34,
+      fontWeight: '900',
+      letterSpacing: -0.8,
+      marginBottom: 20,
+    },
+
+    resultCard: {
+      width: '100%',
+      padding: 20,
+      borderRadius: 24,
+      backgroundColor:
+        'rgba(15,23,42,0.82)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.1)',
+    },
+
+    winnerLabel: {
+      color: '#64748B',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.8,
+      textAlign: 'center',
+      marginBottom: 6,
+    },
+
+    winnerText: {
+      color: '#FFFFFF',
+      fontSize: 25,
+      fontWeight: '900',
+      textAlign: 'center',
+    },
+
+    scoreDivider: {
+      width: '100%',
+      height: 1,
+      marginVertical: 17,
+      backgroundColor:
+        'rgba(255,255,255,0.08)',
+    },
+
+    finalScoreRow: {
+      width: '100%',
+      minHeight: 42,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    finalPlayerName: {
+      flex: 1,
+      color: '#CBD5E1',
+      fontSize: 13,
+      fontWeight: '800',
+      marginRight: 12,
+    },
+
+    finalScoreBadge: {
+      minWidth: 42,
+      height: 29,
+      paddingHorizontal: 10,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        'rgba(99,102,241,0.18)',
+    },
+
+    finalScoreText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '900',
+    },
+
+    playAgainButton: {
+      width: '100%',
+      height: 50,
+      marginTop: 18,
+      borderRadius: 16,
+      overflow: 'hidden',
+    },
+
+    homeButton: {
+      width: '100%',
+      height: 48,
+      marginTop: 10,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      backgroundColor:
+        'rgba(255,255,255,0.06)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.09)',
+    },
+
+    homeButtonText: {
+      color: '#CBD5E1',
+      fontSize: 13,
+      fontWeight: '800',
     },
   });
 
