@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ImageBackground,
   Image,
 } from 'react-native';
 
@@ -252,6 +251,72 @@ const GameScreen2 = ({
     );
   };
 
+  const renderBackgroundDecor = () => (
+    <View
+      pointerEvents="none"
+      style={
+        styles.backgroundDecor
+      }
+    >
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbOne,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbTwo,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbThree,
+        ]}
+      />
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolOne,
+        ]}
+      >
+        (
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolTwo,
+        ]}
+      >
+        ×
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolThree,
+        ]}
+      >
+        ÷
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolFour,
+        ]}
+      >
+        )
+      </Text>
+    </View>
+  );
+
   const renderExitButton = () => {
     return (
       <TouchableOpacity
@@ -471,9 +536,8 @@ const GameScreen2 = ({
       >
         <LinearGradient
           colors={[
-            '#005f73',
-            '#0a9396',
-            '#94d2bd',
+            '#7C3AED',
+            '#2563EB',
           ]}
           style={
             styles.avatarGlow
@@ -506,6 +570,7 @@ const GameScreen2 = ({
         </LinearGradient>
 
         <Text
+          numberOfLines={1}
           style={
             styles.playerName
           }
@@ -707,30 +772,41 @@ const GameScreen2 = ({
 
   if (showRules) {
     return (
-      <ImageBackground
-        source={require(
-          '../assets/trioabout.png'
-        )}
+      <View
         style={
           styles.backgroundImage
         }
       >
         <LinearGradient
           colors={[
-            '#001219',
-            '#005f73',
-            '#0a9396',
-            '#94d2bd',
+            '#07111F',
+            '#111A36',
+            '#21154A',
           ]}
           style={
             styles.rulesContainer
           }
         >
+          {renderBackgroundDecor()}
           {renderExitButton()}
+
+          <View
+            style={
+              styles.modeBadge
+            }
+          >
+            <Text
+              style={
+                styles.modeBadgeText
+              }
+            >
+              MODE 2
+            </Text>
+          </View>
 
           <Text
             style={
-              styles.rulesTitle
+              styles.rulesEyebrow
             }
           >
             TRIO GAME TYPE 2
@@ -738,10 +814,18 @@ const GameScreen2 = ({
 
           <Text
             style={
+              styles.rulesTitle
+            }
+          >
+            Brackets First
+          </Text>
+
+          <Text
+            style={
               styles.rulesSubtitle
             }
           >
-            Game Rules
+            Add or subtract inside the brackets, then multiply or divide by the third number.
           </Text>
 
           <View
@@ -749,62 +833,45 @@ const GameScreen2 = ({
               styles.rulesCard
             }
           >
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Generate a target
-              number
-            </Text>
+            {[
+              ['01', 'Generate a target number'],
+              ['02', 'Select exactly 3 numbers from the board'],
+              ['03', 'Add or subtract two numbers inside brackets'],
+              ['04', 'Multiply or divide the bracket result by the third number'],
+              ['05', 'Example: (3 + 7) × 5 = 50'],
+              ['06', 'Press Check Result to verify your calculation'],
+            ].map(
+              ([number, rule]) => (
+                <View
+                  key={number}
+                  style={
+                    styles.ruleRow
+                  }
+                >
+                  <View
+                    style={
+                      styles.ruleNumber
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.ruleNumberText
+                      }
+                    >
+                      {number}
+                    </Text>
+                  </View>
 
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Select exactly 3
-              numbers from the
-              board
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • First use addition
-              or subtraction
-              inside brackets
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Then multiply or
-              divide the result by
-              the third number
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Example: (3 + 7) ×
-              5 = 50
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Press Check Result
-              to verify your answer
-            </Text>
+                  <Text
+                    style={
+                      styles.ruleText
+                    }
+                  >
+                    {rule}
+                  </Text>
+                </View>
+              )
+            )}
           </View>
 
           <TouchableOpacity
@@ -814,66 +881,159 @@ const GameScreen2 = ({
             onPress={() =>
               setShowRules(false)
             }
+            activeOpacity={0.86}
           >
-            <Text
+            <LinearGradient
+              colors={[
+                '#8B5CF6',
+                '#2563EB',
+              ]}
+              start={{
+                x: 0,
+                y: 0,
+              }}
+              end={{
+                x: 1,
+                y: 1,
+              }}
               style={
-                styles.buttonText
+                styles.primaryButtonGradient
               }
             >
-              START GAME
-            </Text>
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Start Game
+              </Text>
+
+              <Text
+                style={
+                  styles.buttonArrow
+                }
+              >
+                →
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require(
-        '../assets/trioabout.png'
-      )}
+    <View
       style={
         styles.backgroundImage
       }
     >
       <LinearGradient
         colors={[
-          '#001219',
-          '#005f73',
-          '#0a9396',
-          '#94d2bd',
+          '#07111F',
+          '#111A36',
+          '#21154A',
         ]}
         style={styles.container}
       >
+        {renderBackgroundDecor()}
         {renderExitButton()}
-
-        <Text
-          style={styles.title}
-        >
-          Game Type 2
-        </Text>
-
-        <Text
-          style={styles.subtitle}
-        >
-          Addition/Subtraction
-          first, then
-          Multiplication/Division
-        </Text>
 
         <View
           style={
-            styles.playersBox
+            styles.gameHeader
           }
         >
-          {renderPlayerCard(1)}
+          <View>
+            <Text
+              style={
+                styles.gameEyebrow
+              }
+            >
+              TRIO · TYPE 2
+            </Text>
 
-          {renderPlayerCard(2)}
+            <Text
+              style={
+                styles.gameTitle
+              }
+            >
+              Brackets First
+            </Text>
+          </View>
 
-          {renderPlayerCard(3)}
+          <View
+            style={
+              styles.formulaBadge
+            }
+          >
+            <Text
+              style={
+                styles.formulaBadgeText
+              }
+            >
+              ( a ± b ) × c
+            </Text>
+          </View>
+        </View>
 
-          {renderPlayerCard(4)}
+        <View
+          style={
+            styles.playersPanel
+          }
+        >
+          <View
+            style={
+              styles.playersBox
+            }
+          >
+            {renderPlayerCard(1)}
+            {renderPlayerCard(2)}
+            {renderPlayerCard(3)}
+            {renderPlayerCard(4)}
+          </View>
+        </View>
+
+        <View
+          style={
+            styles.targetSection
+          }
+        >
+          <View>
+            <Text
+              style={
+                styles.targetLabel
+              }
+            >
+              TARGET NUMBER
+            </Text>
+
+            <Text
+              style={
+                styles.targetHint
+              }
+            >
+              Build this result using brackets
+            </Text>
+          </View>
+
+          <View
+            style={
+              styles.randomNumberBox
+            }
+          >
+            <Text
+              style={[
+                styles.randomNumberText,
+                randomNumber === null &&
+                  styles.randomNumberPlaceholder,
+              ]}
+            >
+              {randomNumber === null
+                ? '?'
+                : randomNumber}
+            </Text>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -883,100 +1043,195 @@ const GameScreen2 = ({
           onPress={
             generateRandomNumber
           }
+          activeOpacity={0.84}
         >
-          <Text
+          <LinearGradient
+            colors={[
+              '#2563EB',
+              '#06B6D4',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
             style={
-              styles.buttonText
-            }
-          >
-            🎲 Generate Number
-          </Text>
-        </TouchableOpacity>
-
-        {randomNumber !== null && (
-          <View
-            style={
-              styles.randomNumberBox
+              styles.secondaryButtonGradient
             }
           >
             <Text
               style={
-                styles.randomNumberText
+                styles.buttonIcon
               }
             >
-              {randomNumber}
+              ◈
             </Text>
-          </View>
-        )}
+
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              Generate Number
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
         <View
-          style={styles.table}
+          style={
+            styles.boardCard
+          }
         >
-          {tableData.map(
-            (
-              row,
-              rowIndex
-            ) => (
-              <View
-                key={rowIndex}
-                style={styles.row}
-              >
-                {row.map(
-                  (
-                    cellValue,
-                    colIndex
-                  ) => (
-                    <TouchableOpacity
-                      key={
-                        colIndex
-                      }
-                      style={[
-                        styles.cell,
+          <View
+            style={
+              styles.boardTopRow
+            }
+          >
+            <Text
+              style={
+                styles.boardTitle
+              }
+            >
+              NUMBER GRID
+            </Text>
 
-                        {
-                          backgroundColor:
-                            cellColors[
-                              rowIndex
-                            ][
-                              colIndex
-                            ],
-                        },
+            <Text
+              style={
+                styles.selectionCounter
+              }
+            >
+              {selectedCells.length}/3 selected
+            </Text>
+          </View>
 
+          <View
+            style={
+              styles.table
+            }
+          >
+            {tableData.map(
+              (
+                row,
+                rowIndex
+              ) => (
+                <View
+                  key={rowIndex}
+                  style={
+                    styles.row
+                  }
+                >
+                  {row.map(
+                    (
+                      cellValue,
+                      colIndex
+                    ) => {
+                      const isSelected =
                         selectedCells.find(
-                          (
-                            cell
-                          ) =>
+                          (cell) =>
                             cell.row ===
                               rowIndex &&
                             cell.col ===
                               colIndex
-                        )
-                          ? styles.selected
-                          : null,
-                      ]}
-                      onPress={() =>
-                        handleCellPress(
-                          rowIndex,
-                          colIndex,
-                          cellValue
-                        )
-                      }
-                    >
-                      <Text
-                        style={
-                          styles.cellText
-                        }
-                      >
-                        {
-                          cellValue
-                        }
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-            )
-          )}
+                        );
+
+                      return (
+                        <TouchableOpacity
+                          key={
+                            colIndex
+                          }
+                          style={[
+                            styles.cell,
+                            {
+                              backgroundColor:
+                                cellColors[
+                                  rowIndex
+                                ][
+                                  colIndex
+                                ],
+                            },
+                            isSelected
+                              ? styles.selected
+                              : null,
+                          ]}
+                          onPress={() =>
+                            handleCellPress(
+                              rowIndex,
+                              colIndex,
+                              cellValue
+                            )
+                          }
+                          activeOpacity={0.78}
+                        >
+                          <View
+                            style={
+                              styles.cellHighlight
+                            }
+                          />
+
+                          <Text
+                            style={
+                              styles.cellText
+                            }
+                          >
+                            {cellValue}
+                          </Text>
+
+                          {isSelected && (
+                            <View
+                              style={
+                                styles.selectedIndex
+                              }
+                            >
+                              <Text
+                                style={
+                                  styles.selectedIndexText
+                                }
+                              >
+                                {
+                                  selectedCells.findIndex(
+                                    (cell) =>
+                                      cell.row ===
+                                        rowIndex &&
+                                      cell.col ===
+                                        colIndex
+                                  ) + 1
+                                }
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    }
+                  )}
+                </View>
+              )
+            )}
+          </View>
+        </View>
+
+        <View
+          style={
+            styles.expressionHint
+          }
+        >
+          <Text
+            style={
+              styles.expressionHintLabel
+            }
+          >
+            FORMULA
+          </Text>
+
+          <Text
+            style={
+              styles.expressionHintText
+            }
+          >
+            (first number ± second number) × or ÷ third number
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -984,17 +1239,44 @@ const GameScreen2 = ({
             styles.checkButton
           }
           onPress={checkResult}
+          activeOpacity={0.86}
         >
-          <Text
+          <LinearGradient
+            colors={[
+              '#8B5CF6',
+              '#2563EB',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
             style={
-              styles.buttonText
+              styles.primaryButtonGradient
             }
           >
-            ✅ Check Result
-          </Text>
+            <Text
+              style={
+                styles.buttonText
+              }
+            >
+              Check Result
+            </Text>
+
+            <Text
+              style={
+                styles.buttonArrow
+              }
+            >
+              →
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
       </LinearGradient>
-    </ImageBackground>
+    </View>
   );
 };
 
@@ -1002,204 +1284,387 @@ const styles =
   StyleSheet.create({
     backgroundImage: {
       flex: 1,
-      resizeMode: 'cover',
+      backgroundColor: '#07111F',
+    },
+
+    backgroundDecor: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: 'hidden',
+    },
+
+    glowOrb: {
+      position: 'absolute',
+      borderRadius: 999,
+    },
+
+    glowOrbOne: {
+      width: 280,
+      height: 280,
+      top: -120,
+      right: -100,
+      backgroundColor:
+        'rgba(59,130,246,0.18)',
+    },
+
+    glowOrbTwo: {
+      width: 240,
+      height: 240,
+      bottom: -100,
+      left: -100,
+      backgroundColor:
+        'rgba(139,92,246,0.20)',
+    },
+
+    glowOrbThree: {
+      width: 160,
+      height: 160,
+      top: '42%',
+      right: -90,
+      backgroundColor:
+        'rgba(6,182,212,0.10)',
+    },
+
+    mathSymbol: {
+      position: 'absolute',
+      color:
+        'rgba(255,255,255,0.035)',
+      fontWeight: '900',
+    },
+
+    mathSymbolOne: {
+      top: 110,
+      left: 18,
+      fontSize: 96,
+      transform: [
+        {
+          rotate: '-12deg',
+        },
+      ],
+    },
+
+    mathSymbolTwo: {
+      top: '30%',
+      right: 24,
+      fontSize: 86,
+      transform: [
+        {
+          rotate: '10deg',
+        },
+      ],
+    },
+
+    mathSymbolThree: {
+      bottom: 115,
+      left: 34,
+      fontSize: 90,
+      transform: [
+        {
+          rotate: '8deg',
+        },
+      ],
+    },
+
+    mathSymbolFour: {
+      bottom: 35,
+      right: 30,
+      fontSize: 104,
+      transform: [
+        {
+          rotate: '-8deg',
+        },
+      ],
     },
 
     container: {
       flex: 1,
-      padding: 10,
+      paddingTop: 52,
+      paddingHorizontal: 14,
+      paddingBottom: 18,
       alignItems: 'center',
-      justifyContent:
-        'center',
     },
 
     exitButton: {
       position: 'absolute',
-
       top: 52,
-      right: 18,
-
+      right: 16,
       zIndex: 20,
-
+      minHeight: 38,
+      paddingVertical: 9,
+      paddingHorizontal: 14,
+      borderRadius: 14,
       backgroundColor:
-        'rgba(173, 24, 24, 0.92)',
-
-      paddingVertical: 10,
-
-      paddingHorizontal: 16,
-
-      borderRadius: 22,
-
+        'rgba(15,23,42,0.88)',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.65)',
-
+        'rgba(255,255,255,0.14)',
       shadowColor: '#000',
-
       shadowOffset: {
         width: 0,
-        height: 4,
+        height: 6,
       },
-
       shadowOpacity: 0.25,
-
-      shadowRadius: 6,
-
+      shadowRadius: 10,
       elevation: 8,
     },
 
     exitButtonText: {
-      color: '#fff',
+      color: '#F8FAFC',
+      fontSize: 13,
+      fontWeight: '800',
+    },
 
-      fontSize: 14,
+    gameHeader: {
+      width: '100%',
+      minHeight: 58,
+      marginBottom: 10,
+      paddingRight: 72,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
 
+    gameEyebrow: {
+      color: '#818CF8',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 1.8,
+      marginBottom: 3,
+    },
+
+    gameTitle: {
+      color: '#F8FAFC',
+      fontSize: 22,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+
+    formulaBadge: {
+      minWidth: 92,
+      height: 38,
+      paddingHorizontal: 10,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.13)',
+    },
+
+    formulaBadgeText: {
+      color: '#C4B5FD',
+      fontSize: 10,
       fontWeight: '900',
     },
 
-    title: {
-      color: '#fff',
-
-      fontSize: 24,
-
-      fontWeight: 'bold',
-
-      marginBottom: 5,
-    },
-
-    subtitle: {
-      color: '#fff',
-
-      fontSize: 13,
-
-      marginBottom: 12,
-
-      textAlign: 'center',
+    playersPanel: {
+      width: '100%',
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      marginBottom: 8,
+      borderRadius: 22,
+      backgroundColor:
+        'rgba(15,23,42,0.72)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.09)',
     },
 
     playersBox: {
+      width: '100%',
       flexDirection: 'row',
-
       justifyContent:
-        'center',
-
-      alignItems: 'center',
-
-      gap: 10,
-
-      marginBottom: 12,
-
-      flexWrap: 'wrap',
+        'space-between',
+      alignItems: 'stretch',
     },
 
     playerCard: {
+      width: '24%',
+      minHeight: 82,
+      paddingVertical: 7,
+      paddingHorizontal: 3,
       alignItems: 'center',
-
-      justifyContent:
-        'center',
-
-      paddingVertical: 4,
-
-      paddingHorizontal: 4,
+      justifyContent: 'center',
+      borderRadius: 17,
+      backgroundColor:
+        'rgba(255,255,255,0.025)',
     },
 
     avatarGlow: {
+      width: 48,
+      height: 48,
+      padding: 2,
+      marginBottom: 5,
       alignItems: 'center',
-
-      justifyContent:
-        'center',
-
-      borderRadius: 60,
-
-      padding: 7,
-
-      marginBottom: 4,
+      justifyContent: 'center',
+      borderRadius: 16,
     },
 
     profileImage: {
-      width: 56,
-
-      height: 56,
-
-      borderRadius: 28,
-
-      borderWidth: 3,
-
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      borderWidth: 1,
       borderColor:
-        '#ffffff',
+        'rgba(255,255,255,0.75)',
     },
 
     defaultAvatar: {
-      width: 56,
-
-      height: 56,
-
-      borderRadius: 28,
-
-      backgroundColor:
-        'rgba(0,0,0,0.55)',
-
-      borderWidth: 3,
-
-      borderColor:
-        '#ffffff',
-
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: '#0F172A',
       alignItems: 'center',
-
-      justifyContent:
-        'center',
+      justifyContent: 'center',
     },
 
     defaultAvatarText: {
-      color: '#fff',
-
-      fontSize: 18,
-
+      color: '#F8FAFC',
+      fontSize: 14,
       fontWeight: '900',
     },
 
     playerName: {
-      color: '#fff',
-
-      fontSize: 11,
-
-      fontWeight: '900',
-
+      width: '100%',
+      color: '#E2E8F0',
+      fontSize: 9,
+      fontWeight: '800',
       textAlign: 'center',
     },
 
+    targetSection: {
+      width: '100%',
+      minHeight: 72,
+      paddingVertical: 10,
+      paddingLeft: 15,
+      paddingRight: 9,
+      marginBottom: 8,
+      borderRadius: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+      backgroundColor:
+        'rgba(15,23,42,0.72)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.1)',
+    },
+
+    targetLabel: {
+      color: '#A5B4FC',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.4,
+      marginBottom: 4,
+    },
+
+    targetHint: {
+      color: '#94A3B8',
+      fontSize: 11,
+      fontWeight: '600',
+    },
+
+    randomNumberBox: {
+      width: 54,
+      height: 54,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#F8FAFC',
+      shadowColor: '#60A5FA',
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+      shadowOpacity: 0.28,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+
+    randomNumberText: {
+      color: '#111827',
+      fontSize: 25,
+      fontWeight: '900',
+    },
+
+    randomNumberPlaceholder: {
+      color: '#94A3B8',
+    },
+
     randomButton: {
-      backgroundColor:
-        '#3498db',
-
-      padding: 15,
-
-      borderRadius: 30,
-
-      marginBottom: 15,
+      width: '100%',
+      height: 44,
+      marginBottom: 8,
+      borderRadius: 15,
+      overflow: 'hidden',
     },
 
-    checkButton: {
-      backgroundColor:
-        '#27ae60',
-
-      padding: 15,
-
-      borderRadius: 30,
-
-      marginTop: 20,
+    secondaryButtonGradient: {
+      flex: 1,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 15,
     },
 
-    buttonText: {
-      color: '#fff',
+    buttonIcon: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: '900',
+      marginRight: 9,
+    },
 
-      fontSize: 16,
+    boardCard: {
+      width: '100%',
+      paddingTop: 10,
+      paddingHorizontal: 8,
+      paddingBottom: 8,
+      borderRadius: 22,
+      backgroundColor:
+        'rgba(15,23,42,0.82)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.1)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 18,
+      elevation: 8,
+    },
 
-      fontWeight: 'bold',
+    boardTopRow: {
+      width: '100%',
+      paddingHorizontal: 4,
+      marginBottom: 7,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    boardTitle: {
+      color: '#CBD5E1',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.4,
+    },
+
+    selectionCounter: {
+      color: '#818CF8',
+      fontSize: 9,
+      fontWeight: '800',
     },
 
     table: {
-      marginVertical: 10,
+      width: '100%',
+      alignItems: 'center',
     },
 
     row: {
@@ -1207,136 +1672,273 @@ const styles =
     },
 
     cell: {
-      width: 45,
-
-      height: 45,
-
-      margin: 4,
-
-      borderRadius: 8,
-
+      position: 'relative',
+      width: 41,
+      height: 41,
+      margin: 2,
+      borderRadius: 12,
+      overflow: 'hidden',
       alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.15)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 4,
+      elevation: 3,
+    },
 
-      justifyContent:
-        'center',
+    cellHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '42%',
+      backgroundColor:
+        'rgba(255,255,255,0.13)',
     },
 
     selected: {
       borderWidth: 3,
-
-      borderColor: '#fff',
-
+      borderColor: '#F8FAFC',
       transform: [
         {
-          scale: 1.08,
+          scale: 1.05,
         },
       ],
+      shadowColor: '#FFFFFF',
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.55,
+      shadowRadius: 8,
+      elevation: 10,
+    },
+
+    selectedIndex: {
+      position: 'absolute',
+      top: 3,
+      right: 3,
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#0F172A',
+    },
+
+    selectedIndexText: {
+      color: '#FFFFFF',
+      fontSize: 8,
+      fontWeight: '900',
     },
 
     cellText: {
-      fontSize: 20,
-
-      color: '#fff',
-
-      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: '900',
+      textShadowColor:
+        'rgba(0,0,0,0.22)',
+      textShadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      textShadowRadius: 2,
     },
 
-    randomNumberBox: {
-      backgroundColor:
-        '#2980b9',
-
-      width: 80,
-
-      height: 80,
-
-      borderRadius: 40,
-
+    expressionHint: {
+      width: '100%',
+      minHeight: 43,
+      marginTop: 8,
+      paddingHorizontal: 12,
+      borderRadius: 14,
+      flexDirection: 'row',
       alignItems: 'center',
-
-      justifyContent:
-        'center',
-
-      marginBottom: 10,
+      backgroundColor:
+        'rgba(99,102,241,0.11)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(129,140,248,0.22)',
     },
 
-    randomNumberText: {
-      color: '#fff',
+    expressionHintLabel: {
+      color: '#A5B4FC',
+      fontSize: 8,
+      fontWeight: '900',
+      letterSpacing: 1,
+      marginRight: 9,
+    },
 
-      fontSize: 28,
+    expressionHintText: {
+      flex: 1,
+      color: '#CBD5E1',
+      fontSize: 10,
+      fontWeight: '700',
+    },
 
-      fontWeight: 'bold',
+    checkButton: {
+      width: '100%',
+      height: 48,
+      marginTop: 10,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#4F46E5',
+      shadowOffset: {
+        width: 0,
+        height: 7,
+      },
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+
+    primaryButtonGradient: {
+      flex: 1,
+      minHeight: 48,
+      paddingHorizontal: 20,
+      borderRadius: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '900',
+    },
+
+    buttonArrow: {
+      position: 'absolute',
+      right: 19,
+      color: '#FFFFFF',
+      fontSize: 21,
+      fontWeight: '700',
+    },
+
+    modeBadge: {
+      width: 70,
+      height: 70,
+      marginBottom: 18,
+      borderRadius: 23,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(99,102,241,0.16)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(129,140,248,0.55)',
+    },
+
+    modeBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '900',
+      letterSpacing: 1,
     },
 
     rulesContainer: {
       flex: 1,
-
-      padding: 24,
-
+      paddingTop: 62,
+      paddingHorizontal: 22,
+      paddingBottom: 28,
       alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-      justifyContent:
-        'center',
+    rulesEyebrow: {
+      color: '#818CF8',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 7,
     },
 
     rulesTitle: {
-      fontSize: 30,
-
-      color: '#fff',
-
-      fontWeight: 'bold',
-
-      marginBottom: 10,
-
+      color: '#F8FAFC',
+      fontSize: 31,
+      fontWeight: '900',
+      letterSpacing: -0.8,
       textAlign: 'center',
+      marginBottom: 9,
     },
 
     rulesSubtitle: {
-      fontSize: 22,
-
-      color: '#fff',
-
-      marginBottom: 25,
-
+      maxWidth: 330,
+      color: '#94A3B8',
+      fontSize: 13,
       fontWeight: '600',
+      lineHeight: 19,
+      textAlign: 'center',
+      marginBottom: 22,
     },
 
     rulesCard: {
       width: '100%',
-
-      backgroundColor:
-        'rgba(255,255,255,0.15)',
-
+      paddingVertical: 9,
+      paddingHorizontal: 13,
       borderRadius: 22,
-
-      padding: 22,
-
+      backgroundColor:
+        'rgba(15,23,42,0.78)',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.3)',
+        'rgba(255,255,255,0.1)',
+    },
+
+    ruleRow: {
+      minHeight: 46,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor:
+        'rgba(255,255,255,0.06)',
+    },
+
+    ruleNumber: {
+      width: 30,
+      height: 30,
+      marginRight: 11,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(99,102,241,0.16)',
+    },
+
+    ruleNumberText: {
+      color: '#A5B4FC',
+      fontSize: 9,
+      fontWeight: '900',
     },
 
     ruleText: {
-      color: '#fff',
-
-      fontSize: 17,
-
-      marginBottom: 15,
-
-      lineHeight: 24,
+      flex: 1,
+      color: '#E2E8F0',
+      fontSize: 12,
+      fontWeight: '700',
+      lineHeight: 17,
     },
 
     startButton: {
-      marginTop: 28,
-
-      backgroundColor:
-        '#27ae60',
-
-      paddingVertical: 16,
-
-      paddingHorizontal: 45,
-
-      borderRadius: 30,
+      width: '100%',
+      height: 50,
+      marginTop: 20,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#4F46E5',
+      shadowOffset: {
+        width: 0,
+        height: 7,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 8,
     },
   });
 
