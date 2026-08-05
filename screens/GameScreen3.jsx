@@ -38,9 +38,9 @@ const originalCards = [
 ];
 
 const cardColors = [
-  '#e67e22',
-  '#e84393',
-  '#8e44ad',
+  '#FB923C',
+  '#F97316',
+  '#EA580C',
 ];
 
 const blueCards = [
@@ -679,10 +679,9 @@ export default function GameScreen3({
       >
         <LinearGradient
           colors={[
-            '#000000',
-            '#0B3D2E',
-            '#145A32',
-            '#1E8449',
+            '#FF9818',
+            '#F06B00',
+            '#B83A00',
           ]}
           style={
             styles.rulesContainer
@@ -812,10 +811,9 @@ export default function GameScreen3({
     >
       <LinearGradient
         colors={[
-          '#000000',
-          '#0B3D2E',
-          '#145A32',
-          '#1E8449',
+          '#FF9818',
+          '#F06B00',
+          '#B83A00',
         ]}
         style={styles.container}
       >
@@ -1016,7 +1014,7 @@ export default function GameScreen3({
                                       index %
                                         cardColors.length
                                     ]
-                                  : '#111827',
+                                  : '#7C2D12',
                             },
                           ]}
                           onPress={() =>
@@ -1097,188 +1095,210 @@ const styles =
     backgroundImage: {
       flex: 1,
       resizeMode: 'cover',
+      backgroundColor: '#B83A00',
     },
 
     container: {
       flex: 1,
-      padding: 10,
+      paddingTop: 56,
+      paddingHorizontal: 12,
+      paddingBottom: 16,
       alignItems: 'center',
-      justifyContent:
-        'center',
+      justifyContent: 'center',
     },
 
     exitButton: {
       position: 'absolute',
       top: 52,
-      right: 18,
+      right: 16,
       zIndex: 20,
-
       backgroundColor:
-        'rgba(173,24,24,0.92)',
-
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-
-      borderRadius: 22,
-
+        'rgba(120,38,0,0.76)',
+      paddingVertical: 9,
+      paddingHorizontal: 14,
+      borderRadius: 14,
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.65)',
-
-      shadowColor: '#000',
-
+        'rgba(255,255,255,0.24)',
+      shadowColor: '#64748B',
       shadowOffset: {
         width: 0,
-        height: 4,
+        height: 5,
       },
-
-      shadowOpacity: 0.25,
-
-      shadowRadius: 6,
-
-      elevation: 8,
+      shadowOpacity: 0.15,
+      shadowRadius: 10,
+      elevation: 6,
     },
 
     exitButtonText: {
-      color: '#fff',
-      fontSize: 14,
+      color: '#F8FAFC',
+      fontSize: 13,
       fontWeight: '900',
     },
 
     title: {
-      color: '#fff',
+      color: '#F8FAFC',
       fontSize: 25,
       fontWeight: '900',
       marginBottom: 3,
     },
 
     subtitle: {
-      color: '#dbeafe',
+      color: '#FFEDD5',
       fontSize: 14,
       marginBottom: 10,
+      fontWeight: '700',
     },
 
     playersBox: {
+      width: '100%',
       flexDirection: 'row',
-      gap: 12,
+      gap: 10,
       marginBottom: 8,
     },
 
     playerCard: {
+      flex: 1,
       backgroundColor:
-        'rgba(255,255,255,0.15)',
-
-      paddingHorizontal: 18,
+        'rgba(120,38,0,0.48)',
+      paddingHorizontal: 12,
       paddingVertical: 10,
-
-      borderRadius: 16,
-
+      borderRadius: 20,
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.25)',
-
+        'rgba(255,255,255,0.18)',
       alignItems: 'center',
-
-      minWidth: 120,
+      shadowColor: '#7C2D12',
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+      shadowOpacity: 0.12,
+      shadowRadius: 10,
+      elevation: 5,
     },
 
     activePlayerCard: {
       backgroundColor:
-        'rgba(37,99,235,0.85)',
-
-      borderColor: '#fff',
+        'rgba(255,183,77,0.24)',
+      borderColor:
+        'rgba(255,221,153,0.76)',
+      shadowColor: '#FB923C',
+      shadowOpacity: 0.20,
     },
 
     profileImage: {
       width: 48,
       height: 48,
-      borderRadius: 24,
-
+      borderRadius: 15,
       borderWidth: 2,
-      borderColor: '#fff',
-
+      borderColor: '#FFFFFF',
       marginBottom: 6,
     },
 
     defaultAvatar: {
       width: 48,
       height: 48,
-      borderRadius: 24,
-
-      backgroundColor:
-        'rgba(0,0,0,0.55)',
-
-      borderWidth: 2,
-      borderColor: '#fff',
-
+      borderRadius: 15,
+      backgroundColor: '#C2410C',
+      borderWidth: 1,
+      borderColor: '#FDBA74',
       alignItems: 'center',
-      justifyContent:
-        'center',
-
+      justifyContent: 'center',
       marginBottom: 6,
     },
 
     defaultAvatarText: {
-      color: '#fff',
+      color: '#FFF7ED',
       fontSize: 15,
       fontWeight: '900',
     },
 
     playerName: {
-      color: '#fff',
-      fontSize: 15,
+      color: '#F8FAFC',
+      fontSize: 13,
       fontWeight: '900',
       textAlign: 'center',
     },
 
     playerScore: {
-      color: '#e0f2fe',
-      fontSize: 13,
-      fontWeight: 'bold',
+      color: '#FED7AA',
+      fontSize: 12,
+      fontWeight: '900',
       marginTop: 3,
     },
 
     turnText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 10,
+      width: '100%',
+      color: '#F8FAFC',
+      fontSize: 14,
+      fontWeight: '900',
+      textAlign: 'center',
+      marginBottom: 9,
+      paddingVertical: 9,
+      borderRadius: 14,
+      backgroundColor:
+        'rgba(120,38,0,0.50)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.18)',
     },
 
     blueButton: {
-      backgroundColor:
-        '#2563eb',
-
+      minWidth: '72%',
+      backgroundColor: '#F97316',
       paddingVertical: 13,
       paddingHorizontal: 22,
-
-      borderRadius: 30,
-
-      marginBottom: 10,
+      borderRadius: 16,
+      marginBottom: 9,
+      alignItems: 'center',
+      shadowColor: '#FB923C',
+      shadowOffset: {
+        width: 0,
+        height: 6,
+      },
+      shadowOpacity: 0.20,
+      shadowRadius: 10,
+      elevation: 6,
     },
 
     resetButton: {
+      width: '100%',
       backgroundColor:
-        '#ef4444',
-
+        'rgba(120,38,0,0.48)',
       paddingVertical: 12,
       paddingHorizontal: 22,
-
-      borderRadius: 30,
-
-      marginTop: 12,
+      borderRadius: 15,
+      marginTop: 10,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.26)',
     },
 
     buttonText: {
-      color: '#fff',
-      fontSize: 15,
-      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '900',
     },
 
     table: {
       marginVertical: 6,
+      padding: 7,
+      borderRadius: 22,
+      backgroundColor:
+        'rgba(92,28,0,0.60)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.18)',
+      shadowColor: '#7C2D12',
+      shadowOffset: {
+        width: 0,
+        height: 8,
+      },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      elevation: 6,
     },
 
     row: {
@@ -1286,110 +1306,131 @@ const styles =
     },
 
     cell: {
-      width: 43,
-      height: 43,
-      margin: 3,
-
-      borderRadius: 9,
-
+      width: 41,
+      height: 41,
+      margin: 2,
+      borderRadius: 12,
       alignItems: 'center',
-      justifyContent:
-        'center',
-
+      justifyContent: 'center',
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.25)',
+        'rgba(255,255,255,0.24)',
+      shadowColor: '#7C2D12',
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+      elevation: 3,
     },
 
     cellText: {
-      fontSize: 20,
-      color: '#fff',
+      fontSize: 18,
+      color: '#FFFFFF',
       fontWeight: '900',
+      textShadowColor:
+        'rgba(0,0,0,0.16)',
+      textShadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      textShadowRadius: 2,
     },
 
     openedBox: {
       marginTop: 8,
-
       backgroundColor:
-        'rgba(255,255,255,0.14)',
-
-      padding: 10,
-
-      borderRadius: 14,
-
-      minWidth: '85%',
-
+        'rgba(120,38,0,0.48)',
+      paddingVertical: 9,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      minWidth: '100%',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.18)',
     },
 
     openedTitle: {
-      color: '#fff',
-      fontWeight: 'bold',
+      color: '#FED7AA',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.1,
       marginBottom: 4,
     },
 
     openedNumbers: {
-      color: '#fff',
-      fontSize: 15,
+      color: '#FFF7ED',
+      fontSize: 13,
+      fontWeight: '800',
     },
 
     rulesContainer: {
       flex: 1,
-      padding: 24,
+      paddingTop: 62,
+      paddingHorizontal: 22,
+      paddingBottom: 28,
       alignItems: 'center',
-      justifyContent:
-        'center',
+      justifyContent: 'center',
     },
 
     rulesTitle: {
       fontSize: 30,
-      color: '#fff',
-      fontWeight: 'bold',
-      marginBottom: 10,
+      color: '#F8FAFC',
+      fontWeight: '900',
+      marginBottom: 8,
       textAlign: 'center',
     },
 
     rulesSubtitle: {
-      fontSize: 20,
-      color: '#dbeafe',
-      marginBottom: 25,
-      fontWeight: '600',
+      fontSize: 18,
+      color: '#FFEDD5',
+      marginBottom: 22,
+      fontWeight: '700',
       textAlign: 'center',
     },
 
     rulesCard: {
       width: '100%',
-
       backgroundColor:
-        'rgba(255,255,255,0.15)',
-
+        'rgba(92,28,0,0.60)',
       borderRadius: 22,
-
-      padding: 22,
-
+      padding: 20,
       borderWidth: 1,
-
       borderColor:
-        'rgba(255,255,255,0.3)',
+        'rgba(255,255,255,0.18)',
+      shadowColor: '#7C2D12',
+      shadowOffset: {
+        width: 0,
+        height: 8,
+      },
+      shadowOpacity: 0.10,
+      shadowRadius: 16,
+      elevation: 5,
     },
 
     ruleText: {
-      color: '#fff',
-      fontSize: 16,
-      marginBottom: 13,
-      lineHeight: 23,
+      color: '#FFF7ED',
+      fontSize: 15,
+      fontWeight: '700',
+      marginBottom: 12,
+      lineHeight: 22,
     },
 
     startButton: {
-      marginTop: 28,
-
-      backgroundColor:
-        '#2563eb',
-
-      paddingVertical: 16,
+      marginTop: 24,
+      backgroundColor: '#F97316',
+      paddingVertical: 15,
       paddingHorizontal: 45,
-
-      borderRadius: 30,
+      borderRadius: 16,
+      shadowColor: '#FB923C',
+      shadowOffset: {
+        width: 0,
+        height: 6,
+      },
+      shadowOpacity: 0.20,
+      shadowRadius: 10,
+      elevation: 6,
     },
   });

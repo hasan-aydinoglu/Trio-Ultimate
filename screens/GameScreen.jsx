@@ -636,8 +636,8 @@ const GameScreen = ({
         <LinearGradient
           colors={
             isActive
-              ? ['#7C3AED', '#2563EB']
-              : ['#26324A', '#111827']
+              ? ['#29C2FF', '#0969D7']
+              : ['#0875D7', '#064493']
           }
           style={
             styles.avatarGlow
@@ -952,9 +952,9 @@ const GameScreen = ({
       >
         <LinearGradient
           colors={[
-            '#07111F',
-            '#111A36',
-            '#21154A',
+            '#12B5F5',
+            '#087CE3',
+            '#073B9B',
           ]}
           style={
             styles.rulesContainer
@@ -1058,8 +1058,8 @@ const GameScreen = ({
           >
             <LinearGradient
               colors={[
-                '#8B5CF6',
-                '#2563EB',
+                '#18B8F3',
+                '#0759C7',
               ]}
               start={{
                 x: 0,
@@ -1104,9 +1104,9 @@ const GameScreen = ({
       >
         <LinearGradient
           colors={[
-            '#07111F',
-            '#111A36',
-            '#21154A',
+            '#12B5F5',
+            '#087CE3',
+            '#073B9B',
           ]}
           style={
             styles.container
@@ -1218,8 +1218,8 @@ const GameScreen = ({
           >
             <LinearGradient
               colors={[
-                '#8B5CF6',
-                '#2563EB',
+                '#18B8F3',
+                '#0759C7',
               ]}
               style={
                 styles.primaryButtonGradient
@@ -1263,9 +1263,9 @@ const GameScreen = ({
     >
       <LinearGradient
         colors={[
-          '#07111F',
-          '#111A36',
-          '#21154A',
+          '#12B5F5',
+          '#087CE3',
+          '#073B9B',
         ]}
         style={styles.container}
       >
@@ -1419,8 +1419,8 @@ const GameScreen = ({
         >
           <LinearGradient
             colors={[
-              '#2563EB',
-              '#06B6D4',
+              '#10B8F4',
+              '#0870DC',
             ]}
             start={{
               x: 0,
@@ -1591,8 +1591,8 @@ const GameScreen = ({
         >
           <LinearGradient
             colors={[
-              '#8B5CF6',
-              '#2563EB',
+              '#18B8F3',
+              '#0759C7',
             ]}
             start={{
               x: 0,
@@ -1632,7 +1632,7 @@ const styles =
   StyleSheet.create({
     backgroundImage: {
       flex: 1,
-      backgroundColor: '#07111F',
+      backgroundColor: '#073B9B',
     },
 
     backgroundDecor: {
@@ -1651,7 +1651,7 @@ const styles =
       top: -110,
       right: -100,
       backgroundColor:
-        'rgba(59,130,246,0.19)',
+        'rgba(255,255,255,0.16)',
     },
 
     glowOrbTwo: {
@@ -1660,7 +1660,7 @@ const styles =
       bottom: -85,
       left: -95,
       backgroundColor:
-        'rgba(139,92,246,0.20)',
+        'rgba(1,45,130,0.34)',
     },
 
     glowOrbThree: {
@@ -1669,13 +1669,13 @@ const styles =
       top: '43%',
       right: -85,
       backgroundColor:
-        'rgba(6,182,212,0.10)',
+        'rgba(72,210,255,0.18)',
     },
 
     mathSymbol: {
       position: 'absolute',
       color:
-        'rgba(255,255,255,0.035)',
+        'rgba(255,255,255,0.055)',
       fontWeight: '900',
     },
 
@@ -1733,10 +1733,10 @@ const styles =
       paddingHorizontal: 14,
       borderRadius: 14,
       backgroundColor:
-        'rgba(15,23,42,0.88)',
+        'rgba(3,39,103,0.74)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.14)',
+        'rgba(255,255,255,0.24)',
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
@@ -1766,7 +1766,7 @@ const styles =
     },
 
     gameEyebrow: {
-      color: '#818CF8',
+      color: '#7DE3FF',
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 1.8,
@@ -1787,10 +1787,10 @@ const styles =
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor:
-        'rgba(255,255,255,0.08)',
+        'rgba(255,255,255,0.15)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.14)',
+        'rgba(255,255,255,0.24)',
     },
 
     remainingBadgeValue: {
@@ -1801,7 +1801,7 @@ const styles =
     },
 
     remainingBadgeLabel: {
-      color: '#94A3B8',
+      color: '#C6EEFF',
       fontSize: 8,
       fontWeight: '900',
       letterSpacing: 1,
@@ -1814,10 +1814,10 @@ const styles =
       marginBottom: 8,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.72)',
+        'rgba(3,45,119,0.52)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.09)',
+        'rgba(255,255,255,0.18)',
     },
 
     playersBox: {
@@ -1845,9 +1845,9 @@ const styles =
 
     activePlayerCard: {
       backgroundColor:
-        'rgba(99,102,241,0.14)',
+        'rgba(32,171,255,0.20)',
       borderColor:
-        'rgba(129,140,248,0.7)',
+        'rgba(126,220,255,0.85)',
     },
 
     playerStatusDot: {
@@ -1897,7 +1897,7 @@ const styles =
       height: 44,
       borderRadius: 14,
       backgroundColor:
-        '#0F172A',
+        '#064493',
       alignItems: 'center',
       justifyContent:
         'center',
@@ -1911,7 +1911,7 @@ const styles =
 
     playerName: {
       width: '100%',
-      color: '#CBD5E1',
+      color: '#E7F8FF',
       fontSize: 9,
       fontWeight: '800',
       textAlign: 'center',
@@ -1932,11 +1932,11 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        'rgba(255,255,255,0.07)',
+        'rgba(255,255,255,0.13)',
     },
 
     scoreLabel: {
-      color: '#64748B',
+      color: '#9DDDF8',
       fontSize: 6,
       fontWeight: '900',
       letterSpacing: 0.7,
@@ -1958,10 +1958,10 @@ const styles =
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor:
-        'rgba(30,41,59,0.8)',
+        'rgba(4,48,119,0.62)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.08)',
+        'rgba(255,255,255,0.15)',
     },
 
     liveDot: {
@@ -1973,7 +1973,7 @@ const styles =
     },
 
     turnLabel: {
-      color: '#64748B',
+      color: '#9DDDF8',
       fontSize: 8,
       fontWeight: '900',
       letterSpacing: 1.1,
@@ -2000,14 +2000,14 @@ const styles =
       justifyContent:
         'space-between',
       backgroundColor:
-        'rgba(15,23,42,0.72)',
+        'rgba(3,45,119,0.52)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.18)',
     },
 
     targetLabel: {
-      color: '#A5B4FC',
+      color: '#9AEAFF',
       fontSize: 9,
       fontWeight: '900',
       letterSpacing: 1.4,
@@ -2016,7 +2016,7 @@ const styles =
 
     targetHint: {
       maxWidth: 220,
-      color: '#94A3B8',
+      color: '#C6EEFF',
       fontSize: 11,
       fontWeight: '600',
     },
@@ -2028,8 +2028,8 @@ const styles =
       alignItems: 'center',
       justifyContent:
         'center',
-      backgroundColor: '#F8FAFC',
-      shadowColor: '#60A5FA',
+      backgroundColor: '#E9F9FF',
+      shadowColor: '#6EDCFF',
       shadowOffset: {
         width: 0,
         height: 5,
@@ -2040,13 +2040,13 @@ const styles =
     },
 
     randomNumberText: {
-      color: '#111827',
+      color: '#0752B2',
       fontSize: 25,
       fontWeight: '900',
     },
 
     randomNumberPlaceholder: {
-      color: '#94A3B8',
+      color: '#C6EEFF',
     },
 
     randomButton: {
@@ -2080,16 +2080,16 @@ const styles =
       paddingBottom: 8,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.82)',
+        'rgba(2,34,92,0.62)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
-      shadowColor: '#000',
+        'rgba(255,255,255,0.18)',
+      shadowColor: '#002B74',
       shadowOffset: {
         width: 0,
         height: 10,
       },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.34,
       shadowRadius: 18,
       elevation: 8,
     },
@@ -2105,14 +2105,14 @@ const styles =
     },
 
     boardTitle: {
-      color: '#CBD5E1',
+      color: '#E7F8FF',
       fontSize: 9,
       fontWeight: '900',
       letterSpacing: 1.4,
     },
 
     selectionCounter: {
-      color: '#818CF8',
+      color: '#7DE3FF',
       fontSize: 9,
       fontWeight: '800',
     },
@@ -2167,7 +2167,7 @@ const styles =
           scale: 1.05,
         },
       ],
-      shadowColor: '#FFFFFF',
+      shadowColor: '#83E5FF',
       shadowOffset: {
         width: 0,
         height: 0,
@@ -2188,7 +2188,7 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        '#0F172A',
+        '#064493',
     },
 
     selectedIndexText: {
@@ -2216,7 +2216,7 @@ const styles =
       marginTop: 10,
       borderRadius: 16,
       overflow: 'hidden',
-      shadowColor: '#4F46E5',
+      shadowColor: '#058FE8',
       shadowOffset: {
         width: 0,
         height: 7,
@@ -2260,10 +2260,10 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        'rgba(99,102,241,0.16)',
+        'rgba(56,189,248,0.22)',
       borderWidth: 1,
       borderColor:
-        'rgba(129,140,248,0.55)',
+        'rgba(147,230,255,0.72)',
     },
 
     brandBadgeText: {
@@ -2284,7 +2284,7 @@ const styles =
     },
 
     rulesEyebrow: {
-      color: '#818CF8',
+      color: '#7DE3FF',
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 2,
@@ -2302,7 +2302,7 @@ const styles =
 
     rulesSubtitle: {
       maxWidth: 330,
-      color: '#94A3B8',
+      color: '#C6EEFF',
       fontSize: 13,
       fontWeight: '600',
       lineHeight: 19,
@@ -2316,10 +2316,10 @@ const styles =
       paddingHorizontal: 13,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.78)',
+        'rgba(3,39,103,0.60)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.18)',
     },
 
     ruleRow: {
@@ -2328,7 +2328,7 @@ const styles =
       alignItems: 'center',
       borderBottomWidth: 1,
       borderBottomColor:
-        'rgba(255,255,255,0.06)',
+        'rgba(255,255,255,0.12)',
     },
 
     ruleNumber: {
@@ -2340,18 +2340,18 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        'rgba(99,102,241,0.16)',
+        'rgba(56,189,248,0.22)',
     },
 
     ruleNumberText: {
-      color: '#A5B4FC',
+      color: '#9AEAFF',
       fontSize: 9,
       fontWeight: '900',
     },
 
     ruleText: {
       flex: 1,
-      color: '#E2E8F0',
+      color: '#F0FAFF',
       fontSize: 12,
       fontWeight: '700',
       lineHeight: 17,
@@ -2363,7 +2363,7 @@ const styles =
       marginTop: 20,
       borderRadius: 16,
       overflow: 'hidden',
-      shadowColor: '#4F46E5',
+      shadowColor: '#058FE8',
       shadowOffset: {
         width: 0,
         height: 7,
@@ -2383,10 +2383,10 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        'rgba(245,158,11,0.13)',
+        'rgba(255,255,255,0.16)',
       borderWidth: 1,
       borderColor:
-        'rgba(245,158,11,0.4)',
+        'rgba(125,223,255,0.70)',
     },
 
     gameOverEmoji: {
@@ -2394,7 +2394,7 @@ const styles =
     },
 
     gameOverEyebrow: {
-      color: '#F59E0B',
+      color: '#8DE7FF',
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 2,
@@ -2414,14 +2414,14 @@ const styles =
       padding: 20,
       borderRadius: 24,
       backgroundColor:
-        'rgba(15,23,42,0.82)',
+        'rgba(2,34,92,0.62)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.18)',
     },
 
     winnerLabel: {
-      color: '#64748B',
+      color: '#9DDDF8',
       fontSize: 9,
       fontWeight: '900',
       letterSpacing: 1.8,
@@ -2441,7 +2441,7 @@ const styles =
       height: 1,
       marginVertical: 17,
       backgroundColor:
-        'rgba(255,255,255,0.08)',
+        'rgba(255,255,255,0.15)',
     },
 
     finalScoreRow: {
@@ -2455,7 +2455,7 @@ const styles =
 
     finalPlayerName: {
       flex: 1,
-      color: '#CBD5E1',
+      color: '#E7F8FF',
       fontSize: 13,
       fontWeight: '800',
       marginRight: 12,
@@ -2496,14 +2496,14 @@ const styles =
       justifyContent:
         'center',
       backgroundColor:
-        'rgba(255,255,255,0.06)',
+        'rgba(255,255,255,0.12)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.09)',
+        'rgba(255,255,255,0.18)',
     },
 
     homeButtonText: {
-      color: '#CBD5E1',
+      color: '#E7F8FF',
       fontSize: 13,
       fontWeight: '800',
     },

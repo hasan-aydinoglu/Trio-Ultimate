@@ -536,8 +536,8 @@ const GameScreen2 = ({
       >
         <LinearGradient
           colors={[
+            '#D946EF',
             '#7C3AED',
-            '#2563EB',
           ]}
           style={
             styles.avatarGlow
@@ -779,9 +779,9 @@ const GameScreen2 = ({
       >
         <LinearGradient
           colors={[
-            '#07111F',
-            '#111A36',
-            '#21154A',
+            '#A83CF4',
+            '#7A28D7',
+            '#4A138F',
           ]}
           style={
             styles.rulesContainer
@@ -885,8 +885,8 @@ const GameScreen2 = ({
           >
             <LinearGradient
               colors={[
-                '#8B5CF6',
-                '#2563EB',
+                '#D946EF',
+                '#6D28D9',
               ]}
               start={{
                 x: 0,
@@ -930,9 +930,9 @@ const GameScreen2 = ({
     >
       <LinearGradient
         colors={[
-          '#07111F',
-          '#111A36',
-          '#21154A',
+          '#A83CF4',
+          '#7A28D7',
+          '#4A138F',
         ]}
         style={styles.container}
       >
@@ -1047,8 +1047,8 @@ const GameScreen2 = ({
         >
           <LinearGradient
             colors={[
-              '#2563EB',
-              '#06B6D4',
+              '#C026D3',
+              '#7C3AED',
             ]}
             start={{
               x: 0,
@@ -1243,8 +1243,8 @@ const GameScreen2 = ({
         >
           <LinearGradient
             colors={[
-              '#8B5CF6',
-              '#2563EB',
+              '#D946EF',
+              '#6D28D9',
             ]}
             start={{
               x: 0,
@@ -1284,7 +1284,7 @@ const styles =
   StyleSheet.create({
     backgroundImage: {
       flex: 1,
-      backgroundColor: '#07111F',
+      backgroundColor: '#4A138F',
     },
 
     backgroundDecor: {
@@ -1303,7 +1303,7 @@ const styles =
       top: -120,
       right: -100,
       backgroundColor:
-        'rgba(59,130,246,0.18)',
+        'rgba(255,255,255,0.15)',
     },
 
     glowOrbTwo: {
@@ -1312,7 +1312,7 @@ const styles =
       bottom: -100,
       left: -100,
       backgroundColor:
-        'rgba(139,92,246,0.20)',
+        'rgba(74,19,143,0.34)',
     },
 
     glowOrbThree: {
@@ -1321,13 +1321,13 @@ const styles =
       top: '42%',
       right: -90,
       backgroundColor:
-        'rgba(6,182,212,0.10)',
+        'rgba(216,180,254,0.18)',
     },
 
     mathSymbol: {
       position: 'absolute',
       color:
-        'rgba(255,255,255,0.035)',
+        'rgba(255,255,255,0.055)',
       fontWeight: '900',
     },
 
@@ -1393,11 +1393,11 @@ const styles =
       paddingHorizontal: 14,
       borderRadius: 14,
       backgroundColor:
-        'rgba(15,23,42,0.88)',
+        'rgba(58,12,116,0.76)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.14)',
-      shadowColor: '#000',
+        'rgba(255,255,255,0.22)',
+      shadowColor: '#2E1065',
       shadowOffset: {
         width: 0,
         height: 6,
@@ -1425,7 +1425,7 @@ const styles =
     },
 
     gameEyebrow: {
-      color: '#818CF8',
+      color: '#F0ABFC',
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 1.8,
@@ -1447,14 +1447,14 @@ const styles =
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor:
-        'rgba(255,255,255,0.08)',
+        'rgba(255,255,255,0.22)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.13)',
+        'rgba(255,255,255,0.20)',
     },
 
     formulaBadgeText: {
-      color: '#C4B5FD',
+      color: '#F0ABFC',
       fontSize: 10,
       fontWeight: '900',
     },
@@ -1466,10 +1466,10 @@ const styles =
       marginBottom: 8,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.72)',
+        'rgba(74,19,143,0.50)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.09)',
+        'rgba(255,255,255,0.17)',
     },
 
     playersBox: {
@@ -1489,7 +1489,7 @@ const styles =
       justifyContent: 'center',
       borderRadius: 17,
       backgroundColor:
-        'rgba(255,255,255,0.025)',
+        'rgba(255,255,255,0.06)',
     },
 
     avatarGlow: {
@@ -1515,7 +1515,7 @@ const styles =
       width: 44,
       height: 44,
       borderRadius: 14,
-      backgroundColor: '#0F172A',
+      backgroundColor: '#581C87',
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -1528,7 +1528,7 @@ const styles =
 
     playerName: {
       width: '100%',
-      color: '#E2E8F0',
+      color: '#FAF5FF',
       fontSize: 9,
       fontWeight: '800',
       textAlign: 'center',
@@ -1547,14 +1547,14 @@ const styles =
       justifyContent:
         'space-between',
       backgroundColor:
-        'rgba(15,23,42,0.72)',
+        'rgba(74,19,143,0.50)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.18)',
     },
 
     targetLabel: {
-      color: '#A5B4FC',
+      color: '#F5D0FE',
       fontSize: 9,
       fontWeight: '900',
       letterSpacing: 1.4,
@@ -1562,7 +1562,7 @@ const styles =
     },
 
     targetHint: {
-      color: '#94A3B8',
+      color: '#E9D5FF',
       fontSize: 11,
       fontWeight: '600',
     },
@@ -1573,8 +1573,8 @@ const styles =
       borderRadius: 17,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#F8FAFC',
-      shadowColor: '#60A5FA',
+      backgroundColor: '#FAE8FF',
+      shadowColor: '#E879F9',
       shadowOffset: {
         width: 0,
         height: 5,
@@ -1585,13 +1585,13 @@ const styles =
     },
 
     randomNumberText: {
-      color: '#111827',
+      color: '#6B21A8',
       fontSize: 25,
       fontWeight: '900',
     },
 
     randomNumberPlaceholder: {
-      color: '#94A3B8',
+      color: '#E9D5FF',
     },
 
     randomButton: {
@@ -1625,11 +1625,11 @@ const styles =
       paddingBottom: 8,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.82)',
+        'rgba(49,10,98,0.62)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
-      shadowColor: '#000',
+        'rgba(255,255,255,0.18)',
+      shadowColor: '#2E1065',
       shadowOffset: {
         width: 0,
         height: 10,
@@ -1650,14 +1650,14 @@ const styles =
     },
 
     boardTitle: {
-      color: '#CBD5E1',
+      color: '#F5E9FF',
       fontSize: 9,
       fontWeight: '900',
       letterSpacing: 1.4,
     },
 
     selectionCounter: {
-      color: '#818CF8',
+      color: '#F0ABFC',
       fontSize: 9,
       fontWeight: '800',
     },
@@ -1683,7 +1683,7 @@ const styles =
       borderWidth: 1,
       borderColor:
         'rgba(255,255,255,0.15)',
-      shadowColor: '#000',
+      shadowColor: '#2E1065',
       shadowOffset: {
         width: 0,
         height: 3,
@@ -1700,7 +1700,7 @@ const styles =
       right: 0,
       height: '42%',
       backgroundColor:
-        'rgba(255,255,255,0.13)',
+        'rgba(255,255,255,0.20)',
     },
 
     selected: {
@@ -1711,7 +1711,7 @@ const styles =
           scale: 1.05,
         },
       ],
-      shadowColor: '#FFFFFF',
+      shadowColor: '#F0ABFC',
       shadowOffset: {
         width: 0,
         height: 0,
@@ -1730,7 +1730,7 @@ const styles =
       borderRadius: 7,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0F172A',
+      backgroundColor: '#581C87',
     },
 
     selectedIndexText: {
@@ -1761,14 +1761,14 @@ const styles =
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor:
-        'rgba(99,102,241,0.11)',
+        'rgba(217,70,239,0.14)',
       borderWidth: 1,
       borderColor:
-        'rgba(129,140,248,0.22)',
+        'rgba(240,171,252,0.34)',
     },
 
     expressionHintLabel: {
-      color: '#A5B4FC',
+      color: '#F5D0FE',
       fontSize: 8,
       fontWeight: '900',
       letterSpacing: 1,
@@ -1777,7 +1777,7 @@ const styles =
 
     expressionHintText: {
       flex: 1,
-      color: '#CBD5E1',
+      color: '#F5E9FF',
       fontSize: 10,
       fontWeight: '700',
     },
@@ -1788,7 +1788,7 @@ const styles =
       marginTop: 10,
       borderRadius: 16,
       overflow: 'hidden',
-      shadowColor: '#4F46E5',
+      shadowColor: '#A21CAF',
       shadowOffset: {
         width: 0,
         height: 7,
@@ -1830,10 +1830,10 @@ const styles =
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor:
-        'rgba(99,102,241,0.16)',
+        'rgba(217,70,239,0.20)',
       borderWidth: 1,
       borderColor:
-        'rgba(129,140,248,0.55)',
+        'rgba(240,171,252,0.70)',
     },
 
     modeBadgeText: {
@@ -1853,7 +1853,7 @@ const styles =
     },
 
     rulesEyebrow: {
-      color: '#818CF8',
+      color: '#F0ABFC',
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 2,
@@ -1871,7 +1871,7 @@ const styles =
 
     rulesSubtitle: {
       maxWidth: 330,
-      color: '#94A3B8',
+      color: '#E9D5FF',
       fontSize: 13,
       fontWeight: '600',
       lineHeight: 19,
@@ -1885,10 +1885,10 @@ const styles =
       paddingHorizontal: 13,
       borderRadius: 22,
       backgroundColor:
-        'rgba(15,23,42,0.78)',
+        'rgba(58,12,116,0.60)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.18)',
     },
 
     ruleRow: {
@@ -1897,7 +1897,7 @@ const styles =
       alignItems: 'center',
       borderBottomWidth: 1,
       borderBottomColor:
-        'rgba(255,255,255,0.06)',
+        'rgba(255,255,255,0.12)',
     },
 
     ruleNumber: {
@@ -1908,18 +1908,18 @@ const styles =
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor:
-        'rgba(99,102,241,0.16)',
+        'rgba(217,70,239,0.20)',
     },
 
     ruleNumberText: {
-      color: '#A5B4FC',
+      color: '#F5D0FE',
       fontSize: 9,
       fontWeight: '900',
     },
 
     ruleText: {
       flex: 1,
-      color: '#E2E8F0',
+      color: '#FAF5FF',
       fontSize: 12,
       fontWeight: '700',
       lineHeight: 17,
@@ -1931,7 +1931,7 @@ const styles =
       marginTop: 20,
       borderRadius: 16,
       overflow: 'hidden',
-      shadowColor: '#4F46E5',
+      shadowColor: '#A21CAF',
       shadowOffset: {
         width: 0,
         height: 7,
