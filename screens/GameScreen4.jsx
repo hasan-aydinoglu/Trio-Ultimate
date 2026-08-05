@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ImageBackground,
   Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -206,6 +205,61 @@ export default function GameScreen4({
       ]
     );
   };
+
+  const renderBackgroundDecor = () => (
+    <View
+      pointerEvents="none"
+      style={styles.backgroundDecor}
+    >
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbOne,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbTwo,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbThree,
+        ]}
+      />
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolOne,
+        ]}
+      >
+        ×
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolTwo,
+        ]}
+      >
+        −
+      </Text>
+
+      <Text
+        style={[
+          styles.mathSymbol,
+          styles.mathSymbolThree,
+        ]}
+      >
+        =
+      </Text>
+    </View>
+  );
 
   const renderExitButton = () => {
     return (
@@ -604,475 +658,1019 @@ export default function GameScreen4({
 
   if (showRules) {
     return (
-      <ImageBackground
-        source={require('../assets/trioabout.png')}
-        style={styles.backgroundImage}
-      >
+      <View style={styles.backgroundImage}>
         <LinearGradient
           colors={[
-            '#000000',
-            '#434343',
-            '#FFFFFF',
+            '#20D7C2',
+            '#0FB89F',
+            '#08796E',
           ]}
+          start={{
+            x: 0,
+            y: 0,
+          }}
+          end={{
+            x: 1,
+            y: 1,
+          }}
           style={styles.rulesContainer}
         >
+          {renderBackgroundDecor()}
           {renderExitButton()}
 
-          <Text style={styles.rulesTitle}>
-            TRIO GAME TYPE 4
+          <View style={styles.modeBadge}>
+            <Text style={styles.modeBadgeIcon}>
+              ⚗
+            </Text>
+
+            <Text style={styles.modeBadgeText}>
+              MODE 4
+            </Text>
+          </View>
+
+          <Text style={styles.rulesEyebrow}>
+            TRIO FORMULA
           </Text>
 
-          <Text style={styles.rulesSubtitle}>
+          <Text style={styles.rulesTitle}>
             Fixed Formula Challenge
           </Text>
 
+          <Text style={styles.rulesSubtitle}>
+            Choose a formula, select the required numbers and reach the blue target.
+          </Text>
+
           <View style={styles.rulesCard}>
-            <Text style={styles.ruleText}>
-              • This mode is played by 2 players.
-            </Text>
+            {[
+              ['01', 'This mode is played by 2 players'],
+              ['02', 'Draw a blue card to reveal the target'],
+              ['03', 'Choose one of the two fixed formulas'],
+              ['04', 'Mode 1: [ ][ ] − [ ][ ] = Target'],
+              ['05', 'Mode 2: [ ] × [ ] − [ ] = Target'],
+              ['06', 'Correct answers add the target value to your score'],
+            ].map(([number, rule]) => (
+              <View
+                key={number}
+                style={styles.ruleRow}
+              >
+                <View style={styles.ruleNumber}>
+                  <Text style={styles.ruleNumberText}>
+                    {number}
+                  </Text>
+                </View>
 
-            <Text style={styles.ruleText}>
-              • Draw a blue card to get the target
-              number.
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Choose one of the fixed formula modes.
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Mode 1: [ ][ ] - [ ][ ] = Target
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Mode 2: [ ] × [ ] - [ ] = Target
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Select the required amount of numbers
-              from the board.
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Press Check Formula to verify your
-              answer.
-            </Text>
-
-            <Text style={styles.ruleText}>
-              • Correct answers add the target number
-              to your score.
-            </Text>
+                <Text style={styles.ruleText}>
+                  {rule}
+                </Text>
+              </View>
+            ))}
           </View>
 
           <TouchableOpacity
             style={styles.startButton}
-            onPress={() => setShowRules(false)}
+            onPress={() =>
+              setShowRules(false)
+            }
+            activeOpacity={0.86}
           >
-            <Text style={styles.buttonText}>
-              START GAME
-            </Text>
+            <LinearGradient
+              colors={[
+                '#5EEAD4',
+                '#14B8A6',
+                '#0F766E',
+              ]}
+              start={{
+                x: 0,
+                y: 0,
+              }}
+              end={{
+                x: 1,
+                y: 1,
+              }}
+              style={styles.primaryButtonGradient}
+            >
+              <Text style={styles.buttonText}>
+                Start Game
+              </Text>
+
+              <Text style={styles.buttonArrow}>
+                →
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </LinearGradient>
-      </ImageBackground>
+      </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require('../assets/trioabout.png')}
-      style={styles.backgroundImage}
-    >
+    <View style={styles.backgroundImage}>
       <LinearGradient
         colors={[
-          '#000000',
-          '#434343',
-          '#FFFFFF',
+          '#20D7C2',
+          '#0FB89F',
+          '#08796E',
         ]}
+        start={{
+          x: 0,
+          y: 0,
+        }}
+        end={{
+          x: 1,
+          y: 1,
+        }}
         style={styles.container}
       >
+        {renderBackgroundDecor()}
         {renderExitButton()}
 
-        <Text style={styles.title}>
-          Game Type 4
-        </Text>
+        <View style={styles.gameHeader}>
+          <View>
+            <Text style={styles.gameEyebrow}>
+              TRIO · FORMULA
+            </Text>
 
-        <Text style={styles.subtitle}>
-          Fixed Formula Challenge
-        </Text>
+            <Text style={styles.gameTitle}>
+              Fixed Calculation
+            </Text>
+          </View>
+
+          <View style={styles.modeNumberBadge}>
+            <Text style={styles.modeNumberText}>
+              4
+            </Text>
+          </View>
+        </View>
 
         <View style={styles.playersBox}>
           {renderPlayerCard(1)}
           {renderPlayerCard(2)}
         </View>
 
-        <Text style={styles.turnText}>
-          Turn: {getPlayerName(playerTurn)}
-        </Text>
+        <View style={styles.turnBanner}>
+          <View style={styles.turnDot} />
 
-        <View style={styles.modeBox}>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === 'doubleMinus' &&
-                styles.activeMode,
-            ]}
-            onPress={() => {
-              setMode('doubleMinus');
-              setSelectedCells([]);
-            }}
-          >
-            <Text style={styles.modeText}>
-              [][] - [][]
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.turnLabel}>
+            CURRENT TURN
+          </Text>
 
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === 'multiplyMinus' &&
-                styles.activeMode,
-            ]}
-            onPress={() => {
-              setMode('multiplyMinus');
-              setSelectedCells([]);
-            }}
+          <Text
+            numberOfLines={1}
+            style={styles.turnText}
           >
-            <Text style={styles.modeText}>
-              [] × [] - []
+            {getPlayerName(playerTurn)}
+          </Text>
+        </View>
+
+        <View style={styles.modeSection}>
+          <View style={styles.modeSectionHeader}>
+            <Text style={styles.modeSectionTitle}>
+              CHOOSE FORMULA
             </Text>
-          </TouchableOpacity>
+
+            <Text style={styles.modeSectionHint}>
+              Select a calculation type
+            </Text>
+          </View>
+
+          <View style={styles.modeBox}>
+            <TouchableOpacity
+              style={[
+                styles.modeButton,
+                mode === 'doubleMinus' &&
+                  styles.activeMode,
+              ]}
+              onPress={() => {
+                setMode('doubleMinus');
+                setSelectedCells([]);
+              }}
+              activeOpacity={0.82}
+            >
+              <Text
+                style={[
+                  styles.modeText,
+                  mode === 'doubleMinus' &&
+                    styles.activeModeText,
+                ]}
+              >
+                12 − 34
+              </Text>
+
+              <Text
+                style={[
+                  styles.modeDescription,
+                  mode === 'doubleMinus' &&
+                    styles.activeModeDescription,
+                ]}
+              >
+                Four cards
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modeButton,
+                mode === 'multiplyMinus' &&
+                  styles.activeMode,
+              ]}
+              onPress={() => {
+                setMode('multiplyMinus');
+                setSelectedCells([]);
+              }}
+              activeOpacity={0.82}
+            >
+              <Text
+                style={[
+                  styles.modeText,
+                  mode === 'multiplyMinus' &&
+                    styles.activeModeText,
+                ]}
+              >
+                3 × 4 − 2
+              </Text>
+
+              <Text
+                style={[
+                  styles.modeDescription,
+                  mode === 'multiplyMinus' &&
+                    styles.activeModeDescription,
+                ]}
+              >
+                Three cards
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity
-          style={styles.blueButton}
+          style={styles.targetCard}
           onPress={drawBlueCard}
+          activeOpacity={0.86}
         >
-          <Text style={styles.buttonText}>
-            {targetNumber === null
-              ? 'Draw Blue Card'
-              : `Target: ${targetNumber}`}
-          </Text>
+          <LinearGradient
+            colors={[
+              '#0EA5E9',
+              '#2563EB',
+              '#1D4ED8',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
+            style={styles.targetGradient}
+          >
+            <View>
+              <Text style={styles.targetTitle}>
+                BLUE TARGET
+              </Text>
+
+              <Text style={styles.targetSubtitle}>
+                {targetNumber === null
+                  ? 'Tap to draw a target'
+                  : 'Build this result'}
+              </Text>
+            </View>
+
+            <View style={styles.targetNumberBox}>
+              <Text style={styles.targetNumber}>
+                {targetNumber === null
+                  ? '?'
+                  : targetNumber}
+              </Text>
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
 
-        <Text style={styles.formatText}>
-          {mode === 'doubleMinus'
-            ? 'Format: [ ][ ] - [ ][ ] = Target'
-            : 'Format: [ ] × [ ] - [ ] = Target'}
-        </Text>
+        <View style={styles.formulaPreview}>
+          <Text style={styles.formulaPreviewLabel}>
+            ACTIVE FORMULA
+          </Text>
 
-        <View style={styles.selectedBox}>
-          <Text style={styles.selectedText}>
-            Selected:{' '}
-            {selectedCells
-              .map((cell) => cell.value)
-              .join('  ') || '-'}
+          <Text style={styles.formulaPreviewText}>
+            {mode === 'doubleMinus'
+              ? '[ ][ ] − [ ][ ] = Target'
+              : '[ ] × [ ] − [ ] = Target'}
           </Text>
         </View>
 
-        <View style={styles.table}>
-          {tableData.map((row, rowIndex) => (
-            <View
-              key={rowIndex}
-              style={styles.row}
-            >
-              {row.map(
-                (cellValue, colIndex) => {
-                  const isSelected =
-                    selectedCells.find(
-                      (cell) =>
-                        cell.row === rowIndex &&
-                        cell.col === colIndex
-                    );
+        <View style={styles.selectedBox}>
+          <Text style={styles.selectedLabel}>
+            SELECTED
+          </Text>
 
-                  return (
-                    <TouchableOpacity
-                      key={colIndex}
-                      style={[
-                        styles.cell,
-                        {
-                          backgroundColor:
-                            cellColors[rowIndex][
-                              colIndex
-                            ],
-                        },
-                        isSelected
-                          ? styles.selected
-                          : null,
-                      ]}
-                      onPress={() =>
-                        handleCellPress(
-                          rowIndex,
-                          colIndex,
-                          cellValue
-                        )
-                      }
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.cellText}>
-                        {cellValue}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }
-              )}
-            </View>
-          ))}
+          <Text style={styles.selectedText}>
+            {selectedCells.length > 0
+              ? selectedCells
+                  .map((cell) => cell.value)
+                  .join('   ')
+              : 'No numbers selected'}
+          </Text>
+
+          <Text style={styles.selectedCounter}>
+            {selectedCells.length}/
+            {mode === 'doubleMinus'
+              ? 4
+              : 3}
+          </Text>
+        </View>
+
+        <View style={styles.boardCard}>
+          <View style={styles.boardTopRow}>
+            <Text style={styles.boardTitle}>
+              NUMBER GRID
+            </Text>
+
+            <Text style={styles.boardHint}>
+              Tap numbers in order
+            </Text>
+          </View>
+
+          <View style={styles.table}>
+            {tableData.map((row, rowIndex) => (
+              <View
+                key={rowIndex}
+                style={styles.row}
+              >
+                {row.map(
+                  (
+                    cellValue,
+                    colIndex
+                  ) => {
+                    const isSelected =
+                      selectedCells.find(
+                        (cell) =>
+                          cell.row ===
+                            rowIndex &&
+                          cell.col ===
+                            colIndex
+                      );
+
+                    return (
+                      <TouchableOpacity
+                        key={colIndex}
+                        style={[
+                          styles.cell,
+                          {
+                            backgroundColor:
+                              cellColors[
+                                rowIndex
+                              ][
+                                colIndex
+                              ],
+                          },
+                          isSelected
+                            ? styles.selected
+                            : null,
+                        ]}
+                        onPress={() =>
+                          handleCellPress(
+                            rowIndex,
+                            colIndex,
+                            cellValue
+                          )
+                        }
+                        activeOpacity={0.8}
+                      >
+                        <View
+                          style={
+                            styles.cellHighlight
+                          }
+                        />
+
+                        <Text style={styles.cellText}>
+                          {cellValue}
+                        </Text>
+
+                        {isSelected && (
+                          <View
+                            style={
+                              styles.selectedIndex
+                            }
+                          >
+                            <Text
+                              style={
+                                styles.selectedIndexText
+                              }
+                            >
+                              {
+                                selectedCells.findIndex(
+                                  (cell) =>
+                                    cell.row ===
+                                      rowIndex &&
+                                    cell.col ===
+                                      colIndex
+                                ) + 1
+                              }
+                            </Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  }
+                )}
+              </View>
+            ))}
+          </View>
         </View>
 
         <TouchableOpacity
           style={styles.checkButton}
           onPress={checkResult}
+          activeOpacity={0.86}
         >
-          <Text style={styles.buttonText}>
-            ✅ Check Formula
-          </Text>
+          <LinearGradient
+            colors={[
+              '#5EEAD4',
+              '#14B8A6',
+              '#0F766E',
+            ]}
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
+            style={styles.primaryButtonGradient}
+          >
+            <Text style={styles.buttonText}>
+              Check Formula
+            </Text>
+
+            <Text style={styles.buttonArrow}>
+              →
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.resetButton}
           onPress={resetGame}
+          activeOpacity={0.82}
         >
-          <Text style={styles.buttonText}>
+          <Text style={styles.resetButtonText}>
             Reset Game
           </Text>
         </TouchableOpacity>
       </LinearGradient>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
+    backgroundColor: '#08796E',
   },
 
-  container: {
-    flex: 1,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  backgroundDecor: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
   },
 
-  exitButton: {
+  glowOrb: {
     position: 'absolute',
-    top: 52,
-    right: 18,
-    zIndex: 20,
+    borderRadius: 999,
+  },
 
+  glowOrbOne: {
+    width: 300,
+    height: 300,
+    top: -130,
+    right: -120,
     backgroundColor:
-      'rgba(173,24,24,0.92)',
-
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-
-    borderRadius: 22,
-
-    borderWidth: 1,
-    borderColor:
-      'rgba(255,255,255,0.65)',
-
-    shadowColor: '#000',
-
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-
-    elevation: 8,
+      'rgba(255,255,255,0.16)',
   },
 
-  exitButtonText: {
-    color: '#fff',
-    fontSize: 14,
+  glowOrbTwo: {
+    width: 260,
+    height: 260,
+    bottom: -110,
+    left: -110,
+    backgroundColor:
+      'rgba(3,105,95,0.34)',
+  },
+
+  glowOrbThree: {
+    width: 180,
+    height: 180,
+    top: '43%',
+    right: -100,
+    backgroundColor:
+      'rgba(153,246,228,0.16)',
+  },
+
+  mathSymbol: {
+    position: 'absolute',
+    color:
+      'rgba(255,255,255,0.055)',
     fontWeight: '900',
   },
 
-  title: {
-    color: '#fff',
-    fontSize: 25,
-    fontWeight: '900',
-    marginBottom: 3,
-  },
-
-  subtitle: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-
-  playersBox: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 24,
-    marginBottom: 14,
-  },
-
-  playerCard: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-  },
-
-  activePlayerCard: {
+  mathSymbolOne: {
+    top: 110,
+    left: 18,
+    fontSize: 94,
     transform: [
       {
-        scale: 1.12,
+        rotate: '-12deg',
       },
     ],
   },
 
-  avatarGlow: {
+  mathSymbolTwo: {
+    top: '34%',
+    right: 24,
+    fontSize: 90,
+    transform: [
+      {
+        rotate: '10deg',
+      },
+    ],
+  },
+
+  mathSymbolThree: {
+    bottom: 90,
+    left: 30,
+    fontSize: 96,
+    transform: [
+      {
+        rotate: '-8deg',
+      },
+    ],
+  },
+
+  container: {
+    flex: 1,
+    paddingTop: 52,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+
+  exitButton: {
+    position: 'absolute',
+    top: 44,
+    right: 16,
+    zIndex: 20,
+    minHeight: 36,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 13,
+    backgroundColor:
+      'rgba(5,78,71,0.76)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.24)',
+    shadowColor: '#064E3B',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 7,
+  },
+
+  exitButtonText: {
+    color: '#F0FDFA',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+
+  gameHeader: {
+    width: '100%',
+    minHeight: 42,
+    marginBottom: 6,
+    paddingRight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+  },
+
+  gameEyebrow: {
+    color: '#CCFBF1',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.8,
+    marginBottom: 3,
+  },
+
+  gameTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+
+  modeNumberBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 60,
-    padding: 10,
-    marginBottom: 4,
+    backgroundColor:
+      'rgba(255,255,255,0.14)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.28)',
+  },
+
+  modeNumberText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '900',
+  },
+
+  playersBox: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 7,
+  },
+
+  playerCard: {
+    flex: 1,
+    minHeight: 76,
+    paddingVertical: 7,
+    paddingHorizontal: 6,
+    borderRadius: 19,
+    alignItems: 'center',
+    backgroundColor:
+      'rgba(5,78,71,0.46)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.16)',
+  },
+
+  activePlayerCard: {
+    backgroundColor:
+      'rgba(153,246,228,0.20)',
+    borderColor:
+      'rgba(204,251,241,0.78)',
+    shadowColor: '#99F6E4',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.32,
+    shadowRadius: 10,
+    elevation: 7,
+  },
+
+  avatarGlow: {
+    width: 38,
+    height: 38,
+    padding: 2,
+    marginBottom: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
   },
 
   profileImage: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    borderWidth: 3,
-    borderColor: '#ffffff',
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.84)',
   },
 
   defaultAvatar: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-
-    backgroundColor:
-      'rgba(0,0,0,0.55)',
-
-    borderWidth: 3,
-    borderColor: '#ffffff',
-
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    backgroundColor: '#0F766E',
+    borderWidth: 1,
+    borderColor: '#5EEAD4',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   defaultAvatarText: {
-    color: '#fff',
-    fontSize: 22,
+    color: '#F0FDFA',
+    fontSize: 13,
     fontWeight: '900',
   },
 
   playerName: {
-    color: '#fff',
-    fontSize: 13,
+    width: '100%',
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: '900',
     textAlign: 'center',
   },
 
   playerScore: {
-    color: '#dbeafe',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginTop: 2,
+    color: '#CCFBF1',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 3,
+  },
+
+  turnBanner: {
+    width: '100%',
+    height: 38,
+    marginBottom: 7,
+    paddingHorizontal: 11,
+    borderRadius: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor:
+      'rgba(5,78,71,0.44)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.15)',
+  },
+
+  turnDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 10,
+    backgroundColor: '#A7F3D0',
+  },
+
+  turnLabel: {
+    color: '#99F6E4',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    marginRight: 10,
   },
 
   turnText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+
+  modeSection: {
+    width: '100%',
+    padding: 8,
+    marginBottom: 7,
+    borderRadius: 19,
+    backgroundColor:
+      'rgba(5,78,71,0.48)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.15)',
+  },
+
+  modeSectionHeader: {
+    paddingHorizontal: 4,
+    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+  },
+
+  modeSectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+  },
+
+  modeSectionHint: {
+    color: '#CCFBF1',
+    fontSize: 9,
+    fontWeight: '700',
   },
 
   modeBox: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
   },
 
   modeButton: {
-    backgroundColor:
-      'rgba(255,255,255,0.18)',
-
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-
+    flex: 1,
+    minHeight: 48,
+    paddingVertical: 7,
     borderRadius: 16,
-
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:
+      'rgba(255,255,255,0.10)',
     borderWidth: 1,
     borderColor:
-      'rgba(255,255,255,0.25)',
+      'rgba(255,255,255,0.16)',
   },
 
   activeMode: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#ECFDF5',
+    borderColor: '#FFFFFF',
+    shadowColor: '#99F6E4',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
 
   modeText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '900',
     fontSize: 13,
   },
 
-  blueButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 30,
-    marginBottom: 8,
+  activeModeText: {
+    color: '#0F766E',
   },
 
-  checkButton: {
-    backgroundColor: '#16a34a',
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 30,
-    marginTop: 10,
+  modeDescription: {
+    color: '#CCFBF1',
+    fontSize: 9,
+    fontWeight: '700',
+    marginTop: 3,
   },
 
-  resetButton: {
-    backgroundColor: '#ef4444',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    marginTop: 8,
+  activeModeDescription: {
+    color: '#14B8A6',
   },
 
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: 'bold',
+  targetCard: {
+    width: '100%',
+    marginBottom: 7,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#0284C7',
+    shadowOffset: {
+      width: 0,
+      height: 7,
+    },
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 9,
   },
 
-  formatText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
+  targetGradient: {
+    minHeight: 64,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+  },
+
+  targetTitle: {
+    color: '#DBEAFE',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.8,
+  },
+
+  targetSubtitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    marginTop: 5,
+    fontWeight: '700',
+  },
+
+  targetNumberBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor:
+      'rgba(255,255,255,0.22)',
+    borderWidth: 2,
+    borderColor:
+      'rgba(255,255,255,0.50)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  targetNumber: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '900',
+  },
+
+  formulaPreview: {
+    width: '100%',
+    minHeight: 35,
+    paddingHorizontal: 11,
     marginBottom: 6,
-    textAlign: 'center',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor:
+      'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.17)',
+  },
+
+  formulaPreviewLabel: {
+    color: '#99F6E4',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginRight: 9,
+  },
+
+  formulaPreviewText: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
   },
 
   selectedBox: {
-    backgroundColor:
-      'rgba(0,0,0,0.22)',
-
-    borderRadius: 14,
-
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-
+    width: '100%',
+    minHeight: 34,
+    paddingHorizontal: 11,
     marginBottom: 6,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor:
+      'rgba(5,78,71,0.45)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.14)',
+  },
+
+  selectedLabel: {
+    color: '#99F6E4',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginRight: 10,
   },
 
   selectedText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+
+  selectedCounter: {
+    color: '#CCFBF1',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+
+  boardCard: {
+    width: '100%',
+    paddingTop: 8,
+    paddingHorizontal: 6,
+    paddingBottom: 6,
+    borderRadius: 16,
+    backgroundColor:
+      'rgba(5,78,71,0.52)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.17)',
+    shadowColor: '#064E3B',
+    shadowOffset: {
+      width: 0,
+      height: 9,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 15,
+    elevation: 7,
+  },
+
+  boardTopRow: {
+    width: '100%',
+    paddingHorizontal: 4,
+    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent:
+      'space-between',
+  },
+
+  boardTitle: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+  },
+
+  boardHint: {
+    color: '#CCFBF1',
+    fontSize: 9,
+    fontWeight: '700',
   },
 
   table: {
-    marginVertical: 4,
+    width: '100%',
+    alignItems: 'center',
   },
 
   row: {
@@ -1080,81 +1678,285 @@ const styles = StyleSheet.create({
   },
 
   cell: {
-    width: 42,
-    height: 42,
-    margin: 3,
-    borderRadius: 8,
+    position: 'relative',
+    width: 38,
+    height: 38,
+    margin: 1.75,
+    borderRadius: 11,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.20)',
+    shadowColor: '#064E3B',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  cellHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '42%',
+    backgroundColor:
+      'rgba(255,255,255,0.14)',
   },
 
   selected: {
     borderWidth: 3,
-    borderColor: '#fff',
-
+    borderColor: '#FFFFFF',
     transform: [
       {
-        scale: 1.08,
+        scale: 1.05,
       },
     ],
+    shadowColor: '#99F6E4',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.72,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+
+  selectedIndex: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F766E',
+  },
+
+  selectedIndexText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '900',
   },
 
   cellText: {
-    fontSize: 20,
-    color: '#fff',
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '900',
+    textShadowColor:
+      'rgba(0,0,0,0.18)',
+    textShadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    textShadowRadius: 2,
+  },
+
+  checkButton: {
+    width: '100%',
+    height: 47,
+    marginTop: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#0F766E',
+    shadowOffset: {
+      width: 0,
+      height: 7,
+    },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  primaryButtonGradient: {
+    flex: 1,
+    minHeight: 43,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+
+  buttonArrow: {
+    position: 'absolute',
+    right: 19,
+    color: '#FFFFFF',
+    fontSize: 21,
+    fontWeight: '700',
+  },
+
+  resetButton: {
+    width: '100%',
+    height: 38,
+    marginTop: 5,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:
+      'rgba(5,78,71,0.48)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.17)',
+  },
+
+  resetButtonText: {
+    color: '#F0FDFA',
+    fontSize: 13,
     fontWeight: '900',
   },
 
   rulesContainer: {
     flex: 1,
-    padding: 24,
+    paddingTop: 52,
+    paddingHorizontal: 20,
+    paddingBottom: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  rulesTitle: {
-    fontSize: 30,
-    color: '#fff',
+  modeBadge: {
+    width: 64,
+    height: 64,
+    marginBottom: 18,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:
+      'rgba(255,255,255,0.16)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.34)',
+    shadowColor: '#064E3B',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+
+  modeBadgeIcon: {
+    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: '900',
-    marginBottom: 10,
+    lineHeight: 27,
+  },
+
+  modeBadgeText: {
+    color: '#ECFDF5',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+
+  rulesEyebrow: {
+    color: '#CCFBF1',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginBottom: 6,
+  },
+
+  rulesTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.8,
     textAlign: 'center',
+    marginBottom: 6,
   },
 
   rulesSubtitle: {
-    fontSize: 20,
-    color: '#fff',
-    marginBottom: 25,
+    maxWidth: 330,
+    color: '#D1FAE5',
+    fontSize: 13,
     fontWeight: '700',
+    lineHeight: 19,
     textAlign: 'center',
+    marginBottom: 18,
   },
 
   rulesCard: {
     width: '100%',
-
-    backgroundColor:
-      'rgba(0,0,0,0.35)',
-
+    paddingVertical: 8,
+    paddingHorizontal: 15,
     borderRadius: 22,
-    padding: 22,
-
+    backgroundColor:
+      'rgba(5,78,71,0.52)',
     borderWidth: 1,
     borderColor:
-      'rgba(255,255,255,0.35)',
+      'rgba(255,255,255,0.17)',
+    shadowColor: '#064E3B',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+
+  ruleRow: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor:
+      'rgba(255,255,255,0.10)',
+  },
+
+  ruleNumber: {
+    width: 28,
+    height: 28,
+    marginRight: 10,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:
+      'rgba(153,246,228,0.18)',
+  },
+
+  ruleNumberText: {
+    color: '#CCFBF1',
+    fontSize: 9,
+    fontWeight: '900',
   },
 
   ruleText: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 12,
-    lineHeight: 22,
-    fontWeight: '600',
+    flex: 1,
+    color: '#F0FDFA',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 17,
   },
 
   startButton: {
-    marginTop: 28,
-    backgroundColor: '#2563eb',
-    paddingVertical: 16,
-    paddingHorizontal: 45,
-    borderRadius: 30,
+    width: '100%',
+    height: 47,
+    marginTop: 17,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#0F766E',
+    shadowOffset: {
+      width: 0,
+      height: 7,
+    },
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });
