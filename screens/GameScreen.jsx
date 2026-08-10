@@ -562,6 +562,143 @@ const GameScreen = ({
     );
   };
 
+
+  const getPlayerUserId = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    if (
+      playerId === 1 &&
+      currentUser?.uid
+    ) {
+      return currentUser.uid;
+    }
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const directUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (directUserId) {
+      return directUserId;
+    }
+
+    const invitedBy =
+      route?.params?.invitedBy;
+
+    const acceptedBy =
+      route?.params?.acceptedBy;
+
+    if (
+      route?.params?.isOnline === true &&
+      currentUser?.uid &&
+      invitedBy &&
+      acceptedBy
+    ) {
+      if (
+        playerId === 2
+      ) {
+        return currentUser.uid ===
+          invitedBy
+          ? acceptedBy
+          : invitedBy;
+      }
+    }
+
+    return null;
+  };
+
+  const openPlayerProfile = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (!playerUserId) {
+      Alert.alert(
+        'Profile unavailable',
+        'This player profile is not available in this match.'
+      );
+
+      return;
+    }
+
+    if (
+      currentUser?.uid ===
+      playerUserId
+    ) {
+      navigation.navigate(
+        'TabNavigator',
+        {
+          screen: 'Profile',
+        }
+      );
+
+      return;
+    }
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    navigation.navigate(
+      'UserProfileScreen',
+      {
+        userId:
+          playerUserId,
+
+        uid:
+          playerUserId,
+
+        profileUserId:
+          playerUserId,
+
+        selectedUserId:
+          playerUserId,
+
+        user: {
+          ...(player || {}),
+
+          uid:
+            playerUserId,
+
+          userId:
+            playerUserId,
+
+          name:
+            getPlayerName(
+              playerId
+            ),
+
+          photo:
+            getPlayerPhoto(
+              playerId
+            ),
+        },
+      }
+    );
+  };
+
   const getWinner = () => {
     const maxScore = Math.max(
       ...Object.values(scores)
@@ -633,41 +770,53 @@ const GameScreen = ({
           ]}
         />
 
-        <LinearGradient
-          colors={
-            isActive
-              ? ['#29C2FF', '#0969D7']
-              : ['#0875D7', '#064493']
+        <TouchableOpacity
+          onPress={() =>
+            openPlayerProfile(
+              playerId
+            )
           }
+          activeOpacity={0.78}
           style={
-            styles.avatarGlow
+            styles.profileButton
           }
         >
-          {photo ? (
-            <Image
-              source={{
-                uri: photo,
-              }}
-              style={
-                styles.profileImage
-              }
-            />
-          ) : (
-            <View
-              style={
-                styles.defaultAvatar
-              }
-            >
-              <Text
+          <LinearGradient
+            colors={
+              isActive
+                ? ['#29C2FF', '#0969D7']
+                : ['#0875D7', '#064493']
+            }
+            style={
+              styles.avatarGlow
+            }
+          >
+            {photo ? (
+              <Image
+                source={{
+                  uri: photo,
+                }}
                 style={
-                  styles.defaultAvatarText
+                  styles.profileImage
+                }
+              />
+            ) : (
+              <View
+                style={
+                  styles.defaultAvatar
                 }
               >
-                P{playerId}
-              </Text>
-            </View>
-          )}
-        </LinearGradient>
+                <Text
+                  style={
+                    styles.defaultAvatarText
+                  }
+                >
+                  P{playerId}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
 
         <Text
           numberOfLines={1}
@@ -1870,6 +2019,12 @@ const styles =
       shadowOpacity: 0.8,
       shadowRadius: 5,
       elevation: 4,
+    },
+
+    profileButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
     },
 
     avatarGlow: {
