@@ -483,11 +483,22 @@ export default function Messages({ navigation, route }) {
             )}
 
             {isMe && (
-              <Ionicons
-                name={item.read ? 'checkmark-done' : 'checkmark'}
-                size={15}
-                color={item.read ? '#00699A' : '#34718C'}
-              />
+              <View style={styles.readStatusContainer}>
+                <Ionicons
+                  name={item.read ? 'checkmark-done' : 'checkmark'}
+                  size={15}
+                  color={item.read ? '#005B85' : '#34718C'}
+                />
+
+                <Text
+                  style={[
+                    styles.readStatusText,
+                    item.read && styles.readStatusTextRead,
+                  ]}
+                >
+                  {item.read ? 'Read' : 'Sent'}
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -1280,6 +1291,23 @@ const styles = StyleSheet.create({
   messageTime: {
     fontSize: 10,
     marginRight: 3,
+  },
+
+  readStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 4,
+  },
+
+  readStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#34718C',
+    marginLeft: 2,
+  },
+
+  readStatusTextRead: {
+    color: '#005B85',
   },
 
   myMessageTime: {
