@@ -272,11 +272,13 @@ export default function GameModeScreen({ navigation }) {
         >
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Image
-                source={require('../assets/trio-logo.png')}
-                style={styles.trioLogo}
-                resizeMode="contain"
-              />
+              <View style={styles.logoCircle}>
+                <Image
+                  source={require('../assets/trio-logo.png')}
+                  style={styles.trioLogo}
+                  resizeMode="cover"
+                />
+              </View>
 
               <View style={styles.headerUserText}>
                 <Text style={styles.greeting}>
@@ -621,10 +623,28 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
 
+  logoCircle: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    marginRight: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.90)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 7,
+    elevation: 7,
+    overflow: 'hidden',
+  },
+
   trioLogo: {
-    width: 64,
-    height: 64,
-    marginRight: 10,
+    width: '100%',
+    height: '100%',
+    borderRadius: 33,
   },
 
   headerUserText: {
