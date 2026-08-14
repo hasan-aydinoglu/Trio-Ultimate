@@ -14,6 +14,7 @@ import {
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '../firebase';
 
@@ -30,6 +31,27 @@ export default function GameModeScreen({ navigation }) {
   const [gameInvites, setGameInvites] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [unreadChats, setUnreadChats] = useState([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(savedDarkMode === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+
+    const unsubscribeFocus = navigation.addListener(
+      'focus',
+      loadDarkMode
+    );
+
+    return unsubscribeFocus;
+  }, [navigation]);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -190,6 +212,7 @@ export default function GameModeScreen({ navigation }) {
       subtitle: 'Original Trio rules',
       icon: 'grid-outline',
       colors: ['#087BFF', '#0045AE'],
+      darkColors: ['#064C9C', '#00285F'],
     },
     {
       id: 2,
@@ -197,6 +220,7 @@ export default function GameModeScreen({ navigation }) {
       subtitle: 'Operation priority',
       icon: 'calculator-outline',
       colors: ['#8B38F2', '#4E159B'],
+      darkColors: ['#542090', '#2B0C58'],
     },
     {
       id: 3,
@@ -204,6 +228,7 @@ export default function GameModeScreen({ navigation }) {
       subtitle: 'Test your memory',
       icon: 'eye-off-outline',
       colors: ['#FF8B0A', '#B84300'],
+      darkColors: ['#A95300', '#652300'],
     },
     {
       id: 4,
@@ -211,6 +236,7 @@ export default function GameModeScreen({ navigation }) {
       subtitle: 'Fixed calculation',
       icon: 'flask-outline',
       colors: ['#0CCDB0', '#006960'],
+      darkColors: ['#087C6E', '#003B36'],
     },
     {
       id: 5,
@@ -218,6 +244,7 @@ export default function GameModeScreen({ navigation }) {
       subtitle: 'Find the blue card',
       icon: 'diamond-outline',
       colors: ['#F33170', '#8A123D'],
+      darkColors: ['#941E49', '#4D0922'],
     },
   ];
 
@@ -228,19 +255,29 @@ export default function GameModeScreen({ navigation }) {
 
   return (
     <LinearGradient
-      colors={[
-        '#08A8FF',
-        '#0069E9',
-        '#003B9F',
-        '#001B4C',
-        '#000713',
-      ]}
+      colors={
+        isDarkMode
+          ? [
+              '#03547D',
+              '#003A80',
+              '#00245F',
+              '#00112F',
+              '#00040A',
+            ]
+          : [
+              '#08A8FF',
+              '#0069E9',
+              '#003B9F',
+              '#001B4C',
+              '#000713',
+            ]
+      }
       locations={[0, 0.2, 0.43, 0.7, 1]}
       style={styles.container}
     >
       <StatusBar
         barStyle="light-content"
-        backgroundColor="#08A8FF"
+        backgroundColor={isDarkMode ? '#03547D' : '#08A8FF'}
       />
 
       <SafeAreaView style={styles.safeArea}>
@@ -265,6 +302,13 @@ export default function GameModeScreen({ navigation }) {
           style={styles.backgroundLogo}
           resizeMode="contain"
         />
+
+        {isDarkMode && (
+          <View
+            pointerEvents="none"
+            style={styles.darkModeOverlay}
+          />
+        )}
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -461,7 +505,7 @@ export default function GameModeScreen({ navigation }) {
                 activeOpacity={0.85}
               >
                 <LinearGradient
-                  colors={mode.colors}
+                  colors={isDarkMode ? mode.darkColors : mode.colors}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.modeCard}
@@ -508,10 +552,17 @@ export default function GameModeScreen({ navigation }) {
             activeOpacity={0.88}
           >
             <LinearGradient
-              colors={[
-                'rgba(0,102,255,0.90)',
-                'rgba(0,31,86,0.96)',
-              ]}
+              colors={
+                isDarkMode
+                  ? [
+                      'rgba(0,55,125,0.96)',
+                      'rgba(0,14,42,0.99)',
+                    ]
+                  : [
+                      'rgba(0,102,255,0.90)',
+                      'rgba(0,31,86,0.96)',
+                    ]
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.createRoomGradient}
@@ -564,10 +615,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
+  darkModeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.10)',
+    zIndex: 1,
+  },
+
   scrollContent: {
     paddingHorizontal: 17,
     paddingTop: 12,
     paddingBottom: 120,
+    zIndex: 2,
   },
 
   topGlow: {
