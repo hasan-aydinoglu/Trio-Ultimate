@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '../firebase';
 import {
@@ -37,10 +38,28 @@ export default function FriendsScreen({ navigation, route }) {
   const [friendRequests, setFriendRequests] = useState([]);
   const [searchedUser, setSearchedUser] = useState(null);
   const [requestSent, setRequestSent] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const inviteMode = route?.params?.inviteMode || false;
   const roomId = route?.params?.roomId || null;
   const gameType = route?.params?.gameType || 1;
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(savedDarkMode === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+
+    const unsubscribeFocus = navigation.addListener('focus', loadDarkMode);
+
+    return unsubscribeFocus;
+  }, [navigation]);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -493,7 +512,7 @@ export default function FriendsScreen({ navigation, route }) {
   };
 
   const renderFriendRequest = (item) => (
-    <View key={item.id} style={styles.requestCard}>
+    <View key={item.id} style={[styles.requestCard, isDarkMode && styles.requestCardDark]}>
       <View style={styles.requestTopRow}>
         <View style={styles.userInfoRow}>
           <View style={styles.avatarWrapper}>
@@ -545,7 +564,7 @@ export default function FriendsScreen({ navigation, route }) {
   );
 
   const renderFriend = ({ item }) => (
-    <View style={styles.friendCard}>
+    <View style={[styles.friendCard, isDarkMode && styles.friendCardDark]}>
       <TouchableOpacity
         style={styles.friendProfileArea}
         activeOpacity={0.8}
@@ -662,7 +681,7 @@ export default function FriendsScreen({ navigation, route }) {
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, isDarkMode && styles.searchContainerDark]}>
         <Ionicons name="search" size={20} color="#D0E7F8" />
         <TextInput
           style={styles.searchInput}
@@ -686,7 +705,7 @@ export default function FriendsScreen({ navigation, route }) {
 
       {!inviteMode && (
         <>
-          <View style={styles.addFriendPanel}>
+          <View style={[styles.addFriendPanel, isDarkMode && styles.addFriendPanelDark]}>
             <View style={styles.panelHeaderRow}>
               <View style={styles.panelIconBox}>
                 <Ionicons name="person-add" size={21} color="#00E5FF" />
@@ -729,7 +748,7 @@ export default function FriendsScreen({ navigation, route }) {
           </View>
 
           {searchedUser && (
-            <View style={styles.searchedUserCard}>
+            <View style={[styles.searchedUserCard, isDarkMode && styles.searchedUserCardDark]}>
               <TouchableOpacity
                 style={styles.searchedUserProfile}
                 activeOpacity={0.8}
@@ -824,13 +843,27 @@ export default function FriendsScreen({ navigation, route }) {
 
   return (
     <LinearGradient
-      colors={['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']}
+      colors={
+        isDarkMode
+          ? ['#034B6A', '#003A73', '#00214F', '#000F26', '#000000']
+          : ['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']
+      }
       locations={[0, 0.26, 0.48, 0.72, 1]}
       style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#00A8F3" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isDarkMode ? '#034B6A' : '#00A8F3'}
+      />
 
       <View pointerEvents="none" style={styles.backgroundShade} />
+      {isDarkMode && (
+        <View
+          pointerEvents="none"
+          style={styles.darkModeOverlay}
+        />
+      )}
+
 
       <View pointerEvents="none" style={styles.glowTop} />
       <View pointerEvents="none" style={styles.glowBottom} />
@@ -892,6 +925,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     zIndex: 3,
+  },
+
+  darkModeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.14)',
+    zIndex: 2,
   },
 
   backgroundLogoHalo: {
