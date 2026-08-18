@@ -15,6 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '../firebase';
 
@@ -46,6 +47,7 @@ export default function Messages({ navigation, route }) {
   const currentUser = auth.currentUser;
   const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const getChatId = (uid1, uid2) => {
     return [uid1, uid2].sort().join('_');
@@ -78,6 +80,21 @@ export default function Messages({ navigation, route }) {
       return '';
     }
   };
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(savedDarkMode === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+    const unsubscribeFocus = navigation.addListener('focus', loadDarkMode);
+    return unsubscribeFocus;
+  }, [navigation]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -354,6 +371,7 @@ export default function Messages({ navigation, route }) {
     <TouchableOpacity
       style={[
         styles.chatCard,
+        isDarkMode && styles.chatCardDark,
         item.hasUnreadMessage && styles.unreadChatCard,
       ]}
       activeOpacity={0.86}
@@ -459,6 +477,7 @@ export default function Messages({ navigation, route }) {
           style={[
             styles.messageBubble,
             isMe ? styles.myMessage : styles.theirMessage,
+            isDarkMode && !isMe && styles.theirMessageDark,
           ]}
         >
           <Text
@@ -509,6 +528,9 @@ export default function Messages({ navigation, route }) {
   const BackgroundDecoration = () => (
     <>
       <View pointerEvents="none" style={styles.backgroundShade} />
+      {isDarkMode && (
+        <View pointerEvents="none" style={styles.darkModeOverlay} />
+      )}
       <View pointerEvents="none" style={styles.glowTop} />
       <View pointerEvents="none" style={styles.glowBottom} />
       <Image
@@ -524,16 +546,23 @@ export default function Messages({ navigation, route }) {
   if (selectedFriend) {
     return (
       <LinearGradient
-        colors={['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']}
+        colors={
+          isDarkMode
+            ? ['#034B6A', '#003A73', '#00214F', '#000F26', '#000000']
+            : ['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']
+        }
         locations={[0, 0.26, 0.48, 0.72, 1]}
         style={styles.container}
       >
-        <StatusBar barStyle="light-content" backgroundColor="#00A8F3" />
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={isDarkMode ? '#034B6A' : '#00A8F3'}
+        />
         <BackgroundDecoration />
 
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.keyboardArea}>
-            <View style={styles.chatHeaderCard}>
+            <View style={[styles.chatHeaderCard, isDarkMode && styles.chatHeaderCardDark]}>
               <TouchableOpacity
                 style={styles.headerRoundButton}
                 activeOpacity={0.8}
@@ -629,6 +658,7 @@ export default function Messages({ navigation, route }) {
               pointerEvents="box-none"
               style={[
                 styles.composerOuter,
+                isDarkMode && styles.composerOuterDark,
                 {
                   bottom: composerBottom,
                   paddingBottom:
@@ -637,7 +667,7 @@ export default function Messages({ navigation, route }) {
               ]}
             >
               <View style={styles.composerRow}>
-                <View style={styles.messageInputWrapper}>
+                <View style={[styles.messageInputWrapper, isDarkMode && styles.messageInputWrapperDark]}>
                   <Ionicons
                     name="chatbubble-outline"
                     size={19}
@@ -694,7 +724,7 @@ export default function Messages({ navigation, route }) {
         </View>
       </View>
 
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, isDarkMode && styles.searchBoxDark]}>
         <Ionicons name="search" size={20} color="#D0E7F8" />
 
         <TextInput
@@ -739,11 +769,18 @@ export default function Messages({ navigation, route }) {
 
   return (
     <LinearGradient
-      colors={['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']}
+      colors={
+          isDarkMode
+            ? ['#034B6A', '#003A73', '#00214F', '#000F26', '#000000']
+            : ['#00C6FF', '#0072FF', '#003A9F', '#001B4C', '#000000']
+        }
       locations={[0, 0.26, 0.48, 0.72, 1]}
       style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#00A8F3" />
+      <StatusBar
+          barStyle="light-content"
+          backgroundColor={isDarkMode ? '#034B6A' : '#00A8F3'}
+        />
       <BackgroundDecoration />
 
       <SafeAreaView style={styles.safeArea}>
@@ -807,6 +844,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 10, 34, 0.08)',
     zIndex: 0,
+  },
+
+  darkModeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.14)',
+    zIndex: 2,
   },
 
   glowTop: {
@@ -913,6 +956,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
+  searchBoxDark: {
+    backgroundColor: 'rgba(0, 14, 40, 0.92)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
+  },
+
   searchInput: {
     flex: 1,
     color: '#FFFFFF',
@@ -964,6 +1012,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(156, 225, 255, 0.18)',
+  },
+
+  chatCardDark: {
+    backgroundColor: 'rgba(0, 13, 38, 0.94)',
+    borderColor: 'rgba(255, 255, 255, 0.07)',
   },
 
   unreadChatCard: {
@@ -1144,6 +1197,11 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
 
+  chatHeaderCardDark: {
+    backgroundColor: 'rgba(0, 13, 38, 0.96)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+
   headerRoundButton: {
     width: 43,
     height: 43,
@@ -1267,6 +1325,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 6,
   },
 
+  theirMessageDark: {
+    backgroundColor: 'rgba(0, 12, 34, 0.96)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+
   messageText: {
     fontSize: 15,
     lineHeight: 20,
@@ -1362,6 +1425,11 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(147, 218, 255, 0.22)',
   },
 
+  composerOuterDark: {
+    backgroundColor: 'rgba(0, 5, 18, 0.99)',
+    borderTopColor: 'rgba(255, 255, 255, 0.10)',
+  },
+
   composerRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -1381,6 +1449,11 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     paddingVertical: 13,
     marginRight: 9,
+  },
+
+  messageInputWrapperDark: {
+    backgroundColor: 'rgba(0, 15, 42, 0.96)',
+    borderColor: 'rgba(255, 255, 255, 0.10)',
   },
 
   messageInput: {
