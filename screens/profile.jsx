@@ -17,6 +17,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Profile = ({ navigation }) => {
   const [user, setUser] = useState(null);
@@ -25,6 +26,7 @@ const Profile = ({ navigation }) => {
   const [avatar, setAvatar] = useState(
     require('../assets/avatar.png')
   );
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(
@@ -42,6 +44,29 @@ const Profile = ({ navigation }) => {
 
     return () => unsubscribeAuth();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadDarkMode = async () => {
+        try {
+          const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+          if (isActive) {
+            setIsDarkMode(savedDarkMode === 'true');
+          }
+        } catch (error) {
+          console.log('Dark mode load error:', error);
+        }
+      };
+
+      loadDarkMode();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -129,11 +154,11 @@ const Profile = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={[
-        '#041b3d',
-        '#0072ff',
-        '#00c6ff',
-      ]}
+      colors={
+        isDarkMode
+          ? ['#010814', '#002454', '#034B6A']
+          : ['#041b3d', '#0072ff', '#00c6ff']
+      }
       style={styles.container}
     >
       <ScrollView
@@ -148,10 +173,11 @@ const Profile = ({ navigation }) => {
 
         <View style={styles.profileCard}>
           <LinearGradient
-            colors={[
-              'rgba(255,255,255,0.25)',
-              'rgba(255,255,255,0.08)',
-            ]}
+            colors={
+              isDarkMode
+                ? ['rgba(0,18,48,0.94)', 'rgba(0,8,25,0.88)']
+                : ['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.08)']
+            }
             style={styles.cardGradient}
           >
             <View style={styles.avatarWrapper}>
@@ -205,47 +231,48 @@ const Profile = ({ navigation }) => {
         <View style={styles.statsRow}>
           <TouchableOpacity
             activeOpacity={0.8}
-            style={styles.statBox}
+            style={[styles.statBox, isDarkMode && styles.statBoxDark]}
             onPress={() =>
               navigation.navigate('Friends')
             }
           >
-            <Text style={styles.statNumber}>
+            <Text style={[styles.statNumber, isDarkMode && styles.statNumberDark]}>
               {friendsCount}
             </Text>
 
-            <Text style={styles.statLabel}>
+            <Text style={[styles.statLabel, isDarkMode && styles.statLabelDark]}>
               Friends
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>
+          <View style={[styles.statBox, isDarkMode && styles.statBoxDark]}>
+            <Text style={[styles.statNumber, isDarkMode && styles.statNumberDark]}>
               {profileData.games || 0}
             </Text>
 
-            <Text style={styles.statLabel}>
+            <Text style={[styles.statLabel, isDarkMode && styles.statLabelDark]}>
               Games
             </Text>
           </View>
 
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>
+          <View style={[styles.statBox, isDarkMode && styles.statBoxDark]}>
+            <Text style={[styles.statNumber, isDarkMode && styles.statNumberDark]}>
               {profileData.wins || 0}
             </Text>
 
-            <Text style={styles.statLabel}>
+            <Text style={[styles.statLabel, isDarkMode && styles.statLabelDark]}>
               Wins
             </Text>
           </View>
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>
+        <View style={[styles.infoCard, isDarkMode && styles.infoCardDark]}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
             Profile Details
           </Text>
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="person-outline"
             label="Name"
             value={
@@ -255,6 +282,7 @@ const Profile = ({ navigation }) => {
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="at-outline"
             label="Username"
             value={
@@ -265,6 +293,7 @@ const Profile = ({ navigation }) => {
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="chatbubble-ellipses-outline"
             label="Bio"
             value={
@@ -274,6 +303,7 @@ const Profile = ({ navigation }) => {
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="calendar-outline"
             label="Birth Date"
             value={
@@ -283,6 +313,7 @@ const Profile = ({ navigation }) => {
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="mail-outline"
             label="Email Address"
             value={
@@ -293,24 +324,27 @@ const Profile = ({ navigation }) => {
           />
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>
+        <View style={[styles.infoCard, isDarkMode && styles.infoCardDark]}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
             Game Profile
           </Text>
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="game-controller-outline"
             label="Game Level"
             value="Beginner"
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="star-outline"
             label="Favorite Game Mode"
             value="Classic Trio"
           />
 
           <InfoItem
+            isDarkMode={isDarkMode}
             icon="trophy-outline"
             label="Achievement"
             value="Early Member"
@@ -359,10 +393,11 @@ const InfoItem = ({
   icon,
   label,
   value,
+  isDarkMode,
 }) => {
   return (
-    <View style={styles.infoItem}>
-      <View style={styles.infoIcon}>
+    <View style={[styles.infoItem, isDarkMode && styles.infoItemDark]}>
+      <View style={[styles.infoIcon, isDarkMode && styles.infoIconDark]}>
         <Ionicons
           name={icon}
           size={20}
@@ -371,11 +406,11 @@ const InfoItem = ({
       </View>
 
       <View style={styles.infoTextBox}>
-        <Text style={styles.infoLabel}>
+        <Text style={[styles.infoLabel, isDarkMode && styles.infoLabelDark]}>
           {label}
         </Text>
 
-        <Text style={styles.infoValue}>
+        <Text style={[styles.infoValue, isDarkMode && styles.infoValueDark]}>
           {value}
         </Text>
       </View>
@@ -498,10 +533,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  statBoxDark: {
+    backgroundColor: 'rgba(0, 14, 40, 0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#0072ff',
+  },
+
+  statNumberDark: {
+    color: '#59C8FF',
   },
 
   statLabel: {
@@ -509,6 +554,10 @@ const styles = StyleSheet.create({
     color: '#34495e',
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  statLabelDark: {
+    color: '#B9CBE0',
   },
 
   infoCard: {
@@ -520,11 +569,21 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
+  infoCardDark: {
+    backgroundColor: 'rgba(0, 12, 34, 0.96)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#041b3d',
     marginBottom: 14,
+  },
+
+  sectionTitleDark: {
+    color: '#FFFFFF',
   },
 
   infoItem: {
@@ -533,6 +592,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#ecf0f1',
+  },
+
+  infoItemDark: {
+    borderBottomColor: 'rgba(255,255,255,0.10)',
   },
 
   infoIcon: {
@@ -545,6 +608,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+  infoIconDark: {
+    backgroundColor: 'rgba(0,114,255,0.16)',
+  },
+
   infoTextBox: {
     flex: 1,
   },
@@ -555,10 +622,18 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
 
+  infoLabelDark: {
+    color: '#91A7BE',
+  },
+
   infoValue: {
     color: '#2c3e50',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+
+  infoValueDark: {
+    color: '#FFFFFF',
   },
 
   editButton: {
