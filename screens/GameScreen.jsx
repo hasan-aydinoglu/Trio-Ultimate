@@ -216,6 +216,27 @@ const GameScreen = ({
     4: 0,
   });
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const value = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(value === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+    const unsubscribe = navigation.addListener('focus', loadDarkMode);
+    return unsubscribe;
+  }, [navigation]);
+
+  const gameGradientColors = isDarkMode
+    ? ['#06111F', '#071C35', '#08284A']
+    : ['#12B5F5', '#087CE3', '#073B9B'];
+
   const routePlayers =
     route?.params?.players ||
     players;
@@ -1100,16 +1121,15 @@ const GameScreen = ({
         }
       >
         <LinearGradient
-          colors={[
-            '#12B5F5',
-            '#087CE3',
-            '#073B9B',
-          ]}
+          colors={gameGradientColors}
           style={
             styles.rulesContainer
           }
         >
           {renderBackgroundDecor()}
+          {isDarkMode && (
+            <View pointerEvents="none" style={styles.darkModeOverlay} />
+          )}
           {renderExitButton()}
 
           <View
@@ -1252,16 +1272,15 @@ const GameScreen = ({
         }
       >
         <LinearGradient
-          colors={[
-            '#12B5F5',
-            '#087CE3',
-            '#073B9B',
-          ]}
+          colors={gameGradientColors}
           style={
             styles.container
           }
         >
           {renderBackgroundDecor()}
+          {isDarkMode && (
+            <View pointerEvents="none" style={styles.darkModeOverlay} />
+          )}
           {renderExitButton()}
 
           <View
@@ -1411,14 +1430,13 @@ const GameScreen = ({
       }
     >
       <LinearGradient
-        colors={[
-          '#12B5F5',
-          '#087CE3',
-          '#073B9B',
-        ]}
+        colors={gameGradientColors}
         style={styles.container}
       >
         {renderBackgroundDecor()}
+          {isDarkMode && (
+            <View pointerEvents="none" style={styles.darkModeOverlay} />
+          )}
         {renderExitButton()}
 
         <View
@@ -1782,6 +1800,12 @@ const styles =
     backgroundImage: {
       flex: 1,
       backgroundColor: '#073B9B',
+    },
+
+    darkModeOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.22)',
+      zIndex: 1,
     },
 
     backgroundDecor: {
