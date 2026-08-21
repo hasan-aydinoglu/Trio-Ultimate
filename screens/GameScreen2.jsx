@@ -150,6 +150,51 @@ const GameScreen2 = ({
     setLoggedInPlayerName,
   ] = useState('Player 1');
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode =
+          await AsyncStorage.getItem(
+            'trioDarkMode'
+          );
+
+        setIsDarkMode(
+          savedDarkMode === 'true'
+        );
+      } catch (error) {
+        console.log(
+          'Dark mode load error:',
+          error
+        );
+      }
+    };
+
+    loadDarkMode();
+
+    const unsubscribeFocus =
+      navigation.addListener(
+        'focus',
+        loadDarkMode
+      );
+
+    return unsubscribeFocus;
+  }, [navigation]);
+
+  const gameGradientColors =
+    isDarkMode
+      ? [
+          '#160722',
+          '#27103D',
+          '#351252',
+        ]
+      : [
+          '#A83CF4',
+          '#7A28D7',
+          '#4A138F',
+        ];
+
   const routePlayers =
     route?.params?.players ||
     players;
@@ -535,10 +580,11 @@ const GameScreen2 = ({
         }
       >
         <LinearGradient
-          colors={[
-            '#D946EF',
-            '#7C3AED',
-          ]}
+          colors={
+            isDarkMode
+              ? ['#8F2D9F', '#4D238A']
+              : ['#D946EF', '#7C3AED']
+          }
           style={
             styles.avatarGlow
           }
@@ -778,16 +824,20 @@ const GameScreen2 = ({
         }
       >
         <LinearGradient
-          colors={[
-            '#A83CF4',
-            '#7A28D7',
-            '#4A138F',
-          ]}
+          colors={gameGradientColors}
           style={
             styles.rulesContainer
           }
         >
           {renderBackgroundDecor()}
+
+          {isDarkMode && (
+            <View
+              pointerEvents="none"
+              style={styles.darkModeOverlay}
+            />
+          )}
+
           {renderExitButton()}
 
           <View
@@ -829,9 +879,10 @@ const GameScreen2 = ({
           </Text>
 
           <View
-            style={
-              styles.rulesCard
-            }
+            style={[
+              styles.rulesCard,
+              isDarkMode && styles.darkGlassPanel,
+            ]}
           >
             {[
               ['01', 'Generate a target number'],
@@ -884,10 +935,11 @@ const GameScreen2 = ({
             activeOpacity={0.86}
           >
             <LinearGradient
-              colors={[
-                '#D946EF',
-                '#6D28D9',
-              ]}
+              colors={
+                isDarkMode
+                  ? ['#8D2B9F', '#40177D']
+                  : ['#D946EF', '#6D28D9']
+              }
               start={{
                 x: 0,
                 y: 0,
@@ -929,14 +981,18 @@ const GameScreen2 = ({
       }
     >
       <LinearGradient
-        colors={[
-          '#A83CF4',
-          '#7A28D7',
-          '#4A138F',
-        ]}
+        colors={gameGradientColors}
         style={styles.container}
       >
         {renderBackgroundDecor()}
+
+        {isDarkMode && (
+          <View
+            pointerEvents="none"
+            style={styles.darkModeOverlay}
+          />
+        )}
+
         {renderExitButton()}
 
         <View
@@ -978,9 +1034,10 @@ const GameScreen2 = ({
         </View>
 
         <View
-          style={
-            styles.playersPanel
-          }
+          style={[
+            styles.playersPanel,
+            isDarkMode && styles.darkGlassPanel,
+          ]}
         >
           <View
             style={
@@ -995,9 +1052,10 @@ const GameScreen2 = ({
         </View>
 
         <View
-          style={
-            styles.targetSection
-          }
+          style={[
+            styles.targetSection,
+            isDarkMode && styles.darkGlassPanel,
+          ]}
         >
           <View>
             <Text
@@ -1046,10 +1104,11 @@ const GameScreen2 = ({
           activeOpacity={0.84}
         >
           <LinearGradient
-            colors={[
-              '#C026D3',
-              '#7C3AED',
-            ]}
+            colors={
+              isDarkMode
+                ? ['#7C1C8B', '#492388']
+                : ['#C026D3', '#7C3AED']
+            }
             start={{
               x: 0,
               y: 0,
@@ -1081,9 +1140,10 @@ const GameScreen2 = ({
         </TouchableOpacity>
 
         <View
-          style={
-            styles.boardCard
-          }
+          style={[
+            styles.boardCard,
+            isDarkMode && styles.darkBoardCard,
+          ]}
         >
           <View
             style={
@@ -1146,11 +1206,17 @@ const GameScreen2 = ({
                             styles.cell,
                             {
                               backgroundColor:
-                                cellColors[
-                                  rowIndex
-                                ][
-                                  colIndex
-                                ],
+                                isDarkMode
+                                  ? `${cellColors[
+                                      rowIndex
+                                    ][
+                                      colIndex
+                                    ]}B8`
+                                  : cellColors[
+                                      rowIndex
+                                    ][
+                                      colIndex
+                                    ],
                             },
                             isSelected
                               ? styles.selected
@@ -1213,9 +1279,10 @@ const GameScreen2 = ({
         </View>
 
         <View
-          style={
-            styles.expressionHint
-          }
+          style={[
+            styles.expressionHint,
+            isDarkMode && styles.darkExpressionHint,
+          ]}
         >
           <Text
             style={
@@ -1285,6 +1352,28 @@ const styles =
     backgroundImage: {
       flex: 1,
       backgroundColor: '#4A138F',
+    },
+
+    darkModeOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.20)',
+      zIndex: 1,
+    },
+
+    darkGlassPanel: {
+      backgroundColor: 'rgba(18,5,34,0.78)',
+      borderColor: 'rgba(255,255,255,0.10)',
+    },
+
+    darkBoardCard: {
+      backgroundColor: 'rgba(12,3,25,0.86)',
+      borderColor: 'rgba(255,255,255,0.10)',
+      shadowColor: '#000000',
+    },
+
+    darkExpressionHint: {
+      backgroundColor: 'rgba(70,18,82,0.24)',
+      borderColor: 'rgba(216,180,254,0.18)',
     },
 
     backgroundDecor: {
