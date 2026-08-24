@@ -216,6 +216,51 @@ export default function GameScreen3({
     2: 0,
   });
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode =
+          await AsyncStorage.getItem(
+            'trioDarkMode'
+          );
+
+        setIsDarkMode(
+          savedDarkMode === 'true'
+        );
+      } catch (error) {
+        console.log(
+          'Dark mode load error:',
+          error
+        );
+      }
+    };
+
+    loadDarkMode();
+
+    const unsubscribeFocus =
+      navigation.addListener(
+        'focus',
+        loadDarkMode
+      );
+
+    return unsubscribeFocus;
+  }, [navigation]);
+
+  const gameGradientColors =
+    isDarkMode
+      ? [
+          '#1B0903',
+          '#3A1205',
+          '#5A1B07',
+        ]
+      : [
+          '#FF9818',
+          '#F06B00',
+          '#B83A00',
+        ];
+
   const routePlayers =
     route?.params?.players || [];
 
@@ -329,6 +374,88 @@ export default function GameScreen3({
       ]
     );
   };
+
+  const renderBackgroundDecor = () => (
+    <View
+      pointerEvents="none"
+      style={styles.backgroundDecor}
+    >
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbOne,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbTwo,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.glowOrb,
+          styles.glowOrbThree,
+        ]}
+      />
+
+      <View
+        style={[
+          styles.cardPattern,
+          styles.cardPatternOne,
+        ]}
+      >
+        <Text style={styles.cardPatternText}>?</Text>
+      </View>
+
+      <View
+        style={[
+          styles.cardPattern,
+          styles.cardPatternTwo,
+        ]}
+      >
+        <Text style={styles.cardPatternText}>?</Text>
+      </View>
+
+      <View
+        style={[
+          styles.cardPattern,
+          styles.cardPatternThree,
+        ]}
+      >
+        <Text style={styles.cardPatternText}>?</Text>
+      </View>
+
+      <Text
+        style={[
+          styles.backgroundSymbol,
+          styles.backgroundSymbolOne,
+        ]}
+      >
+        ?
+      </Text>
+
+      <Text
+        style={[
+          styles.backgroundSymbol,
+          styles.backgroundSymbolTwo,
+        ]}
+      >
+        ×
+      </Text>
+
+      <Text
+        style={[
+          styles.backgroundSymbol,
+          styles.backgroundSymbolThree,
+        ]}
+      >
+        +
+      </Text>
+    </View>
+  );
 
   const renderExitButton = () => {
     return (
@@ -678,15 +805,20 @@ export default function GameScreen3({
         }
       >
         <LinearGradient
-          colors={[
-            '#FF9818',
-            '#F06B00',
-            '#B83A00',
-          ]}
+          colors={gameGradientColors}
           style={
             styles.rulesContainer
           }
         >
+          {renderBackgroundDecor()}
+
+          {isDarkMode && (
+            <View
+              pointerEvents="none"
+              style={styles.darkModeOverlay}
+            />
+          )}
+
           {renderExitButton()}
 
           <Text
@@ -706,9 +838,11 @@ export default function GameScreen3({
           </Text>
 
           <View
-            style={
-              styles.rulesCard
-            }
+            style={[
+              styles.rulesCard,
+              isDarkMode &&
+                styles.darkGlassPanel,
+            ]}
           >
             <Text
               style={
@@ -780,9 +914,11 @@ export default function GameScreen3({
           </View>
 
           <TouchableOpacity
-            style={
-              styles.startButton
-            }
+            style={[
+              styles.startButton,
+              isDarkMode &&
+                styles.startButtonDark,
+            ]}
             onPress={() =>
               setShowRules(false)
             }
@@ -810,13 +946,18 @@ export default function GameScreen3({
       }
     >
       <LinearGradient
-        colors={[
-          '#FF9818',
-          '#F06B00',
-          '#B83A00',
-        ]}
+        colors={gameGradientColors}
         style={styles.container}
       >
+        {renderBackgroundDecor()}
+
+        {isDarkMode && (
+          <View
+            pointerEvents="none"
+            style={styles.darkModeOverlay}
+          />
+        )}
+
         {renderExitButton()}
 
         <Text
@@ -832,13 +973,17 @@ export default function GameScreen3({
         </Text>
 
         <View
-          style={
-            styles.playersBox
-          }
+          style={[
+            styles.playersBox,
+            isDarkMode &&
+              styles.playersBoxDark,
+          ]}
         >
           <View
             style={[
               styles.playerCard,
+              isDarkMode &&
+                styles.playerCardDark,
 
               playerTurn === 1 &&
                 styles.activePlayerCard,
@@ -891,6 +1036,8 @@ export default function GameScreen3({
           <View
             style={[
               styles.playerCard,
+              isDarkMode &&
+                styles.playerCardDark,
 
               playerTurn === 2 &&
                 styles.activePlayerCard,
@@ -940,9 +1087,11 @@ export default function GameScreen3({
         </View>
 
         <Text
-          style={
-            styles.turnText
-          }
+          style={[
+            styles.turnText,
+            isDarkMode &&
+              styles.turnTextDark,
+          ]}
         >
           Turn:{' '}
           {playerTurn === 1
@@ -951,9 +1100,11 @@ export default function GameScreen3({
         </Text>
 
         <TouchableOpacity
-          style={
-            styles.blueButton
-          }
+          style={[
+            styles.blueButton,
+            isDarkMode &&
+              styles.blueButtonDark,
+          ]}
           onPress={startRound}
         >
           <Text
@@ -969,7 +1120,11 @@ export default function GameScreen3({
         </TouchableOpacity>
 
         <View
-          style={styles.table}
+          style={[
+            styles.table,
+            isDarkMode &&
+              styles.darkTable,
+          ]}
         >
           {Array.from({
             length: 7,
@@ -1045,9 +1200,11 @@ export default function GameScreen3({
         </View>
 
         <View
-          style={
-            styles.openedBox
-          }
+          style={[
+            styles.openedBox,
+            isDarkMode &&
+              styles.darkGlassPanel,
+          ]}
         >
           <Text
             style={
@@ -1072,9 +1229,11 @@ export default function GameScreen3({
         </View>
 
         <TouchableOpacity
-          style={
-            styles.resetButton
-          }
+          style={[
+            styles.resetButton,
+            isDarkMode &&
+              styles.resetButtonDark,
+          ]}
           onPress={resetGame}
         >
           <Text
@@ -1096,6 +1255,182 @@ const styles =
       flex: 1,
       resizeMode: 'cover',
       backgroundColor: '#B83A00',
+    },
+
+    darkModeOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor:
+        'rgba(0,0,0,0.20)',
+    },
+
+    backgroundDecor: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: 'hidden',
+      zIndex: 0,
+    },
+
+    glowOrb: {
+      position: 'absolute',
+      borderRadius: 999,
+    },
+
+    glowOrbOne: {
+      width: 290,
+      height: 290,
+      top: -120,
+      right: -105,
+      backgroundColor:
+        'rgba(255,210,150,0.16)',
+    },
+
+    glowOrbTwo: {
+      width: 245,
+      height: 245,
+      bottom: -105,
+      left: -110,
+      backgroundColor:
+        'rgba(120,38,0,0.28)',
+    },
+
+    glowOrbThree: {
+      width: 165,
+      height: 165,
+      top: '42%',
+      right: -90,
+      backgroundColor:
+        'rgba(255,153,24,0.14)',
+    },
+
+    cardPattern: {
+      position: 'absolute',
+      width: 70,
+      height: 94,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor:
+        'rgba(255,255,255,0.07)',
+      backgroundColor:
+        'rgba(255,255,255,0.025)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    cardPatternOne: {
+      top: 115,
+      left: -20,
+      transform: [
+        { rotate: '-17deg' },
+      ],
+    },
+
+    cardPatternTwo: {
+      top: '38%',
+      right: -24,
+      transform: [
+        { rotate: '15deg' },
+      ],
+    },
+
+    cardPatternThree: {
+      bottom: 85,
+      left: 18,
+      transform: [
+        { rotate: '9deg' },
+      ],
+    },
+
+    cardPatternText: {
+      color:
+        'rgba(255,255,255,0.08)',
+      fontSize: 34,
+      fontWeight: '900',
+    },
+
+    backgroundSymbol: {
+      position: 'absolute',
+      color:
+        'rgba(255,255,255,0.045)',
+      fontWeight: '900',
+    },
+
+    backgroundSymbolOne: {
+      top: 55,
+      left: '38%',
+      fontSize: 88,
+      transform: [
+        { rotate: '-8deg' },
+      ],
+    },
+
+    backgroundSymbolTwo: {
+      top: '51%',
+      left: 22,
+      fontSize: 74,
+      transform: [
+        { rotate: '12deg' },
+      ],
+    },
+
+    backgroundSymbolThree: {
+      bottom: 25,
+      right: 35,
+      fontSize: 86,
+      transform: [
+        { rotate: '-10deg' },
+      ],
+    },
+
+    darkGlassPanel: {
+      backgroundColor:
+        'rgba(35,10,3,0.82)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+    },
+
+    playersBoxDark: {
+      backgroundColor:
+        'rgba(35,10,3,0.42)',
+      borderRadius: 22,
+      padding: 4,
+    },
+
+    playerCardDark: {
+      backgroundColor:
+        'rgba(40,11,3,0.76)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+    },
+
+    turnTextDark: {
+      backgroundColor:
+        'rgba(40,11,3,0.78)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+    },
+
+    darkTable: {
+      backgroundColor:
+        'rgba(30,8,2,0.84)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+      shadowColor: '#000000',
+    },
+
+    blueButtonDark: {
+      backgroundColor: '#A9450B',
+      shadowColor: '#000000',
+    },
+
+    resetButtonDark: {
+      backgroundColor:
+        'rgba(40,11,3,0.78)',
+      borderColor:
+        'rgba(255,255,255,0.12)',
+    },
+
+    startButtonDark: {
+      backgroundColor: '#A9450B',
+      shadowColor: '#000000',
     },
 
     container: {
