@@ -139,6 +139,27 @@ export default function GameScreen4({
   const [loggedInPlayerName, setLoggedInPlayerName] =
     useState('Player 1');
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(savedDarkMode === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+    const unsubscribeFocus = navigation.addListener('focus', loadDarkMode);
+    return unsubscribeFocus;
+  }, [navigation]);
+
+  const gameGradientColors = isDarkMode
+    ? ['#031614', '#062A26', '#08443D']
+    : ['#20D7C2', '#0FB89F', '#08796E'];
+
   const routePlayers = route?.params?.players || players;
 
   const goToGameMenu = () => {
@@ -617,7 +638,9 @@ export default function GameScreen4({
       <View
         style={[
           styles.playerCard,
+          isDarkMode && styles.darkPlayerCard,
           isActive && styles.activePlayerCard,
+          isActive && isDarkMode && styles.darkActivePlayerCard,
         ]}
       >
         <LinearGradient
@@ -660,11 +683,7 @@ export default function GameScreen4({
     return (
       <View style={styles.backgroundImage}>
         <LinearGradient
-          colors={[
-            '#20D7C2',
-            '#0FB89F',
-            '#08796E',
-          ]}
+          colors={gameGradientColors}
           start={{
             x: 0,
             y: 0,
@@ -676,6 +695,7 @@ export default function GameScreen4({
           style={styles.rulesContainer}
         >
           {renderBackgroundDecor()}
+          {isDarkMode && <View pointerEvents="none" style={styles.darkModeOverlay} />}
           {renderExitButton()}
 
           <View style={styles.modeBadge}>
@@ -700,7 +720,7 @@ export default function GameScreen4({
             Choose a formula, select the required numbers and reach the blue target.
           </Text>
 
-          <View style={styles.rulesCard}>
+          <View style={[styles.rulesCard, isDarkMode && styles.darkGlassPanel]}>
             {[
               ['01', 'This mode is played by 2 players'],
               ['02', 'Draw a blue card to reveal the target'],
@@ -766,11 +786,7 @@ export default function GameScreen4({
   return (
     <View style={styles.backgroundImage}>
       <LinearGradient
-        colors={[
-          '#20D7C2',
-          '#0FB89F',
-          '#08796E',
-        ]}
+        colors={gameGradientColors}
         start={{
           x: 0,
           y: 0,
@@ -782,6 +798,7 @@ export default function GameScreen4({
         style={styles.container}
       >
         {renderBackgroundDecor()}
+        {isDarkMode && <View pointerEvents="none" style={styles.darkModeOverlay} />}
         {renderExitButton()}
 
         <View style={styles.gameHeader}>
@@ -807,7 +824,7 @@ export default function GameScreen4({
           {renderPlayerCard(2)}
         </View>
 
-        <View style={styles.turnBanner}>
+        <View style={[styles.turnBanner, isDarkMode && styles.darkGlassPanel]}>
           <View style={styles.turnDot} />
 
           <Text style={styles.turnLabel}>
@@ -822,7 +839,7 @@ export default function GameScreen4({
           </Text>
         </View>
 
-        <View style={styles.modeSection}>
+        <View style={[styles.modeSection, isDarkMode && styles.darkGlassPanel]}>
           <View style={styles.modeSectionHeader}>
             <Text style={styles.modeSectionTitle}>
               CHOOSE FORMULA
@@ -945,7 +962,7 @@ export default function GameScreen4({
           </LinearGradient>
         </TouchableOpacity>
 
-        <View style={styles.formulaPreview}>
+        <View style={[styles.formulaPreview, isDarkMode && styles.darkSoftPanel]}>
           <Text style={styles.formulaPreviewLabel}>
             ACTIVE FORMULA
           </Text>
@@ -957,7 +974,7 @@ export default function GameScreen4({
           </Text>
         </View>
 
-        <View style={styles.selectedBox}>
+        <View style={[styles.selectedBox, isDarkMode && styles.darkGlassPanel]}>
           <Text style={styles.selectedLabel}>
             SELECTED
           </Text>
@@ -978,7 +995,7 @@ export default function GameScreen4({
           </Text>
         </View>
 
-        <View style={styles.boardCard}>
+        <View style={[styles.boardCard, isDarkMode && styles.darkBoardCard]}>
           <View style={styles.boardTopRow}>
             <Text style={styles.boardTitle}>
               NUMBER GRID
@@ -1016,11 +1033,9 @@ export default function GameScreen4({
                           styles.cell,
                           {
                             backgroundColor:
-                              cellColors[
-                                rowIndex
-                              ][
-                                colIndex
-                              ],
+                              isDarkMode
+                                ? `${cellColors[rowIndex][colIndex]}B8`
+                                : cellColors[rowIndex][colIndex],
                           },
                           isSelected
                             ? styles.selected
@@ -1126,6 +1141,38 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     backgroundColor: '#08796E',
+  },
+
+  darkModeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+
+  darkGlassPanel: {
+    backgroundColor: 'rgba(2,31,28,0.78)',
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
+  darkSoftPanel: {
+    backgroundColor: 'rgba(255,255,255,0.065)',
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
+  darkBoardCard: {
+    backgroundColor: 'rgba(2,27,25,0.86)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    shadowColor: '#000000',
+  },
+
+  darkPlayerCard: {
+    backgroundColor: 'rgba(2,31,28,0.76)',
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
+  darkActivePlayerCard: {
+    backgroundColor: 'rgba(20,184,166,0.17)',
+    borderColor: 'rgba(153,246,228,0.55)',
+    shadowColor: '#14B8A6',
   },
 
   backgroundDecor: {
