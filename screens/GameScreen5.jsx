@@ -78,6 +78,26 @@ export default function GameScreen5({
     setLoggedInPlayerName,
   ] = useState('Player 1');
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const loadDarkMode = async () => {
+      try {
+        const value = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(value === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+    loadDarkMode();
+    const unsubscribe = navigation.addListener('focus', loadDarkMode);
+    return unsubscribe;
+  }, [navigation]);
+
+  const gameGradientColors = isDarkMode
+    ? ['#17030C', '#310717', '#4A0A25', '#25030F']
+    : ['#FF4F9A', '#E91E63', '#B91558', '#7A0D3D'];
+
   const routePlayers =
     route?.params?.players || players;
 
@@ -363,8 +383,9 @@ export default function GameScreen5({
       <View
         style={[
           styles.playerCard,
-          isActive &&
-            styles.activePlayerCard,
+          isDarkMode && styles.darkPlayerCard,
+          isActive && styles.activePlayerCard,
+          isActive && isDarkMode && styles.darkActivePlayerCard,
         ]}
       >
         <LinearGradient
@@ -509,12 +530,13 @@ export default function GameScreen5({
     return (
       <View style={styles.backgroundImage}>
         <LinearGradient
-          colors={['#FF4F9A', '#E91E63', '#B91558', '#7A0D3D']}
+          colors={gameGradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.rulesContainer}
         >
           {renderBackgroundDecor()}
+          {isDarkMode && <View pointerEvents="none" style={styles.darkModeOverlay} />}
           {renderExitButton()}
 
           <View style={styles.modeBadge}>
@@ -528,7 +550,7 @@ export default function GameScreen5({
             Reveal three hidden cards and try to match one of the blue targets.
           </Text>
 
-          <View style={styles.rulesCard}>
+          <View style={[styles.rulesCard, isDarkMode && styles.darkGlassPanel]}>
             {[
               ['01', 'This mode is played by 2 players'],
               ['02', 'Blue target cards are shown at the top'],
@@ -552,7 +574,11 @@ export default function GameScreen5({
             activeOpacity={0.86}
           >
             <LinearGradient
-              colors={['#FF74B5', '#F43F8C', '#BE185D']}
+              colors={
+                isDarkMode
+                  ? ['#A91D55', '#7A103D', '#56082B']
+                  : ['#FF74B5', '#F43F8C', '#BE185D']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.primaryButtonGradient}
@@ -569,12 +595,13 @@ export default function GameScreen5({
   return (
     <View style={styles.backgroundImage}>
       <LinearGradient
-        colors={['#FF4F9A', '#E91E63', '#B91558', '#7A0D3D']}
+        colors={gameGradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
         {renderBackgroundDecor()}
+        {isDarkMode && <View pointerEvents="none" style={styles.darkModeOverlay} />}
         {renderExitButton()}
 
         <View style={styles.gameHeader}>
@@ -592,7 +619,7 @@ export default function GameScreen5({
           {renderPlayerCard(2)}
         </View>
 
-        <View style={styles.turnBanner}>
+        <View style={[styles.turnBanner, isDarkMode && styles.darkGlassPanel]}>
           <View style={styles.turnDot} />
           <Text style={styles.turnLabel}>CURRENT TURN</Text>
           <Text numberOfLines={1} style={styles.turnText}>
@@ -600,7 +627,7 @@ export default function GameScreen5({
           </Text>
         </View>
 
-        <View style={styles.blueTargetsCard}>
+        <View style={[styles.blueTargetsCard, isDarkMode && styles.darkGlassPanel]}>
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionTitle}>BLUE TARGETS</Text>
@@ -647,7 +674,7 @@ export default function GameScreen5({
           </View>
         </View>
 
-        <View style={styles.selectionBanner}>
+        <View style={[styles.selectionBanner, isDarkMode && styles.darkGlassPanel]}>
           <Text style={styles.selectionLabel}>SELECTED CARDS</Text>
           <Text style={styles.selectionNumbers}>
             {openedCards.length > 0
@@ -659,7 +686,7 @@ export default function GameScreen5({
           </Text>
         </View>
 
-        <View style={styles.boardCard}>
+        <View style={[styles.boardCard, isDarkMode && styles.darkBoardCard]}>
           <View style={styles.boardTopRow}>
             <Text style={styles.boardTitle}>HIDDEN CARD GRID</Text>
             <Text style={styles.boardHint}>Tap to reveal</Text>
@@ -679,7 +706,9 @@ export default function GameScreen5({
                         key={index}
                         style={[
                           styles.cell,
+                          isDarkMode && styles.darkCell,
                           isOpened && styles.openedCell,
+                          isOpened && isDarkMode && styles.darkOpenedCell,
                         ]}
                         onPress={() => openCard(index)}
                         activeOpacity={0.82}
@@ -710,7 +739,11 @@ export default function GameScreen5({
           activeOpacity={0.86}
         >
           <LinearGradient
-            colors={['#FF74B5', '#F43F8C', '#BE185D']}
+            colors={
+                isDarkMode
+                  ? ['#A91D55', '#7A103D', '#56082B']
+                  : ['#FF74B5', '#F43F8C', '#BE185D']
+              }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.primaryButtonGradient}
@@ -721,7 +754,7 @@ export default function GameScreen5({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.resetButton}
+          style={[styles.resetButton, isDarkMode && styles.darkResetButton]}
           onPress={resetGame}
           activeOpacity={0.82}
         >
@@ -736,6 +769,50 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     backgroundColor: '#7A0D3D',
+  },
+
+  darkModeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+
+  darkGlassPanel: {
+    backgroundColor: 'rgba(39,3,18,0.80)',
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
+  darkPlayerCard: {
+    backgroundColor: 'rgba(44,4,20,0.76)',
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+
+  darkActivePlayerCard: {
+    backgroundColor: 'rgba(169,29,85,0.20)',
+    borderColor: 'rgba(249,168,212,0.50)',
+    shadowColor: '#A91D55',
+  },
+
+  darkBoardCard: {
+    backgroundColor: 'rgba(34,3,15,0.88)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    shadowColor: '#000000',
+  },
+
+  darkCell: {
+    backgroundColor: '#240613',
+    borderColor: 'rgba(255,255,255,0.11)',
+    shadowColor: '#000000',
+  },
+
+  darkOpenedCell: {
+    backgroundColor: '#A91D55',
+    borderColor: '#FBCFE8',
+    shadowColor: '#BE185D',
+  },
+
+  darkResetButton: {
+    backgroundColor: 'rgba(38,3,17,0.80)',
+    borderColor: 'rgba(255,255,255,0.11)',
   },
 
   backgroundDecor: {
