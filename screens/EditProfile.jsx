@@ -9,6 +9,7 @@ import {
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,10 +40,29 @@ const EditProfile = ({ navigation }) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
   const [profileImage, setProfileImage] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     loadProfileData();
-  }, []);
+
+    const loadDarkMode = async () => {
+      try {
+        const savedDarkMode = await AsyncStorage.getItem('trioDarkMode');
+        setIsDarkMode(savedDarkMode === 'true');
+      } catch (error) {
+        console.log('Dark mode load error:', error);
+      }
+    };
+
+    loadDarkMode();
+
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      loadDarkMode();
+      loadProfileData();
+    });
+
+    return unsubscribeFocus;
+  }, [navigation]);
 
   const loadProfileData = async () => {
     const currentUser = auth.currentUser;
@@ -210,90 +230,264 @@ const EditProfile = ({ navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <LinearGradient
-        colors={['#00c6ff', '#0072ff', '#000']}
+        colors={
+          isDarkMode
+            ? ['#010814', '#002454', '#034B6A']
+            : ['#041b3d', '#0072ff', '#00c6ff']
+        }
         style={styles.container}
       >
-        <Text style={styles.title}>Edit Profile</Text>
-
-        <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
-          <Image source={avatar} style={styles.avatar} />
-
-          <View style={styles.cameraIcon}>
-            <Ionicons name="camera" size={20} color="#fff" />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
-          <Ionicons name="image-outline" size={18} color="#fff" />
-          <Text style={styles.buttonText}>  Change Profile Photo</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your name"
-          placeholderTextColor="#ccc"
-          value={name}
-          onChangeText={setName}
-          returnKeyType="done"
-          onSubmitEditing={Keyboard.dismiss}
-        />
-
-        <Text style={styles.label}>Username</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter username"
-          placeholderTextColor="#ccc"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          returnKeyType="done"
-          onSubmitEditing={Keyboard.dismiss}
-        />
-
-        <Text style={styles.label}>Bio</Text>
-        <TextInput
-          style={[styles.input, { height: 80 }]}
-          placeholder="Tell us about yourself"
-          placeholderTextColor="#ccc"
-          multiline
-          value={bio}
-          onChangeText={setBio}
-          returnKeyType="done"
-          blurOnSubmit={true}
-          onSubmitEditing={Keyboard.dismiss}
-        />
-
-        <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
-          <Ionicons name="calendar" size={20} color="#fff" />
-          <Text style={styles.buttonText}>
-            {'  '}
-            {birthDate ? birthDate : 'Select Birth Date'}
-          </Text>
-        </TouchableOpacity>
-
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        />
-
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-          <Text style={styles.buttonText}>  Save Changes</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#95a5a6' }]}
-          onPress={() => {
-            Keyboard.dismiss();
-            navigation.goBack();
-          }}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
         >
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-          <Text style={styles.buttonText}>  Cancel</Text>
-        </TouchableOpacity>
+          <View style={styles.headerArea}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                Keyboard.dismiss();
+                navigation.goBack();
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-back" size={23} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <Text style={styles.title}>Edit Profile</Text>
+            <Text style={styles.subtitle}>
+              Update your TRIO player profile
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.profileCard,
+              isDarkMode && styles.profileCardDark,
+            ]}
+          >
+            <TouchableOpacity
+              onPress={pickImage}
+              style={styles.avatarWrapper}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={
+                  isDarkMode
+                    ? ['#0B3359', '#061629']
+                    : ['#19C6FF', '#006CE7']
+                }
+                style={styles.avatarGlow}
+              >
+                <Image source={avatar} style={styles.avatar} />
+              </LinearGradient>
+
+              <View style={styles.cameraIcon}>
+                <Ionicons name="camera" size={19} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+
+            <Text style={styles.photoTitle}>Profile Photo</Text>
+            <Text style={styles.photoHint}>
+              Tap the photo or button below to choose a new image
+            </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.changePhotoButton,
+                isDarkMode && styles.changePhotoButtonDark,
+              ]}
+              onPress={pickImage}
+              activeOpacity={0.84}
+            >
+              <Ionicons name="image-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.changePhotoText}>
+                Change Profile Photo
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View
+            style={[
+              styles.formCard,
+              isDarkMode && styles.formCardDark,
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                isDarkMode && styles.sectionTitleDark,
+              ]}
+            >
+              Profile Details
+            </Text>
+
+            <Text style={styles.label}>Name</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                isDarkMode && styles.inputWrapperDark,
+              ]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color={isDarkMode ? '#59C8FF' : '#0072FF'}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                ]}
+                placeholder="Enter your name"
+                placeholderTextColor={isDarkMode ? '#70879F' : '#8B9BAD'}
+                value={name}
+                onChangeText={setName}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+
+            <Text style={styles.label}>Username</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                isDarkMode && styles.inputWrapperDark,
+              ]}
+            >
+              <Ionicons
+                name="at-outline"
+                size={20}
+                color={isDarkMode ? '#59C8FF' : '#0072FF'}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                ]}
+                placeholder="Enter username"
+                placeholderTextColor={isDarkMode ? '#70879F' : '#8B9BAD'}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+
+            <Text style={styles.label}>Bio</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                styles.bioWrapper,
+                isDarkMode && styles.inputWrapperDark,
+              ]}
+            >
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={20}
+                color={isDarkMode ? '#59C8FF' : '#0072FF'}
+                style={styles.bioIcon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.bioInput,
+                  isDarkMode && styles.inputDark,
+                ]}
+                placeholder="Tell us about yourself"
+                placeholderTextColor={isDarkMode ? '#70879F' : '#8B9BAD'}
+                multiline
+                value={bio}
+                onChangeText={setBio}
+                textAlignVertical="top"
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+
+            <Text style={styles.label}>Birth Date</Text>
+            <TouchableOpacity
+              style={[
+                styles.dateButton,
+                isDarkMode && styles.dateButtonDark,
+              ]}
+              onPress={showDatePicker}
+              activeOpacity={0.84}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={isDarkMode ? '#59C8FF' : '#0072FF'}
+              />
+              <Text
+                style={[
+                  styles.dateText,
+                  !birthDate && styles.datePlaceholder,
+                  isDarkMode && styles.dateTextDark,
+                ]}
+              >
+                {birthDate ? birthDate : 'Select Birth Date'}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={isDarkMode ? '#70879F' : '#8B9BAD'}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSave}
+            activeOpacity={0.86}
+          >
+            <LinearGradient
+              colors={
+                isDarkMode
+                  ? ['#0E7FA5', '#07537A']
+                  : ['#00C6FF', '#0072FF']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.saveGradient}
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={21}
+                color="#FFFFFF"
+              />
+              <Text style={styles.buttonText}>Save Changes</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.cancelButton,
+              isDarkMode && styles.cancelButtonDark,
+            ]}
+            onPress={() => {
+              Keyboard.dismiss();
+              navigation.goBack();
+            }}
+            activeOpacity={0.82}
+          >
+            <Ionicons
+              name="close-circle-outline"
+              size={20}
+              color="#FFFFFF"
+            />
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </LinearGradient>
     </TouchableWithoutFeedback>
   );
@@ -302,105 +496,300 @@ const EditProfile = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 55,
+    paddingBottom: 45,
     alignItems: 'center',
-    padding: 20,
+  },
+
+  headerArea: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
 
   title: {
-    fontSize: 45,
+    fontSize: 38,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 30,
+    color: '#FFFFFF',
     fontFamily: 'pacifico',
-    textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 1, height: 2 },
+    textShadowRadius: 5,
+  },
+
+  subtitle: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+
+  profileCard: {
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 28,
+    paddingVertical: 24,
+    paddingHorizontal: 18,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.23)',
+  },
+
+  profileCardDark: {
+    backgroundColor: 'rgba(0,12,34,0.90)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   avatarWrapper: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 13,
+  },
+
+  avatarGlow: {
+    width: 142,
+    height: 142,
+    borderRadius: 71,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   avatar: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 134,
+    height: 134,
+    borderRadius: 67,
     borderWidth: 3,
-    borderColor: '#1abc9c',
+    borderColor: '#FFFFFF',
   },
 
   cameraIcon: {
     position: 'absolute',
-    right: 5,
+    right: 2,
     bottom: 5,
-    backgroundColor: '#1abc9c',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#9B59B6',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#FFFFFF',
+  },
+
+  photoTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+
+  photoHint: {
+    maxWidth: 280,
+    color: 'rgba(255,255,255,0.66)',
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 15,
   },
 
   changePhotoButton: {
+    minHeight: 44,
+    paddingHorizontal: 20,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16a085',
-    padding: 12,
-    borderRadius: 25,
-    width: '80%',
     justifyContent: 'center',
-    marginBottom: 20,
+    backgroundColor: 'rgba(155,89,182,0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+
+  changePhotoButtonDark: {
+    backgroundColor: 'rgba(122,67,145,0.75)',
+  },
+
+  changePhotoText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    marginLeft: 8,
+  },
+
+  formCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 25,
+    padding: 18,
+    marginBottom: 18,
+  },
+
+  formCardDark: {
+    backgroundColor: 'rgba(0,12,34,0.96)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+
+  sectionTitle: {
+    color: '#041B3D',
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 18,
+  },
+
+  sectionTitleDark: {
+    color: '#FFFFFF',
   },
 
   label: {
-    color: '#ecf0f1',
-    fontSize: 16,
-    marginBottom: 10,
-    alignSelf: 'flex-start',
+    width: '100%',
+    color: '#6B7A8C',
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 7,
+    marginLeft: 2,
+  },
+
+  inputWrapper: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: 17,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    backgroundColor: '#F2F7FC',
+    borderWidth: 1,
+    borderColor: '#DDE8F2',
+  },
+
+  inputWrapperDark: {
+    backgroundColor: 'rgba(0,25,62,0.88)',
+    borderColor: 'rgba(255,255,255,0.09)',
   },
 
   input: {
-    width: '100%',
-    padding: 15,
-    marginBottom: 20,
-    borderRadius: 25,
-    backgroundColor: '#34495E',
-    borderColor: '#7f8c8d',
-    borderWidth: 1,
-    fontSize: 16,
-    color: '#ecf0f1',
+    flex: 1,
+    color: '#1F2D3D',
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 10,
+    paddingVertical: 0,
   },
 
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1abc9c',
-    padding: 15,
-    borderRadius: 25,
-    width: '80%',
-    justifyContent: 'center',
-    marginVertical: 10,
+  inputDark: {
+    color: '#FFFFFF',
+  },
+
+  bioWrapper: {
+    minHeight: 100,
+    alignItems: 'flex-start',
+    paddingTop: 15,
+  },
+
+  bioIcon: {
+    marginTop: 1,
+  },
+
+  bioInput: {
+    minHeight: 76,
+    paddingTop: 0,
   },
 
   dateButton: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: 17,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2980b9',
-    padding: 15,
-    borderRadius: 25,
-    width: '80%',
+    paddingHorizontal: 14,
+    backgroundColor: '#F2F7FC',
+    borderWidth: 1,
+    borderColor: '#DDE8F2',
+  },
+
+  dateButtonDark: {
+    backgroundColor: 'rgba(0,25,62,0.88)',
+    borderColor: 'rgba(255,255,255,0.09)',
+  },
+
+  dateText: {
+    flex: 1,
+    color: '#1F2D3D',
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 10,
+  },
+
+  dateTextDark: {
+    color: '#FFFFFF',
+  },
+
+  datePlaceholder: {
+    color: '#8B9BAD',
+    fontWeight: '600',
+  },
+
+  saveButton: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+    marginBottom: 12,
+    shadowColor: '#0072FF',
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.26,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  saveGradient: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 10,
+  },
+
+  cancelButton: {
+    width: '100%',
+    height: 54,
+    borderRadius: 27,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(80,97,115,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.16)',
+  },
+
+  cancelButtonDark: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.10)',
   },
 
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+    marginLeft: 8,
   },
 });
 
