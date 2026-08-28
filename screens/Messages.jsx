@@ -29,6 +29,7 @@ import {
   doc,
   setDoc,
   writeBatch,
+  getDoc,
 } from 'firebase/firestore';
 
 const DEFAULT_AVATAR = 'https://i.pravatar.cc/150?img=1';
@@ -37,6 +38,7 @@ export default function Messages({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [friends, setFriends] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const [conversationUsers, setConversationUsers] = useState({});
   // Messages tab always opens on the conversations list.
   // A friend is selected only when the screen receives an intentional route param.
   const [selectedFriend, setSelectedFriend] = useState(null);
@@ -178,9 +180,11 @@ export default function Messages({ navigation, route }) {
   useEffect(() => {
     if (!currentUser) return;
 
+    let isActive = true;
+
     const unsubscribe = onSnapshot(
       collection(db, 'chats'),
-      (snapshot) => {
+      async (snapshot) => {
         const conversationList = snapshot.docs
           .map((chatDoc) => ({
             id: chatDoc.id,
@@ -195,6 +199,7 @@ export default function Messages({ navigation, route }) {
             const aTime = a.updatedAt?.toMillis
               ? a.updatedAt.toMillis()
               : 0;
+
             const bTime = b.updatedAt?.toMillis
               ? b.updatedAt.toMillis()
               : 0;
@@ -202,15 +207,104 @@ export default function Messages({ navigation, route }) {
             return bTime - aTime;
           });
 
+        if (!isActive) return;
+
         setConversations(conversationList);
+
+        try {
+          const otherUserIds = [
+            ...new Set(
+              conversationList
+                .map((chat) =>
+                  chat.users?.find(
+                    (uid) => uid !== currentUser.uid
+                  )
+                )
+                .filter(Boolean)
+            ),
+          ];
+
+          const userEntries = await Promise.all(
+            otherUserIds.map(async (userId) => {
+              const friendCopy = friends.find(
+                (friend) =>
+                  (friend.uid || friend.id) === userId
+              );
+
+              if (friendCopy) {
+                return [
+                  userId,
+                  {
+                    id: userId,
+                    uid: userId,
+                    ...friendCopy,
+                  },
+                ];
+              }
+
+              try {
+                const userSnap = await getDoc(
+                  doc(db, 'users', userId)
+                );
+
+                if (userSnap.exists()) {
+                  return [
+                    userId,
+                    {
+                      id: userSnap.id,
+                      uid: userSnap.id,
+                      ...userSnap.data(),
+                    },
+                  ];
+                }
+              } catch (error) {
+                console.log(
+                  'Conversation user load error:',
+                  error
+                );
+              }
+
+              return [
+                userId,
+                {
+                  id: userId,
+                  uid: userId,
+                  name: 'TRIO Player',
+                  username: '',
+                  email: '',
+                  profileImage: '',
+                  avatar: '',
+                  online: false,
+                },
+              ];
+            })
+          );
+
+          if (isActive) {
+            setConversationUsers(
+              Object.fromEntries(userEntries)
+            );
+          }
+        } catch (error) {
+          console.log(
+            'Conversation profiles error:',
+            error
+          );
+        }
       },
       (error) => {
-        console.log('Messages conversations error:', error);
+        console.log(
+          'Messages conversations error:',
+          error
+        );
       }
     );
 
-    return () => unsubscribe();
-  }, [currentUser?.uid]);
+    return () => {
+      isActive = false;
+      unsubscribe();
+    };
+  }, [currentUser?.uid, friends]);
 
   useEffect(() => {
     if (!currentUser || !selectedFriend) return;
@@ -334,32 +428,85 @@ export default function Messages({ navigation, route }) {
     }
   };
 
-  const conversationFriends = friends
-    .map((friend) => {
-      const friendId = friend.uid || friend.id;
-      const chatId = getChatId(currentUser?.uid || '', friendId);
-      const conversation = conversations.find((chat) => chat.id === chatId);
+  const conversationFriends = (() => {
+    const result = [];
+    const addedUserIds = new Set();
+
+    conversations.forEach((conversation) => {
+      const otherUserId =
+        conversation.users?.find(
+          (uid) => uid !== currentUser?.uid
+        );
+
+      if (!otherUserId) return;
+
+      const friendCopy = friends.find(
+        (friend) =>
+          (friend.uid || friend.id) === otherUserId
+      );
+
+      const userProfile =
+        friendCopy ||
+        conversationUsers[otherUserId] ||
+        {
+          id: otherUserId,
+          uid: otherUserId,
+          name: 'TRIO Player',
+          username: '',
+          email: '',
+          profileImage: '',
+          avatar: '',
+          online: false,
+        };
 
       const hasUnreadMessage =
-        conversation?.lastMessageReceiverId === currentUser?.uid &&
-        conversation?.lastMessageRead === false;
+        conversation.lastMessageReceiverId ===
+          currentUser?.uid &&
+        conversation.lastMessageRead === false;
 
-      return {
-        ...friend,
+      result.push({
+        ...userProfile,
+        id: otherUserId,
+        uid: otherUserId,
         conversation,
         hasUnreadMessage,
-      };
-    })
-    .sort((a, b) => {
-      const aTime = a.conversation?.updatedAt?.toMillis
-        ? a.conversation.updatedAt.toMillis()
-        : 0;
-      const bTime = b.conversation?.updatedAt?.toMillis
-        ? b.conversation.updatedAt.toMillis()
-        : 0;
+        isFriend: Boolean(friendCopy),
+      });
+
+      addedUserIds.add(otherUserId);
+    });
+
+    friends.forEach((friend) => {
+      const friendId = friend.uid || friend.id;
+
+      if (!friendId || addedUserIds.has(friendId)) {
+        return;
+      }
+
+      result.push({
+        ...friend,
+        id: friendId,
+        uid: friendId,
+        conversation: null,
+        hasUnreadMessage: false,
+        isFriend: true,
+      });
+    });
+
+    return result.sort((a, b) => {
+      const aTime =
+        a.conversation?.updatedAt?.toMillis
+          ? a.conversation.updatedAt.toMillis()
+          : 0;
+
+      const bTime =
+        b.conversation?.updatedAt?.toMillis
+          ? b.conversation.updatedAt.toMillis()
+          : 0;
 
       return bTime - aTime;
     });
+  })();
 
   const filteredFriends = conversationFriends.filter((item) =>
     (item.name || item.username || item.email || '')
@@ -720,7 +867,9 @@ export default function Messages({ navigation, route }) {
 
         <View style={styles.headerIconBox}>
           <Ionicons name="chatbubbles" size={27} color="#00E5FF" />
-          <Text style={styles.headerCount}>{friends.length}</Text>
+          <Text style={styles.headerCount}>
+            {conversationFriends.length}
+          </Text>
         </View>
       </View>
 
@@ -756,7 +905,9 @@ export default function Messages({ navigation, route }) {
               ? `${filteredFriends.length} matching player${
                   filteredFriends.length === 1 ? '' : 's'
                 }`
-              : `${friends.length} friend${friends.length === 1 ? '' : 's'}`}
+              : `${conversationFriends.length} conversation${
+                  conversationFriends.length === 1 ? '' : 's'
+                }`}
           </Text>
         </View>
 
@@ -806,7 +957,7 @@ export default function Messages({ navigation, route }) {
               <Text style={styles.emptyText}>
                 {search
                   ? 'Try another name, username or email address.'
-                  : 'Add friends from the Friends page, then start chatting here.'}
+                  : 'Your conversations will appear here after you send or receive a message.'}
               </Text>
             </View>
           }
