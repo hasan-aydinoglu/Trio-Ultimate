@@ -7,8 +7,13 @@ import React, {
 
 import {
   View,
+  Text,
+  Image,
   StyleSheet,
   Platform,
+  Animated,
+  Easing,
+  StatusBar,
 } from 'react-native';
 
 import {
@@ -303,11 +308,275 @@ function TabNavigator({
   );
 }
 
+
+function TrioAnimatedIntro() {
+  const logoOpacity =
+    useRef(new Animated.Value(0)).current;
+
+  const logoScale =
+    useRef(new Animated.Value(0.55)).current;
+
+  const logoTranslateY =
+    useRef(new Animated.Value(28)).current;
+
+  const glowOpacity =
+    useRef(new Animated.Value(0)).current;
+
+  const glowScale =
+    useRef(new Animated.Value(0.6)).current;
+
+  const textOpacity =
+    useRef(new Animated.Value(0)).current;
+
+  const textTranslateY =
+    useRef(new Animated.Value(14)).current;
+
+  const flashOpacity =
+    useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.sequence([
+      Animated.parallel([
+        Animated.timing(
+          glowOpacity,
+          {
+            toValue: 0.85,
+            duration: 300,
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.timing(
+          glowScale,
+          {
+            toValue: 1.15,
+            duration: 900,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.timing(
+          logoOpacity,
+          {
+            toValue: 1,
+            duration: 360,
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.timing(
+          logoTranslateY,
+          {
+            toValue: 0,
+            duration: 620,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.spring(
+          logoScale,
+          {
+            toValue: 1,
+            friction: 5,
+            tension: 55,
+            useNativeDriver: true,
+          }
+        ),
+      ]),
+
+      Animated.parallel([
+        Animated.timing(
+          textOpacity,
+          {
+            toValue: 1,
+            duration: 420,
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.timing(
+          textTranslateY,
+          {
+            toValue: 0,
+            duration: 420,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }
+        ),
+
+        Animated.sequence([
+          Animated.timing(
+            flashOpacity,
+            {
+              toValue: 0.8,
+              duration: 160,
+              useNativeDriver: true,
+            }
+          ),
+
+          Animated.timing(
+            flashOpacity,
+            {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: true,
+            }
+          ),
+        ]),
+      ]),
+    ]);
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [
+    flashOpacity,
+    glowOpacity,
+    glowScale,
+    logoOpacity,
+    logoScale,
+    logoTranslateY,
+    textOpacity,
+    textTranslateY,
+  ]);
+
+  return (
+    <LinearGradient
+      colors={[
+        '#071C4C',
+        '#043A8D',
+        '#006FEA',
+        '#021A45',
+        '#00040D',
+      ]}
+      locations={[
+        0,
+        0.25,
+        0.48,
+        0.74,
+        1,
+      ]}
+      style={styles.introContainer}
+    >
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#071C4C"
+      />
+
+      <View
+        pointerEvents="none"
+        style={styles.introTopGlow}
+      />
+
+      <View
+        pointerEvents="none"
+        style={styles.introBottomGlow}
+      />
+
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.introGlow,
+          {
+            opacity: glowOpacity,
+            transform: [
+              {
+                scale: glowScale,
+              },
+            ],
+          },
+        ]}
+      />
+
+      <Animated.View
+        style={[
+          styles.introLogoContainer,
+          {
+            opacity: logoOpacity,
+            transform: [
+              {
+                translateY:
+                  logoTranslateY,
+              },
+              {
+                scale:
+                  logoScale,
+              },
+            ],
+          },
+        ]}
+      >
+        <Image
+          source={require('./assets/trio-logo.png')}
+          style={styles.introLogo}
+          resizeMode="cover"
+        />
+      </Animated.View>
+
+      <Animated.View
+        style={[
+          styles.introFlash,
+          {
+            opacity:
+              flashOpacity,
+          },
+        ]}
+      />
+
+      <Animated.View
+        style={[
+          styles.introTextArea,
+          {
+            opacity:
+              textOpacity,
+
+            transform: [
+              {
+                translateY:
+                  textTranslateY,
+              },
+            ],
+          },
+        ]}
+      >
+        <Text style={styles.introTagline}>
+          THINK • CALCULATE • WIN
+        </Text>
+
+        <Text style={styles.introSubtext}>
+          TRIO
+        </Text>
+      </Animated.View>
+
+      <View style={styles.introLoading}>
+        <View
+          style={[
+            styles.introDot,
+            styles.introDotActive,
+          ]}
+        />
+
+        <View style={styles.introDot} />
+        <View style={styles.introDot} />
+      </View>
+    </LinearGradient>
+  );
+}
+
 export default function App() {
   const [
     appIsReady,
     setAppIsReady,
   ] = useState(false);
+
+  const [
+    showIntro,
+    setShowIntro,
+  ] = useState(true);
 
   const [
     currentUserId,
@@ -344,11 +613,41 @@ export default function App() {
         console.warn(error);
       } finally {
         setAppIsReady(true);
+
+        try {
+          await SplashScreen.hideAsync();
+        } catch (error) {
+          console.log(
+            'Native splash hide error:',
+            error
+          );
+        }
       }
     }
 
     prepare();
   }, []);
+
+  /*
+   * TRIO animasyonlu açılış ekranı.
+   * Navigation'dan bağımsız çalışır.
+   */
+  useEffect(() => {
+    if (!appIsReady) {
+      return undefined;
+    }
+
+    setShowIntro(true);
+
+    const introTimer =
+      setTimeout(() => {
+        setShowIntro(false);
+      }, 3200);
+
+    return () => {
+      clearTimeout(introTimer);
+    };
+  }, [appIsReady]);
 
   /*
    * Giriş yapan kullanıcıyı takip eder.
@@ -680,6 +979,12 @@ export default function App() {
     return null;
   }
 
+  if (showIntro) {
+    return (
+      <TrioAnimatedIntro />
+    );
+  }
+
   return (
     <NavigationContainer
       ref={navigationRef}
@@ -908,6 +1213,137 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  introContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+
+  introTopGlow: {
+    position: 'absolute',
+    top: -180,
+    right: -150,
+    width: 450,
+    height: 450,
+    borderRadius: 225,
+    backgroundColor:
+      'rgba(0,198,255,0.16)',
+  },
+
+  introBottomGlow: {
+    position: 'absolute',
+    bottom: -190,
+    left: -150,
+    width: 450,
+    height: 450,
+    borderRadius: 225,
+    backgroundColor:
+      'rgba(0,114,255,0.14)',
+  },
+
+  introGlow: {
+    position: 'absolute',
+    width: 270,
+    height: 270,
+    borderRadius: 135,
+    backgroundColor:
+      'rgba(52,188,255,0.27)',
+  },
+
+  introLogoContainer: {
+    width: 230,
+    height: 230,
+    borderRadius: 115,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 3,
+    borderColor: 'rgba(176,232,255,0.95)',
+    shadowColor: '#00C6FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.65,
+    shadowRadius: 22,
+    elevation: 14,
+  },
+
+  introLogo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 115,
+  },
+
+  introFlash: {
+    position: 'absolute',
+    width: 330,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor:
+      'rgba(160,232,255,0.82)',
+    shadowColor: '#00C6FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+
+  introTextArea: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+
+  introTagline: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 2.6,
+    textAlign: 'center',
+    textShadowColor:
+      'rgba(0,0,0,0.30)',
+    textShadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    textShadowRadius: 5,
+  },
+
+  introSubtext: {
+    color:
+      'rgba(164,227,255,0.72)',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 5,
+    marginTop: 10,
+  },
+
+  introLoading: {
+    position: 'absolute',
+    bottom: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  introDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 4,
+    backgroundColor:
+      'rgba(255,255,255,0.30)',
+  },
+
+  introDotActive: {
+    width: 22,
+    backgroundColor: '#00C6FF',
+  },
+
   tabBar: {
     position: 'absolute',
 
