@@ -32,6 +32,7 @@ import {
   onAuthStateChanged,
   signInWithCredential,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -345,6 +346,44 @@ const Home = ({ navigation }) => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      Alert.alert(
+        'Email Required',
+        'Please enter your email address first.'
+      );
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, trimmedEmail);
+
+      Alert.alert(
+        'Password Reset Email Sent',
+        `We sent a password reset link to ${trimmedEmail}. Please check your inbox and spam folder.`
+      );
+    } catch (error) {
+      console.log('Password reset error:', error);
+
+      let message =
+        'Password reset email could not be sent. Please try again.';
+
+      if (error?.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      } else if (error?.code === 'auth/user-not-found') {
+        message =
+          'No TRIO account was found with this email address.';
+      } else if (error?.code === 'auth/too-many-requests') {
+        message =
+          'Too many requests were made. Please wait a little and try again.';
+      }
+
+      Alert.alert('Password Reset Error', message);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     if (isSigningIn) {
       return;
@@ -511,9 +550,13 @@ const Home = ({ navigation }) => {
               style={
                 styles.forgotPassword
               }
+              onPress={
+                handleForgotPassword
+              }
               disabled={
                 isSigningIn
               }
+              activeOpacity={0.8}
             >
               <Text
                 style={

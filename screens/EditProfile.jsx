@@ -10,11 +10,13 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, db, storage } from '../firebase';
 
 import {
@@ -40,7 +42,9 @@ const EditProfile = ({ navigation }) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [avatar, setAvatar] = useState(require('../assets/avatar.png'));
   const [profileImage, setProfileImage] = useState('');
+  const [selectedImageAsset, setSelectedImageAsset] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     loadProfileData();
@@ -82,6 +86,7 @@ const EditProfile = ({ navigation }) => {
 
         if (data.profileImage) {
           setProfileImage(data.profileImage);
+          setSelectedImageAsset(null);
           setAvatar({ uri: data.profileImage });
         }
       }
@@ -90,47 +95,133 @@ const EditProfile = ({ navigation }) => {
     }
   };
 
-  const uploadProfileImage = async (imageUri) => {
+  const createBlobFromUri = (imageUri) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.onload = () => {
+        resolve(xhr.response);
+      };
+
+      xhr.onerror = () => {
+        reject(
+          new Error(
+            'The selected image could not be prepared for upload.'
+          )
+        );
+      };
+
+      xhr.responseType = 'blob';
+      xhr.open('GET', imageUri, true);
+      xhr.send(null);
+    });
+  };
+
+  const uploadProfileImage = async (selectedAsset) => {
     const currentUser = auth.currentUser;
 
-    if (!currentUser) return '';
+    if (!currentUser) {
+      throw new Error('No signed-in user was found.');
+    }
 
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+    if (!selectedAsset?.uri) {
+      throw new Error('No profile image was selected.');
+    }
 
-    const imageRef = ref(
-      storage,
-      `profileImages/${currentUser.uid}.jpg`
-    );
+    let blob = null;
 
-    await uploadBytes(imageRef, blob);
+    try {
+      setIsUploadingImage(true);
 
-    const downloadURL = await getDownloadURL(imageRef);
+      blob = await createBlobFromUri(
+        selectedAsset.uri
+      );
 
-    return downloadURL;
+      const imageRef = ref(
+        storage,
+        `profileImages/${currentUser.uid}.jpg`
+      );
+
+      await uploadBytes(
+        imageRef,
+        blob,
+        {
+          contentType:
+            selectedAsset.mimeType ||
+            'image/jpeg',
+        }
+      );
+
+      const downloadURL =
+        await getDownloadURL(imageRef);
+
+      return downloadURL;
+    } finally {
+      if (
+        blob &&
+        typeof blob.close === 'function'
+      ) {
+        blob.close();
+      }
+
+      setIsUploadingImage(false);
+    }
   };
 
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permissionResult.granted) {
-      Alert.alert('Permission Required', 'Please allow access to your photos.');
-      return;
-    }
+      if (!permissionResult.granted) {
+        Alert.alert(
+          'Permission Required',
+          'Please allow TRIO to access your photos so you can choose a profile picture.'
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
+      const result =
+        await ImagePicker.launchImageLibraryAsync({
+          mediaTypes:
+            ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.7,
+        });
 
-    if (!result.canceled) {
-      const selectedImage = result.assets[0].uri;
+      if (
+        result.canceled ||
+        !result.assets?.length
+      ) {
+        return;
+      }
 
-      setProfileImage(selectedImage);
-      setAvatar({ uri: selectedImage });
+      const selectedAsset =
+        result.assets[0];
+
+      setSelectedImageAsset(
+        selectedAsset
+      );
+
+      setProfileImage(
+        selectedAsset.uri
+      );
+
+      setAvatar({
+        uri: selectedAsset.uri,
+      });
+    } catch (error) {
+      console.log(
+        'Image picker error:',
+        error
+      );
+
+      Alert.alert(
+        'Photo Error',
+        error?.message ||
+          'The photo library could not be opened.'
+      );
     }
   };
 
@@ -191,12 +282,21 @@ const EditProfile = ({ navigation }) => {
     try {
       let finalProfileImage = profileImage;
 
-      if (
+      if (selectedImageAsset?.uri) {
+        finalProfileImage =
+          await uploadProfileImage(
+            selectedImageAsset
+          );
+      } else if (
         profileImage &&
         !profileImage.startsWith('https://') &&
         !profileImage.startsWith('http://')
       ) {
-        finalProfileImage = await uploadProfileImage(profileImage);
+        finalProfileImage =
+          await uploadProfileImage({
+            uri: profileImage,
+            mimeType: 'image/jpeg',
+          });
       }
 
       const profileData = {
@@ -222,8 +322,23 @@ const EditProfile = ({ navigation }) => {
       Alert.alert('Profile Updated', 'Your profile has been saved.');
       navigation.goBack();
     } catch (error) {
-      console.log('Profile save error:', error);
-      Alert.alert('Error', 'Profile could not be saved.');
+      console.log(
+        'Profile save error:',
+        error
+      );
+
+      const errorCode =
+        error?.code
+          ? `\n\nCode: ${error.code}`
+          : '';
+
+      Alert.alert(
+        'Profile Save Error',
+        `${
+          error?.message ||
+          'Profile could not be saved.'
+        }${errorCode}`
+      );
     }
   };
 
@@ -270,6 +385,7 @@ const EditProfile = ({ navigation }) => {
               onPress={pickImage}
               style={styles.avatarWrapper}
               activeOpacity={0.85}
+              disabled={isUploadingImage}
             >
               <LinearGradient
                 colors={
@@ -299,11 +415,30 @@ const EditProfile = ({ navigation }) => {
               ]}
               onPress={pickImage}
               activeOpacity={0.84}
+              disabled={isUploadingImage}
             >
-              <Ionicons name="image-outline" size={18} color="#FFFFFF" />
-              <Text style={styles.changePhotoText}>
-                Change Profile Photo
-              </Text>
+              {isUploadingImage ? (
+                <>
+                  <ActivityIndicator
+                    size="small"
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.changePhotoText}>
+                    Uploading...
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons
+                    name="image-outline"
+                    size={18}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.changePhotoText}>
+                    Change Profile Photo
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -449,6 +584,7 @@ const EditProfile = ({ navigation }) => {
             style={styles.saveButton}
             onPress={handleSave}
             activeOpacity={0.86}
+            disabled={isUploadingImage}
           >
             <LinearGradient
               colors={

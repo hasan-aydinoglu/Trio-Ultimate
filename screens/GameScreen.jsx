@@ -120,23 +120,258 @@ const players = [
   },
 ];
 
-const createNumberPool = () => {
-  const numbers = Array.from(
-    { length: 50 },
-    (_, index) => index + 1
-  );
+const shuffleArray = (items) => {
+  const shuffled = [
+    ...items,
+  ];
 
-  return numbers.sort(
-    () => Math.random() - 0.5
+  for (
+    let index =
+      shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1)
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex],
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
+/*
+ * Mevcut tablo üzerinde gerçekten
+ * çözülebilen hedefleri üretir.
+ *
+ * Oyundaki seçim kuralıyla aynı şekilde
+ * üç farklı ve birbirine bağlı hücreyi
+ * kontrol eder.
+ *
+ * Formüller de checkResult ile aynıdır:
+ * A × B + C
+ * A × B - C
+ * A ÷ B + C
+ * A ÷ B - C
+ *
+ * Hedefler mevcut oyun yapısını korumak
+ * için 1 ile 50 arasında tam sayı tutulur.
+ */
+const createNumberPool = (
+  boardData
+) => {
+  const rows =
+    boardData.length;
+
+  const columns =
+    boardData[0]?.length || 0;
+
+  const possibleTargets =
+    new Set();
+
+  const isInsideBoard = (
+    row,
+    col
+  ) => {
+    return (
+      row >= 0 &&
+      row < rows &&
+      col >= 0 &&
+      col < columns
+    );
+  };
+
+  const isSameCell = (
+    first,
+    second
+  ) => {
+    return (
+      first.row === second.row &&
+      first.col === second.col
+    );
+  };
+
+  const getNeighbours = (
+    row,
+    col
+  ) => {
+    const neighbours = [];
+
+    for (
+      let rowOffset = -1;
+      rowOffset <= 1;
+      rowOffset += 1
+    ) {
+      for (
+        let colOffset = -1;
+        colOffset <= 1;
+        colOffset += 1
+      ) {
+        if (
+          rowOffset === 0 &&
+          colOffset === 0
+        ) {
+          continue;
+        }
+
+        const nextRow =
+          row + rowOffset;
+
+        const nextCol =
+          col + colOffset;
+
+        if (
+          isInsideBoard(
+            nextRow,
+            nextCol
+          )
+        ) {
+          neighbours.push({
+            row: nextRow,
+            col: nextCol,
+          });
+        }
+      }
+    }
+
+    return neighbours;
+  };
+
+  const addTarget = (
+    value
+  ) => {
+    if (
+      Number.isFinite(value) &&
+      Number.isInteger(value) &&
+      value >= 1 &&
+      value <= 50
+    ) {
+      possibleTargets.add(
+        value
+      );
+    }
+  };
+
+  for (
+    let firstRow = 0;
+    firstRow < rows;
+    firstRow += 1
+  ) {
+    for (
+      let firstCol = 0;
+      firstCol < columns;
+      firstCol += 1
+    ) {
+      const firstCell = {
+        row: firstRow,
+        col: firstCol,
+      };
+
+      const firstValue =
+        boardData[firstRow][firstCol];
+
+      const secondCells =
+        getNeighbours(
+          firstRow,
+          firstCol
+        );
+
+      secondCells.forEach(
+        (secondCell) => {
+          const secondValue =
+            boardData[
+              secondCell.row
+            ][
+              secondCell.col
+            ];
+
+          const thirdCells =
+            getNeighbours(
+              secondCell.row,
+              secondCell.col
+            );
+
+          thirdCells.forEach(
+            (thirdCell) => {
+              if (
+                isSameCell(
+                  thirdCell,
+                  firstCell
+                ) ||
+                isSameCell(
+                  thirdCell,
+                  secondCell
+                )
+              ) {
+                return;
+              }
+
+              const thirdValue =
+                boardData[
+                  thirdCell.row
+                ][
+                  thirdCell.col
+                ];
+
+              const multiply =
+                firstValue *
+                secondValue;
+
+              addTarget(
+                multiply +
+                  thirdValue
+              );
+
+              addTarget(
+                multiply -
+                  thirdValue
+              );
+
+              if (
+                secondValue !== 0
+              ) {
+                const divide =
+                  firstValue /
+                  secondValue;
+
+                addTarget(
+                  divide +
+                    thirdValue
+                );
+
+                addTarget(
+                  divide -
+                    thirdValue
+                );
+              }
+            }
+          );
+        }
+      );
+    }
+  }
+
+  return shuffleArray(
+    Array.from(
+      possibleTargets
+    )
   );
 };
 
 const shuffleTable = () => {
-  const flatNumbers = tableData.flat();
-
-  const shuffled = [
-    ...flatNumbers,
-  ].sort(() => Math.random() - 0.5);
+  const flatNumbers =
+    shuffleArray(
+      tableData.flat()
+    );
 
   const newTable = [];
 
@@ -146,8 +381,9 @@ const shuffleTable = () => {
     index += 1
   ) {
     newTable.push(
-      shuffled.slice(
-        index * tableData[0].length,
+      flatNumbers.slice(
+        index *
+          tableData[0].length,
         (index + 1) *
           tableData[0].length
       )
@@ -155,6 +391,19 @@ const shuffleTable = () => {
   }
 
   return newTable;
+};
+
+const createNewGameSetup = () => {
+  const newTable =
+    shuffleTable();
+
+  return {
+    table: newTable,
+    numberPool:
+      createNumberPool(
+        newTable
+      ),
+  };
 };
 
 const GameScreen = ({
@@ -187,14 +436,24 @@ const GameScreen = ({
   ] = useState('Player 1');
 
   const [
+    initialGameSetup,
+  ] = useState(
+    () => createNewGameSetup()
+  );
+
+  const [
     currentTableData,
     setCurrentTableData,
-  ] = useState(tableData);
+  ] = useState(
+    initialGameSetup.table
+  );
 
   const [
     numberPool,
     setNumberPool,
-  ] = useState(createNumberPool());
+  ] = useState(
+    initialGameSetup.numberPool
+  );
 
   const [
     gameOver,
@@ -543,33 +802,79 @@ const GameScreen = ({
   const getPlayerPhoto = (
     playerId
   ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const routePhoto =
+      player?.photo ||
+      player?.image ||
+      player?.avatar ||
+      player?.avatarUrl ||
+      player?.profileImage ||
+      player?.photoURL ||
+      player?.profilePhoto ||
+      null;
+
+    /*
+     * Online oyunda routePlayers üzerinden
+     * gelen gerçek profil fotoğrafını
+     * tüm 4 oyuncu için öncelikli kullan.
+     */
+    if (routePhoto) {
+      return routePhoto;
+    }
+
+    const playerUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    /*
+     * Route fotoğrafı yoksa ve bu oyuncu
+     * giriş yapan kullanıcıysa kendi
+     * Firebase profil fotoğrafını kullan.
+     */
     if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    /*
+     * Offline/local oyunda mevcut
+     * Player 1 davranışını koru.
+     */
+    if (
+      route?.params?.isOnline !==
+        true &&
       playerId === 1 &&
       profileImage
     ) {
       return profileImage;
     }
 
-    const player =
-      routePlayers.find(
-        (item) =>
-          item.id === playerId
-      );
-
-    return (
-      player?.photo ||
-      player?.image ||
-      player?.avatar ||
-      null
-    );
+    return null;
   };
 
   const getPlayerName = (
     playerId
   ) => {
-    if (playerId === 1) {
-      return loggedInPlayerName;
-    }
+    const currentUser =
+      auth.currentUser;
 
     const player =
       routePlayers.find(
@@ -577,8 +882,50 @@ const GameScreen = ({
           item.id === playerId
       );
 
+    const playerUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        `Player ${playerId}`
+      );
+    }
+
+    if (
+      route?.params?.isOnline !==
+        true &&
+      playerId === 1
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        'Player 1'
+      );
+    }
+
     return (
+      player?.username ||
       player?.name ||
+      player?.fullName ||
+      player?.displayName ||
+      player?.email ||
       `Player ${playerId}`
     );
   };
@@ -589,13 +936,6 @@ const GameScreen = ({
   ) => {
     const currentUser =
       auth.currentUser;
-
-    if (
-      playerId === 1 &&
-      currentUser?.uid
-    ) {
-      return currentUser.uid;
-    }
 
     const player =
       routePlayers.find(
@@ -613,6 +953,11 @@ const GameScreen = ({
       player?.profile?.uid ||
       null;
 
+    /*
+     * 4 oyunculu online maçlarda her
+     * oyuncunun UID'si routePlayers
+     * içinde geldiyse doğrudan onu kullan.
+     */
     if (directUserId) {
       return directUserId;
     }
@@ -623,20 +968,40 @@ const GameScreen = ({
     const acceptedBy =
       route?.params?.acceptedBy;
 
+    /*
+     * Eski 2 kişilik online davet akışıyla
+     * uyumluluk için fallback.
+     */
     if (
-      route?.params?.isOnline === true &&
-      currentUser?.uid &&
-      invitedBy &&
-      acceptedBy
+      route?.params?.isOnline ===
+        true
     ) {
       if (
-        playerId === 2
+        playerId === 1 &&
+        invitedBy
       ) {
-        return currentUser.uid ===
-          invitedBy
-          ? acceptedBy
-          : invitedBy;
+        return invitedBy;
       }
+
+      if (
+        playerId === 2 &&
+        acceptedBy
+      ) {
+        return acceptedBy;
+      }
+    }
+
+    /*
+     * Offline/local oyunda Player 1
+     * giriş yapan kullanıcıdır.
+     */
+    if (
+      route?.params?.isOnline !==
+        true &&
+      playerId === 1 &&
+      currentUser?.uid
+    ) {
+      return currentUser.uid;
     }
 
     return null;
@@ -711,7 +1076,34 @@ const GameScreen = ({
               playerId
             ),
 
+          username:
+            player?.username ||
+            player?.name ||
+            getPlayerName(
+              playerId
+            ),
+
           photo:
+            getPlayerPhoto(
+              playerId
+            ),
+
+          image:
+            getPlayerPhoto(
+              playerId
+            ),
+
+          avatar:
+            getPlayerPhoto(
+              playerId
+            ),
+
+          profileImage:
+            getPlayerPhoto(
+              playerId
+            ),
+
+          photoURL:
             getPlayerPhoto(
               playerId
             ),
@@ -742,16 +1134,19 @@ const GameScreen = ({
   };
 
   const resetGame = () => {
+    const newGameSetup =
+      createNewGameSetup();
+
     setSelectedCells([]);
 
     setRandomNumber(null);
 
     setCurrentTableData(
-      shuffleTable()
+      newGameSetup.table
     );
 
     setNumberPool(
-      createNumberPool()
+      newGameSetup.numberPool
     );
 
     setGameOver(false);

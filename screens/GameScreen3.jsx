@@ -58,9 +58,32 @@ const blueCards = [
 ];
 
 const shuffleArray = (array) => {
-  return [...array].sort(
-    () => Math.random() - 0.5
-  );
+  const shuffled = [
+    ...array,
+  ];
+
+  for (
+    let index =
+      shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1)
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex],
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
 };
 
 const canReachTarget = (
@@ -91,75 +114,221 @@ const canReachTarget = (
     },
   ];
 
-  const permutations = [];
-
-  const permute = (
-    arr,
-    path = []
+  const permutationsOfThree = (
+    values
   ) => {
-    if (arr.length === 0) {
-      permutations.push(path);
-      return;
-    }
+    const [
+      a,
+      b,
+      c,
+    ] = values;
 
-    arr.forEach(
-      (item, index) => {
-        const rest = arr.filter(
-          (_, currentIndex) =>
-            currentIndex !== index
-        );
-
-        permute(rest, [
-          ...path,
-          item,
-        ]);
-      }
-    );
+    return [
+      [a, b, c],
+      [a, c, b],
+      [b, a, c],
+      [b, c, a],
+      [c, a, b],
+      [c, b, a],
+    ];
   };
 
-  permute(numbers);
-
   for (
-    const nums of permutations
+    let firstIndex = 0;
+    firstIndex <
+    numbers.length - 2;
+    firstIndex += 1
   ) {
-    for (const op1 of ops) {
-      for (const op2 of ops) {
-        const first = op1.fn(
-          nums[0],
-          nums[1]
-        );
+    for (
+      let secondIndex =
+        firstIndex + 1;
+      secondIndex <
+      numbers.length - 1;
+      secondIndex += 1
+    ) {
+      for (
+        let thirdIndex =
+          secondIndex + 1;
+        thirdIndex <
+        numbers.length;
+        thirdIndex += 1
+      ) {
+        const threeNumbers = [
+          numbers[firstIndex],
+          numbers[secondIndex],
+          numbers[thirdIndex],
+        ];
 
-        if (
-          first === null ||
-          !Number.isFinite(first)
+        const permutations =
+          permutationsOfThree(
+            threeNumbers
+          );
+
+        for (
+          const nums of
+          permutations
         ) {
-          continue;
-        }
+          for (
+            const op1 of ops
+          ) {
+            for (
+              const op2 of ops
+            ) {
+              const first =
+                op1.fn(
+                  nums[0],
+                  nums[1]
+                );
 
-        const result = op2.fn(
-          first,
-          nums[2]
-        );
+              if (
+                first === null ||
+                !Number.isFinite(
+                  first
+                )
+              ) {
+                continue;
+              }
 
-        if (
-          result === null ||
-          !Number.isFinite(result)
-        ) {
-          continue;
-        }
+              const result =
+                op2.fn(
+                  first,
+                  nums[2]
+                );
 
-        if (
-          Math.abs(
-            result - target
-          ) < 0.0001
-        ) {
-          return `(${nums[0]} ${op1.symbol} ${nums[1]}) ${op2.symbol} ${nums[2]} = ${target}`;
+              if (
+                result === null ||
+                !Number.isFinite(
+                  result
+                )
+              ) {
+                continue;
+              }
+
+              if (
+                Math.abs(
+                  result -
+                    target
+                ) < 0.0001
+              ) {
+                return `(${nums[0]} ${op1.symbol} ${nums[1]}) ${op2.symbol} ${nums[2]} = ${target}`;
+              }
+            }
+          }
         }
       }
     }
   }
 
   return null;
+};
+
+/*
+ * Yeni karıştırılan kart destesinin
+ * içinden gerçekten çözülebilen Blue
+ * Target kartlarını bulur.
+ *
+ * Sadece 3 fiziksel kartla yapılabilen
+ * kombinasyonlar hesaba katılır.
+ */
+const getSolvableBlueCards = (
+  cardDeck
+) => {
+  const cardCounts =
+    cardDeck.reduce(
+      (counts, value) => {
+        counts[value] =
+          (counts[value] || 0) + 1;
+
+        return counts;
+      },
+      {}
+    );
+
+  const uniqueValues =
+    Object.keys(
+      cardCounts
+    ).map(Number);
+
+  const hasRequiredCards = (
+    values
+  ) => {
+    const required =
+      values.reduce(
+        (counts, value) => {
+          counts[value] =
+            (counts[value] || 0) + 1;
+
+          return counts;
+        },
+        {}
+      );
+
+    return Object.entries(
+      required
+    ).every(
+      ([value, count]) =>
+        (cardCounts[value] || 0) >=
+        count
+    );
+  };
+
+  return blueCards.filter(
+    (target) => {
+      for (
+        let firstIndex = 0;
+        firstIndex <
+        uniqueValues.length;
+        firstIndex += 1
+      ) {
+        for (
+          let secondIndex =
+            firstIndex;
+          secondIndex <
+          uniqueValues.length;
+          secondIndex += 1
+        ) {
+          for (
+            let thirdIndex =
+              secondIndex;
+            thirdIndex <
+            uniqueValues.length;
+            thirdIndex += 1
+          ) {
+            const values = [
+              uniqueValues[
+                firstIndex
+              ],
+              uniqueValues[
+                secondIndex
+              ],
+              uniqueValues[
+                thirdIndex
+              ],
+            ];
+
+            if (
+              !hasRequiredCards(
+                values
+              )
+            ) {
+              continue;
+            }
+
+            if (
+              canReachTarget(
+                values,
+                target
+              )
+            ) {
+              return true;
+            }
+          }
+        }
+      }
+
+      return false;
+    }
+  );
 };
 
 export default function GameScreen3({
@@ -264,20 +433,270 @@ export default function GameScreen3({
   const routePlayers =
     route?.params?.players || [];
 
-  const secondPlayer =
-    routePlayers.find(
-      (player) => player.id === 2
+  const getPlayerFromRoute = (
+    playerId
+  ) => {
+    return routePlayers.find(
+      (player) =>
+        player.id === playerId
     );
+  };
 
-  const secondPlayerName =
-    secondPlayer?.name ||
-    'Player 2';
+  const getPlayerUserId = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
 
-  const secondPlayerPhoto =
-    secondPlayer?.photo ||
-    secondPlayer?.image ||
-    secondPlayer?.avatar ||
-    null;
+    const player =
+      getPlayerFromRoute(
+        playerId
+      );
+
+    const directUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (directUserId) {
+      return directUserId;
+    }
+
+    /*
+     * Bu ekranın mevcut yapısında
+     * Player 1 giriş yapan kullanıcıdır.
+     */
+    if (
+      playerId === 1 &&
+      currentUser?.uid
+    ) {
+      return currentUser.uid;
+    }
+
+    const invitedBy =
+      route?.params?.invitedBy;
+
+    const acceptedBy =
+      route?.params?.acceptedBy;
+
+    if (
+      playerId === 2 &&
+      route?.params?.isOnline ===
+        true &&
+      currentUser?.uid &&
+      invitedBy &&
+      acceptedBy
+    ) {
+      return currentUser.uid ===
+        invitedBy
+        ? acceptedBy
+        : invitedBy;
+    }
+
+    return null;
+  };
+
+  const getPlayerName = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      getPlayerFromRoute(
+        playerId
+      );
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        `Player ${playerId}`
+      );
+    }
+
+    if (playerId === 1) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        'Player 1'
+      );
+    }
+
+    return (
+      player?.username ||
+      player?.name ||
+      player?.fullName ||
+      player?.displayName ||
+      player?.email ||
+      `Player ${playerId}`
+    );
+  };
+
+  const getPlayerPhoto = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      getPlayerFromRoute(
+        playerId
+      );
+
+    const routePhoto =
+      player?.photo ||
+      player?.image ||
+      player?.avatar ||
+      player?.avatarUrl ||
+      player?.profileImage ||
+      player?.photoURL ||
+      player?.profilePhoto ||
+      null;
+
+    if (routePhoto) {
+      return routePhoto;
+    }
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    if (
+      playerId === 1 &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    return null;
+  };
+
+  const openPlayerProfile = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (!playerUserId) {
+      Alert.alert(
+        'Profile unavailable',
+        'This player profile is not available in this match.'
+      );
+
+      return;
+    }
+
+    if (
+      currentUser?.uid ===
+      playerUserId
+    ) {
+      navigation.navigate(
+        'TabNavigator',
+        {
+          screen: 'Profile',
+        }
+      );
+
+      return;
+    }
+
+    const player =
+      getPlayerFromRoute(
+        playerId
+      );
+
+    const playerPhoto =
+      getPlayerPhoto(
+        playerId
+      );
+
+    navigation.navigate(
+      'UserProfileScreen',
+      {
+        userId:
+          playerUserId,
+
+        uid:
+          playerUserId,
+
+        profileUserId:
+          playerUserId,
+
+        selectedUserId:
+          playerUserId,
+
+        user: {
+          ...(player || {}),
+
+          uid:
+            playerUserId,
+
+          userId:
+            playerUserId,
+
+          name:
+            getPlayerName(
+              playerId
+            ),
+
+          username:
+            player?.username ||
+            player?.name ||
+            getPlayerName(
+              playerId
+            ),
+
+          photo:
+            playerPhoto,
+
+          image:
+            playerPhoto,
+
+          avatar:
+            playerPhoto,
+
+          profileImage:
+            playerPhoto,
+
+          photoURL:
+            playerPhoto,
+        },
+      }
+    );
+  };
 
   const goToGameMenu = () => {
     navigation.reset({
@@ -607,6 +1026,125 @@ export default function GameScreen3({
     loadFirebaseProfileData();
   }, []);
 
+  const renderPlayerCard = (
+    playerId
+  ) => {
+    const photo =
+      getPlayerPhoto(
+        playerId
+      );
+
+    const isActive =
+      playerTurn === playerId;
+
+    return (
+      <View
+        style={[
+          styles.playerCard,
+          isDarkMode &&
+            styles.playerCardDark,
+          isActive &&
+            styles.activePlayerCard,
+        ]}
+      >
+        <View
+          style={[
+            styles.playerStatusDot,
+            isActive &&
+              styles.activeStatusDot,
+          ]}
+        />
+
+        <TouchableOpacity
+          onPress={() =>
+            openPlayerProfile(
+              playerId
+            )
+          }
+          activeOpacity={0.78}
+          style={
+            styles.profileButton
+          }
+        >
+          <LinearGradient
+            colors={
+              isActive
+                ? [
+                    '#FDBA74',
+                    '#F97316',
+                  ]
+                : [
+                    '#C2410C',
+                    '#7C2D12',
+                  ]
+            }
+            style={
+              styles.avatarGlow
+            }
+          >
+            {photo ? (
+              <Image
+                source={{
+                  uri: photo,
+                }}
+                style={
+                  styles.profileImage
+                }
+              />
+            ) : (
+              <View
+                style={
+                  styles.defaultAvatar
+                }
+              >
+                <Text
+                  style={
+                    styles.defaultAvatarText
+                  }
+                >
+                  P{playerId}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <Text
+          numberOfLines={1}
+          style={
+            styles.playerName
+          }
+        >
+          {getPlayerName(
+            playerId
+          )}
+        </Text>
+
+        <View
+          style={
+            styles.scoreBadge
+          }
+        >
+          <Text
+            style={
+              styles.scoreLabel
+            }
+          >
+            SCORE
+          </Text>
+
+          <Text
+            style={
+              styles.playerScore
+            }
+          >
+            {scores[playerId]}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   const openedNumbers =
     useMemo(() => {
       return openedIndexes.map(
@@ -624,8 +1162,18 @@ export default function GameScreen3({
   };
 
   const startRound = () => {
+    const newCards =
+      shuffleArray(
+        originalCards
+      );
+
+    const solvableBlueCards =
+      getSolvableBlueCards(
+        newCards
+      );
+
     const availableBlueCards =
-      blueCards.filter(
+      solvableBlueCards.filter(
         (card) =>
           !usedBlueCards.includes(
             card
@@ -636,17 +1184,23 @@ export default function GameScreen3({
       availableBlueCards.length ===
       0
     ) {
+      const playerOneName =
+        getPlayerName(1);
+
+      const playerTwoName =
+        getPlayerName(2);
+
       const winner =
         scores[1] > scores[2]
-          ? `${loggedInPlayerName} wins!`
+          ? `${playerOneName} wins!`
           : scores[2] >
             scores[1]
-          ? `${secondPlayerName} wins!`
+          ? `${playerTwoName} wins!`
           : 'Draw!';
 
       Alert.alert(
         'Game Over',
-        `${loggedInPlayerName}: ${scores[1]} points\n${secondPlayerName}: ${scores[2]} points\n\n${winner}`
+        `${playerOneName}: ${scores[1]} points\n${playerTwoName}: ${scores[2]} points\n\n${winner}`
       );
 
       return;
@@ -660,15 +1214,21 @@ export default function GameScreen3({
         )
       ];
 
+    /*
+     * Target ve tablo aynı yeni tur
+     * setup'ından gelir. Böylece seçilen
+     * hedefin bu kart destesinin içinde
+     * kesin çözümü vardır.
+     */
+    setCards(
+      newCards
+    );
+
     setTargetNumber(
       randomBlueCard
     );
 
     setOpenedIndexes([]);
-
-    setCards(
-      shuffleArray(originalCards)
-    );
   };
 
   const openCard = (index) => {
@@ -729,9 +1289,9 @@ export default function GameScreen3({
       ]);
 
       const roundWinnerName =
-        playerTurn === 1
-          ? loggedInPlayerName
-          : secondPlayerName;
+        getPlayerName(
+          playerTurn
+        );
 
       Alert.alert(
         '🎉 Round Winner!',
@@ -806,6 +1366,14 @@ export default function GameScreen3({
       >
         <LinearGradient
           colors={gameGradientColors}
+          start={{
+            x: 0,
+            y: 0,
+          }}
+          end={{
+            x: 1,
+            y: 1,
+          }}
           style={
             styles.rulesContainer
           }
@@ -815,18 +1383,50 @@ export default function GameScreen3({
           {isDarkMode && (
             <View
               pointerEvents="none"
-              style={styles.darkModeOverlay}
+              style={
+                styles.darkModeOverlay
+              }
             />
           )}
 
           {renderExitButton()}
+
+          <View
+            style={
+              styles.modeBadge
+            }
+          >
+            <Text
+              style={
+                styles.modeBadgeIcon
+              }
+            >
+              ?
+            </Text>
+
+            <Text
+              style={
+                styles.modeBadgeText
+              }
+            >
+              MODE 3
+            </Text>
+          </View>
+
+          <Text
+            style={
+              styles.rulesEyebrow
+            }
+          >
+            TRIO HIDDEN PLAY
+          </Text>
 
           <Text
             style={
               styles.rulesTitle
             }
           >
-            TRIO GAME TYPE 3
+            Hidden Card Challenge
           </Text>
 
           <Text
@@ -834,7 +1434,7 @@ export default function GameScreen3({
               styles.rulesSubtitle
             }
           >
-            Hidden Card Challenge
+            Reveal cards one by one, discover the right combination and reach the target before your opponent.
           </Text>
 
           <View
@@ -844,92 +1444,100 @@ export default function GameScreen3({
                 styles.darkGlassPanel,
             ]}
           >
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • This mode is played
-              by 2 players.
-            </Text>
+            {[
+              ['01', 'This mode is played by 2 players'],
+              ['02', 'Draw a target to begin a new round'],
+              ['03', 'Every round starts with a freshly shuffled hidden grid'],
+              ['04', 'Players take turns revealing one card'],
+              ['05', 'Use any 3 revealed numbers with +, −, × or ÷'],
+              ['06', 'The target value is added to the round winner’s score'],
+            ].map(
+              ([number, rule]) => (
+                <View
+                  key={number}
+                  style={
+                    styles.ruleRow
+                  }
+                >
+                  <View
+                    style={
+                      styles.ruleNumber
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.ruleNumberText
+                      }
+                    >
+                      {number}
+                    </Text>
+                  </View>
 
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Press Draw Blue Card
-              to get the target
-              number.
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Cards are hidden at
-              the beginning of each
-              round.
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Players take turns
-              opening one card.
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • Try to reach the blue
-              target number using
-              opened cards.
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • The player who
-              reaches the target wins
-              that round.
-            </Text>
-
-            <Text
-              style={
-                styles.ruleText
-              }
-            >
-              • The target number is
-              added to the winner’s
-              score.
-            </Text>
+                  <Text
+                    style={
+                      styles.ruleText
+                    }
+                  >
+                    {rule}
+                  </Text>
+                </View>
+              )
+            )}
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.startButton,
-              isDarkMode &&
-                styles.startButtonDark,
-            ]}
-            onPress={() =>
-              setShowRules(false)
+            style={
+              styles.startButton
             }
+            onPress={() => {
+              setCards(
+                shuffleArray(
+                  originalCards
+                )
+              );
+
+              setOpenedIndexes([]);
+
+              setTargetNumber(null);
+
+              setShowRules(false);
+            }}
+            activeOpacity={0.86}
           >
-            <Text
+            <LinearGradient
+              colors={[
+                '#FDBA74',
+                '#F97316',
+                '#C2410C',
+              ]}
+              start={{
+                x: 0,
+                y: 0,
+              }}
+              end={{
+                x: 1,
+                y: 1,
+              }}
               style={
-                styles.buttonText
+                styles.primaryButtonGradient
               }
             >
-              START GAME
-            </Text>
+              <Text
+                style={
+                  styles.buttonText
+                }
+              >
+                Start Game
+              </Text>
+
+              <Text
+                style={
+                  styles.buttonArrow
+                }
+              >
+                →
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </LinearGradient>
       </ImageBackground>
@@ -947,256 +1555,325 @@ export default function GameScreen3({
     >
       <LinearGradient
         colors={gameGradientColors}
-        style={styles.container}
+        start={{
+          x: 0,
+          y: 0,
+        }}
+        end={{
+          x: 1,
+          y: 1,
+        }}
+        style={
+          styles.container
+        }
       >
         {renderBackgroundDecor()}
 
         {isDarkMode && (
           <View
             pointerEvents="none"
-            style={styles.darkModeOverlay}
+            style={
+              styles.darkModeOverlay
+            }
           />
         )}
 
         {renderExitButton()}
 
-        <Text
-          style={styles.title}
-        >
-          Game Type 3
-        </Text>
-
-        <Text
-          style={styles.subtitle}
-        >
-          Hidden Card Challenge
-        </Text>
-
         <View
-          style={[
-            styles.playersBox,
-            isDarkMode &&
-              styles.playersBoxDark,
-          ]}
+          style={
+            styles.gameHeader
+          }
         >
-          <View
-            style={[
-              styles.playerCard,
-              isDarkMode &&
-                styles.playerCardDark,
-
-              playerTurn === 1 &&
-                styles.activePlayerCard,
-            ]}
-          >
-            {profileImage ? (
-              <Image
-                source={{
-                  uri: profileImage,
-                }}
-                style={
-                  styles.profileImage
-                }
-              />
-            ) : (
-              <View
-                style={
-                  styles.defaultAvatar
-                }
-              >
-                <Text
-                  style={
-                    styles.defaultAvatarText
-                  }
-                >
-                  P1
-                </Text>
-              </View>
-            )}
-
+          <View>
             <Text
               style={
-                styles.playerName
+                styles.gameEyebrow
               }
             >
-              {
-                loggedInPlayerName
-              }
+              TRIO · TYPE 3
             </Text>
 
             <Text
               style={
-                styles.playerScore
+                styles.gameTitle
               }
             >
-              {scores[1]} pts
+              Hidden Card Challenge
             </Text>
           </View>
 
           <View
-            style={[
-              styles.playerCard,
-              isDarkMode &&
-                styles.playerCardDark,
-
-              playerTurn === 2 &&
-                styles.activePlayerCard,
-            ]}
+            style={
+              styles.modeNumberBadge
+            }
           >
-            {secondPlayerPhoto ? (
-              <Image
-                source={{
-                  uri: secondPlayerPhoto,
-                }}
-                style={
-                  styles.profileImage
-                }
-              />
-            ) : (
-              <View
-                style={
-                  styles.defaultAvatar
-                }
-              >
-                <Text
-                  style={
-                    styles.defaultAvatarText
-                  }
-                >
-                  P2
-                </Text>
-              </View>
-            )}
-
             <Text
               style={
-                styles.playerName
+                styles.modeNumberText
               }
             >
-              {secondPlayerName}
-            </Text>
-
-            <Text
-              style={
-                styles.playerScore
-              }
-            >
-              {scores[2]} pts
+              3
             </Text>
           </View>
         </View>
 
-        <Text
+        <View
           style={[
-            styles.turnText,
+            styles.playersPanel,
             isDarkMode &&
-              styles.turnTextDark,
+              styles.darkGlassPanel,
           ]}
         >
-          Turn:{' '}
-          {playerTurn === 1
-            ? loggedInPlayerName
-            : secondPlayerName}
-        </Text>
-
-        <TouchableOpacity
-          style={[
-            styles.blueButton,
-            isDarkMode &&
-              styles.blueButtonDark,
-          ]}
-          onPress={startRound}
-        >
-          <Text
+          <View
             style={
-              styles.buttonText
+              styles.playersBox
             }
           >
-            {targetNumber ===
-            null
-              ? 'Draw Blue Card'
-              : `Target: ${targetNumber}`}
+            {renderPlayerCard(1)}
+            {renderPlayerCard(2)}
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.turnBanner,
+            isDarkMode &&
+              styles.darkGlassPanel,
+          ]}
+        >
+          <View
+            style={
+              styles.turnDot
+            }
+          />
+
+          <Text
+            style={
+              styles.turnLabel
+            }
+          >
+            CURRENT TURN
           </Text>
+
+          <Text
+            numberOfLines={1}
+            style={
+              styles.turnPlayer
+            }
+          >
+            {getPlayerName(
+              playerTurn
+            )}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={
+            styles.targetCard
+          }
+          onPress={startRound}
+          activeOpacity={0.86}
+        >
+          <LinearGradient
+            colors={
+              targetNumber === null
+                ? [
+                    '#FDBA74',
+                    '#F97316',
+                    '#C2410C',
+                  ]
+                : [
+                    '#FFEDD5',
+                    '#FDBA74',
+                    '#F97316',
+                  ]
+            }
+            start={{
+              x: 0,
+              y: 0,
+            }}
+            end={{
+              x: 1,
+              y: 1,
+            }}
+            style={
+              styles.targetGradient
+            }
+          >
+            <View>
+              <Text
+                style={
+                  styles.targetLabel
+                }
+              >
+                BLUE TARGET
+              </Text>
+
+              <Text
+                style={
+                  styles.targetHint
+                }
+              >
+                {targetNumber === null
+                  ? 'Tap to draw a solvable target'
+                  : 'Reveal cards and build this result'}
+              </Text>
+            </View>
+
+            <View
+              style={
+                styles.targetNumberBox
+              }
+            >
+              <Text
+                style={
+                  styles.targetNumber
+                }
+              >
+                {targetNumber === null
+                  ? '?'
+                  : targetNumber}
+              </Text>
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
 
         <View
           style={[
-            styles.table,
+            styles.boardCard,
             isDarkMode &&
               styles.darkTable,
           ]}
         >
-          {Array.from({
-            length: 7,
-          }).map(
-            (_, rowIndex) => (
-              <View
-                key={rowIndex}
-                style={styles.row}
+          <View
+            style={
+              styles.boardTopRow
+            }
+          >
+            <View>
+              <Text
+                style={
+                  styles.boardTitle
+                }
               >
-                {cards
-                  .slice(
-                    rowIndex * 7,
-                    rowIndex * 7 +
-                      7
-                  )
-                  .map(
-                    (
-                      value,
-                      colIndex
-                    ) => {
-                      const index =
-                        rowIndex *
-                          7 +
-                        colIndex;
+                HIDDEN GRID
+              </Text>
 
-                      const isOpened =
-                        openedIndexes.includes(
-                          index
-                        );
+              <Text
+                style={
+                  styles.boardSubtitle
+                }
+              >
+                Tap one card per turn
+              </Text>
+            </View>
 
-                      return (
-                        <TouchableOpacity
-                          key={
+            <View
+              style={
+                styles.openCounterBadge
+              }
+            >
+              <Text
+                style={
+                  styles.openCounterValue
+                }
+              >
+                {openedIndexes.length}
+              </Text>
+
+              <Text
+                style={
+                  styles.openCounterLabel
+                }
+              >
+                OPEN
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={
+              styles.table
+            }
+          >
+            {Array.from({
+              length: 7,
+            }).map(
+              (_, rowIndex) => (
+                <View
+                  key={rowIndex}
+                  style={
+                    styles.row
+                  }
+                >
+                  {cards
+                    .slice(
+                      rowIndex * 7,
+                      rowIndex * 7 +
+                        7
+                    )
+                    .map(
+                      (
+                        value,
+                        colIndex
+                      ) => {
+                        const index =
+                          rowIndex *
+                            7 +
+                          colIndex;
+
+                        const isOpened =
+                          openedIndexes.includes(
                             index
-                          }
-                          style={[
-                            styles.cell,
-                            {
-                              backgroundColor:
-                                isOpened
-                                  ? cardColors[
-                                      index %
-                                        cardColors.length
-                                    ]
-                                  : '#7C2D12',
-                            },
-                          ]}
-                          onPress={() =>
-                            openCard(
-                              index
-                            )
-                          }
-                          activeOpacity={
-                            0.85
-                          }
-                        >
-                          <Text
-                            style={
-                              styles.cellText
+                          );
+
+                        return (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.cell,
+                              isOpened
+                                ? styles.openedCell
+                                : styles.hiddenCell,
+                              isDarkMode &&
+                                !isOpened &&
+                                styles.darkHiddenCell,
+                            ]}
+                            onPress={() =>
+                              openCard(
+                                index
+                              )
+                            }
+                            activeOpacity={
+                              0.82
                             }
                           >
-                            {isOpened
-                              ? value
-                              : '?'}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    }
-                  )}
-              </View>
-            )
-          )}
+                            <View
+                              style={
+                                styles.cellHighlight
+                              }
+                            />
+
+                            <Text
+                              style={[
+                                styles.cellText,
+                                !isOpened &&
+                                  styles.hiddenCellText,
+                              ]}
+                            >
+                              {isOpened
+                                ? value
+                                : '?'}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      }
+                    )}
+                </View>
+              )
+            )}
+          </View>
         </View>
 
         <View
@@ -1206,15 +1883,26 @@ export default function GameScreen3({
               styles.darkGlassPanel,
           ]}
         >
-          <Text
-            style={
-              styles.openedTitle
-            }
-          >
-            Opened Numbers
-          </Text>
+          <View>
+            <Text
+              style={
+                styles.openedTitle
+              }
+            >
+              REVEALED NUMBERS
+            </Text>
+
+            <Text
+              style={
+                styles.openedHint
+              }
+            >
+              Any 3 revealed cards can form the target
+            </Text>
+          </View>
 
           <Text
+            numberOfLines={1}
             style={
               styles.openedNumbers
             }
@@ -1222,23 +1910,22 @@ export default function GameScreen3({
             {openedNumbers.length >
             0
               ? openedNumbers.join(
-                  '  |  '
+                  '  ·  '
                 )
-              : '-'}
+              : '—'}
           </Text>
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.resetButton,
-            isDarkMode &&
-              styles.resetButtonDark,
-          ]}
+          style={
+            styles.resetButton
+          }
           onPress={resetGame}
+          activeOpacity={0.82}
         >
           <Text
             style={
-              styles.buttonText
+              styles.resetButtonText
             }
           >
             Reset Game
@@ -1263,6 +1950,33 @@ const styles =
         'rgba(0,0,0,0.20)',
     },
 
+    darkGlassPanel: {
+      backgroundColor:
+        'rgba(35,10,3,0.82)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+    },
+
+    darkTable: {
+      backgroundColor:
+        'rgba(30,8,2,0.88)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+      shadowColor: '#000000',
+    },
+
+    playerCardDark: {
+      backgroundColor:
+        'rgba(40,11,3,0.76)',
+      borderColor:
+        'rgba(255,255,255,0.10)',
+    },
+
+    darkHiddenCell: {
+      backgroundColor:
+        'rgba(68,20,4,0.94)',
+    },
+
     backgroundDecor: {
       ...StyleSheet.absoluteFillObject,
       overflow: 'hidden',
@@ -1275,40 +1989,40 @@ const styles =
     },
 
     glowOrbOne: {
-      width: 290,
-      height: 290,
-      top: -120,
-      right: -105,
+      width: 300,
+      height: 300,
+      top: -130,
+      right: -115,
       backgroundColor:
-        'rgba(255,210,150,0.16)',
+        'rgba(255,224,178,0.18)',
     },
 
     glowOrbTwo: {
-      width: 245,
-      height: 245,
-      bottom: -105,
-      left: -110,
+      width: 255,
+      height: 255,
+      bottom: -115,
+      left: -115,
       backgroundColor:
-        'rgba(120,38,0,0.28)',
+        'rgba(124,45,18,0.34)',
     },
 
     glowOrbThree: {
-      width: 165,
-      height: 165,
+      width: 175,
+      height: 175,
       top: '42%',
-      right: -90,
+      right: -95,
       backgroundColor:
-        'rgba(255,153,24,0.14)',
+        'rgba(251,146,60,0.16)',
     },
 
     cardPattern: {
       position: 'absolute',
       width: 70,
       height: 94,
-      borderRadius: 16,
+      borderRadius: 18,
       borderWidth: 2,
       borderColor:
-        'rgba(255,255,255,0.07)',
+        'rgba(255,255,255,0.065)',
       backgroundColor:
         'rgba(255,255,255,0.025)',
       alignItems: 'center',
@@ -1317,17 +2031,21 @@ const styles =
 
     cardPatternOne: {
       top: 115,
-      left: -20,
+      left: -22,
       transform: [
-        { rotate: '-17deg' },
+        {
+          rotate: '-17deg',
+        },
       ],
     },
 
     cardPatternTwo: {
       top: '38%',
-      right: -24,
+      right: -26,
       transform: [
-        { rotate: '15deg' },
+        {
+          rotate: '15deg',
+        },
       ],
     },
 
@@ -1335,7 +2053,9 @@ const styles =
       bottom: 85,
       left: 18,
       transform: [
-        { rotate: '9deg' },
+        {
+          rotate: '9deg',
+        },
       ],
     },
 
@@ -1358,7 +2078,9 @@ const styles =
       left: '38%',
       fontSize: 88,
       transform: [
-        { rotate: '-8deg' },
+        {
+          rotate: '-8deg',
+        },
       ],
     },
 
@@ -1367,7 +2089,9 @@ const styles =
       left: 22,
       fontSize: 74,
       transform: [
-        { rotate: '12deg' },
+        {
+          rotate: '12deg',
+        },
       ],
     },
 
@@ -1376,264 +2100,417 @@ const styles =
       right: 35,
       fontSize: 86,
       transform: [
-        { rotate: '-10deg' },
+        {
+          rotate: '-10deg',
+        },
       ],
-    },
-
-    darkGlassPanel: {
-      backgroundColor:
-        'rgba(35,10,3,0.82)',
-      borderColor:
-        'rgba(255,255,255,0.10)',
-    },
-
-    playersBoxDark: {
-      backgroundColor:
-        'rgba(35,10,3,0.42)',
-      borderRadius: 22,
-      padding: 4,
-    },
-
-    playerCardDark: {
-      backgroundColor:
-        'rgba(40,11,3,0.76)',
-      borderColor:
-        'rgba(255,255,255,0.10)',
-    },
-
-    turnTextDark: {
-      backgroundColor:
-        'rgba(40,11,3,0.78)',
-      borderColor:
-        'rgba(255,255,255,0.10)',
-    },
-
-    darkTable: {
-      backgroundColor:
-        'rgba(30,8,2,0.84)',
-      borderColor:
-        'rgba(255,255,255,0.10)',
-      shadowColor: '#000000',
-    },
-
-    blueButtonDark: {
-      backgroundColor: '#A9450B',
-      shadowColor: '#000000',
-    },
-
-    resetButtonDark: {
-      backgroundColor:
-        'rgba(40,11,3,0.78)',
-      borderColor:
-        'rgba(255,255,255,0.12)',
-    },
-
-    startButtonDark: {
-      backgroundColor: '#A9450B',
-      shadowColor: '#000000',
     },
 
     container: {
       flex: 1,
-      paddingTop: 56,
-      paddingHorizontal: 12,
-      paddingBottom: 16,
+      paddingTop: 52,
+      paddingHorizontal: 14,
+      paddingBottom: 14,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent:
+        'flex-start',
     },
 
     exitButton: {
       position: 'absolute',
-      top: 52,
+      top: 44,
       right: 16,
       zIndex: 20,
-      backgroundColor:
-        'rgba(120,38,0,0.76)',
-      paddingVertical: 9,
+      minHeight: 36,
+      paddingVertical: 8,
       paddingHorizontal: 14,
-      borderRadius: 14,
+      borderRadius: 13,
+      backgroundColor:
+        'rgba(124,45,18,0.76)',
       borderWidth: 1,
       borderColor:
         'rgba(255,255,255,0.24)',
-      shadowColor: '#64748B',
+      shadowColor: '#7C2D12',
       shadowOffset: {
         width: 0,
-        height: 5,
+        height: 6,
       },
-      shadowOpacity: 0.15,
+      shadowOpacity: 0.24,
       shadowRadius: 10,
-      elevation: 6,
+      elevation: 7,
     },
 
     exitButtonText: {
-      color: '#F8FAFC',
+      color: '#FFF7ED',
       fontSize: 13,
       fontWeight: '900',
     },
 
-    title: {
-      color: '#F8FAFC',
-      fontSize: 25,
+    gameHeader: {
+      width: '100%',
+      minHeight: 46,
+      marginBottom: 7,
+      paddingRight: 72,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    gameEyebrow: {
+      color: '#FED7AA',
+      fontSize: 10,
       fontWeight: '900',
+      letterSpacing: 1.7,
       marginBottom: 3,
     },
 
-    subtitle: {
-      color: '#FFEDD5',
-      fontSize: 14,
-      marginBottom: 10,
-      fontWeight: '700',
+    gameTitle: {
+      color: '#FFFFFF',
+      fontSize: 19,
+      fontWeight: '900',
+      letterSpacing: -0.5,
+    },
+
+    modeNumberBadge: {
+      width: 40,
+      height: 40,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.14)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.28)',
+    },
+
+    modeNumberText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: '900',
+    },
+
+    playersPanel: {
+      width: '100%',
+      padding: 6,
+      marginBottom: 7,
+      borderRadius: 20,
+      backgroundColor:
+        'rgba(124,45,18,0.44)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.16)',
     },
 
     playersBox: {
       width: '100%',
       flexDirection: 'row',
-      gap: 10,
-      marginBottom: 8,
+      gap: 9,
     },
 
     playerCard: {
+      position: 'relative',
       flex: 1,
+      minHeight: 91,
+      paddingVertical: 7,
+      paddingHorizontal: 5,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor:
-        'rgba(120,38,0,0.48)',
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 20,
+        'rgba(124,45,18,0.42)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.18)',
-      alignItems: 'center',
-      shadowColor: '#7C2D12',
-      shadowOffset: {
-        width: 0,
-        height: 5,
-      },
-      shadowOpacity: 0.12,
-      shadowRadius: 10,
-      elevation: 5,
+        'rgba(255,255,255,0.10)',
     },
 
     activePlayerCard: {
       backgroundColor:
-        'rgba(255,183,77,0.24)',
+        'rgba(251,146,60,0.20)',
       borderColor:
-        'rgba(255,221,153,0.76)',
+        'rgba(254,215,170,0.72)',
       shadowColor: '#FB923C',
-      shadowOpacity: 0.20,
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.26,
+      shadowRadius: 9,
+      elevation: 6,
+    },
+
+    playerStatusDot: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor:
+        'rgba(255,255,255,0.20)',
+    },
+
+    activeStatusDot: {
+      backgroundColor: '#FDE68A',
+      shadowColor: '#FDE68A',
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.8,
+      shadowRadius: 5,
+      elevation: 4,
+    },
+
+    profileButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
+    },
+
+    avatarGlow: {
+      width: 46,
+      height: 46,
+      padding: 2,
+      marginBottom: 5,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 15,
     },
 
     profileImage: {
-      width: 48,
-      height: 48,
-      borderRadius: 15,
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
-      marginBottom: 6,
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.84)',
     },
 
     defaultAvatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 15,
-      backgroundColor: '#C2410C',
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      backgroundColor: '#9A3412',
       borderWidth: 1,
       borderColor: '#FDBA74',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 6,
     },
 
     defaultAvatarText: {
       color: '#FFF7ED',
-      fontSize: 15,
+      fontSize: 13,
       fontWeight: '900',
     },
 
     playerName: {
-      color: '#F8FAFC',
-      fontSize: 13,
+      width: '100%',
+      color: '#FFFFFF',
+      fontSize: 10,
       fontWeight: '900',
       textAlign: 'center',
+      marginBottom: 4,
+    },
+
+    scoreBadge: {
+      minWidth: 54,
+      height: 22,
+      paddingHorizontal: 7,
+      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.11)',
+    },
+
+    scoreLabel: {
+      color: '#FED7AA',
+      fontSize: 6,
+      fontWeight: '900',
+      letterSpacing: 0.7,
+      marginRight: 4,
     },
 
     playerScore: {
+      color: '#FFFFFF',
+      fontSize: 11,
+      fontWeight: '900',
+    },
+
+    turnBanner: {
+      width: '100%',
+      height: 36,
+      paddingHorizontal: 11,
+      marginBottom: 7,
+      borderRadius: 13,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor:
+        'rgba(124,45,18,0.45)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.14)',
+    },
+
+    turnDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      marginRight: 9,
+      backgroundColor: '#FDE68A',
+    },
+
+    turnLabel: {
       color: '#FED7AA',
+      fontSize: 8,
+      fontWeight: '900',
+      letterSpacing: 1.1,
+      marginRight: 9,
+    },
+
+    turnPlayer: {
+      flex: 1,
+      color: '#FFFFFF',
       fontSize: 12,
       fontWeight: '900',
-      marginTop: 3,
     },
 
-    turnText: {
+    targetCard: {
       width: '100%',
-      color: '#F8FAFC',
-      fontSize: 14,
-      fontWeight: '900',
-      textAlign: 'center',
-      marginBottom: 9,
-      paddingVertical: 9,
-      borderRadius: 14,
-      backgroundColor:
-        'rgba(120,38,0,0.50)',
-      borderWidth: 1,
-      borderColor:
-        'rgba(255,255,255,0.18)',
-    },
-
-    blueButton: {
-      minWidth: '72%',
-      backgroundColor: '#F97316',
-      paddingVertical: 13,
-      paddingHorizontal: 22,
-      borderRadius: 16,
-      marginBottom: 9,
-      alignItems: 'center',
-      shadowColor: '#FB923C',
+      marginBottom: 7,
+      borderRadius: 17,
+      overflow: 'hidden',
+      shadowColor: '#C2410C',
       shadowOffset: {
         width: 0,
-        height: 6,
+        height: 7,
       },
-      shadowOpacity: 0.20,
-      shadowRadius: 10,
-      elevation: 6,
+      shadowOpacity: 0.26,
+      shadowRadius: 12,
+      elevation: 8,
     },
 
-    resetButton: {
-      width: '100%',
-      backgroundColor:
-        'rgba(120,38,0,0.48)',
-      paddingVertical: 12,
-      paddingHorizontal: 22,
-      borderRadius: 15,
-      marginTop: 10,
+    targetGradient: {
+      minHeight: 66,
+      paddingHorizontal: 14,
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    targetLabel: {
+      color: '#FFF7ED',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 1.7,
+    },
+
+    targetHint: {
+      maxWidth: 240,
+      color: '#FFFFFF',
+      fontSize: 11,
+      marginTop: 4,
+      fontWeight: '700',
+    },
+
+    targetNumberBox: {
+      width: 50,
+      height: 50,
+      borderRadius: 15,
+      backgroundColor:
+        'rgba(255,255,255,0.22)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.26)',
+        'rgba(255,255,255,0.46)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
 
-    buttonText: {
-      color: '#FFFFFF',
-      fontSize: 14,
+    targetNumber: {
+      color: '#7C2D12',
+      fontSize: 25,
       fontWeight: '900',
     },
 
-    table: {
-      marginVertical: 6,
-      padding: 7,
-      borderRadius: 22,
+    boardCard: {
+      width: '100%',
+      paddingTop: 8,
+      paddingHorizontal: 6,
+      paddingBottom: 7,
+      borderRadius: 18,
       backgroundColor:
         'rgba(92,28,0,0.60)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.18)',
+        'rgba(255,255,255,0.17)',
       shadowColor: '#7C2D12',
       shadowOffset: {
         width: 0,
         height: 8,
       },
-      shadowOpacity: 0.12,
-      shadowRadius: 16,
+      shadowOpacity: 0.18,
+      shadowRadius: 14,
       elevation: 6,
+    },
+
+    boardTopRow: {
+      width: '100%',
+      minHeight: 38,
+      paddingHorizontal: 4,
+      marginBottom: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
+    },
+
+    boardTitle: {
+      color: '#FFFFFF',
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 1.4,
+    },
+
+    boardSubtitle: {
+      color: '#FED7AA',
+      fontSize: 8,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+
+    openCounterBadge: {
+      minWidth: 45,
+      height: 31,
+      paddingHorizontal: 8,
+      borderRadius: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.11)',
+    },
+
+    openCounterValue: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '900',
+      marginRight: 4,
+    },
+
+    openCounterLabel: {
+      color: '#FED7AA',
+      fontSize: 6,
+      fontWeight: '900',
+      letterSpacing: 0.6,
+    },
+
+    table: {
+      width: '100%',
+      alignItems: 'center',
     },
 
     row: {
@@ -1641,31 +2518,55 @@ const styles =
     },
 
     cell: {
-      width: 41,
-      height: 41,
-      margin: 2,
-      borderRadius: 12,
+      position: 'relative',
+      width: 40,
+      height: 40,
+      margin: 1.8,
+      borderRadius: 11,
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.24)',
+        'rgba(255,255,255,0.17)',
       shadowColor: '#7C2D12',
       shadowOffset: {
         width: 0,
         height: 3,
       },
-      shadowOpacity: 0.12,
+      shadowOpacity: 0.16,
       shadowRadius: 4,
       elevation: 3,
     },
 
+    hiddenCell: {
+      backgroundColor: '#7C2D12',
+    },
+
+    openedCell: {
+      backgroundColor: '#F97316',
+      borderColor:
+        'rgba(255,247,237,0.60)',
+      shadowColor: '#FDBA74',
+      shadowOpacity: 0.26,
+    },
+
+    cellHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '42%',
+      backgroundColor:
+        'rgba(255,255,255,0.12)',
+    },
+
     cellText: {
-      fontSize: 18,
       color: '#FFFFFF',
+      fontSize: 17,
       fontWeight: '900',
       textShadowColor:
-        'rgba(0,0,0,0.16)',
+        'rgba(0,0,0,0.18)',
       textShadowOffset: {
         width: 0,
         height: 1,
@@ -1673,99 +2574,234 @@ const styles =
       textShadowRadius: 2,
     },
 
+    hiddenCellText: {
+      color: '#FED7AA',
+      fontSize: 18,
+    },
+
     openedBox: {
-      marginTop: 8,
+      width: '100%',
+      minHeight: 52,
+      marginTop: 7,
+      paddingVertical: 7,
+      paddingHorizontal: 11,
+      borderRadius: 15,
       backgroundColor:
-        'rgba(120,38,0,0.48)',
-      paddingVertical: 9,
-      paddingHorizontal: 12,
-      borderRadius: 16,
-      minWidth: '100%',
-      alignItems: 'center',
+        'rgba(124,45,18,0.44)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.18)',
+        'rgba(255,255,255,0.14)',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent:
+        'space-between',
     },
 
     openedTitle: {
       color: '#FED7AA',
-      fontSize: 9,
+      fontSize: 8,
       fontWeight: '900',
-      letterSpacing: 1.1,
-      marginBottom: 4,
+      letterSpacing: 1,
+    },
+
+    openedHint: {
+      color: '#FFEDD5',
+      fontSize: 8,
+      fontWeight: '600',
+      marginTop: 3,
     },
 
     openedNumbers: {
+      maxWidth: '43%',
+      color: '#FFFFFF',
+      fontSize: 11,
+      fontWeight: '900',
+      textAlign: 'right',
+    },
+
+    resetButton: {
+      width: '100%',
+      height: 38,
+      marginTop: 6,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(124,45,18,0.48)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.17)',
+    },
+
+    resetButtonText: {
       color: '#FFF7ED',
       fontSize: 13,
-      fontWeight: '800',
+      fontWeight: '900',
     },
 
     rulesContainer: {
       flex: 1,
-      paddingTop: 62,
-      paddingHorizontal: 22,
-      paddingBottom: 28,
+      paddingTop: 52,
+      paddingHorizontal: 20,
+      paddingBottom: 22,
       alignItems: 'center',
       justifyContent: 'center',
     },
 
-    rulesTitle: {
-      fontSize: 30,
-      color: '#F8FAFC',
+    modeBadge: {
+      width: 66,
+      height: 66,
+      marginBottom: 16,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(255,255,255,0.14)',
+      borderWidth: 1,
+      borderColor:
+        'rgba(255,255,255,0.30)',
+      shadowColor: '#7C2D12',
+      shadowOffset: {
+        width: 0,
+        height: 6,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      elevation: 6,
+    },
+
+    modeBadgeIcon: {
+      color: '#FFFFFF',
+      fontSize: 22,
       fontWeight: '900',
-      marginBottom: 8,
+      lineHeight: 24,
+    },
+
+    modeBadgeText: {
+      color: '#FFEDD5',
+      fontSize: 8,
+      fontWeight: '900',
+      letterSpacing: 1,
+    },
+
+    rulesEyebrow: {
+      color: '#FED7AA',
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 6,
+    },
+
+    rulesTitle: {
+      color: '#FFFFFF',
+      fontSize: 28,
+      fontWeight: '900',
+      letterSpacing: -0.8,
       textAlign: 'center',
+      marginBottom: 6,
     },
 
     rulesSubtitle: {
-      fontSize: 18,
+      maxWidth: 335,
       color: '#FFEDD5',
-      marginBottom: 22,
+      fontSize: 12,
       fontWeight: '700',
+      lineHeight: 18,
       textAlign: 'center',
+      marginBottom: 16,
     },
 
     rulesCard: {
       width: '100%',
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+      borderRadius: 20,
       backgroundColor:
-        'rgba(92,28,0,0.60)',
-      borderRadius: 22,
-      padding: 20,
+        'rgba(92,28,0,0.56)',
       borderWidth: 1,
       borderColor:
-        'rgba(255,255,255,0.18)',
+        'rgba(255,255,255,0.16)',
       shadowColor: '#7C2D12',
       shadowOffset: {
         width: 0,
         height: 8,
       },
-      shadowOpacity: 0.10,
-      shadowRadius: 16,
+      shadowOpacity: 0.14,
+      shadowRadius: 14,
       elevation: 5,
     },
 
+    ruleRow: {
+      minHeight: 42,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor:
+        'rgba(255,255,255,0.09)',
+    },
+
+    ruleNumber: {
+      width: 27,
+      height: 27,
+      marginRight: 10,
+      borderRadius: 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        'rgba(251,146,60,0.18)',
+    },
+
+    ruleNumberText: {
+      color: '#FED7AA',
+      fontSize: 8,
+      fontWeight: '900',
+    },
+
     ruleText: {
+      flex: 1,
       color: '#FFF7ED',
-      fontSize: 15,
+      fontSize: 12,
       fontWeight: '700',
-      marginBottom: 12,
-      lineHeight: 22,
+      lineHeight: 16,
     },
 
     startButton: {
-      marginTop: 24,
-      backgroundColor: '#F97316',
-      paddingVertical: 15,
-      paddingHorizontal: 45,
+      width: '100%',
+      height: 47,
+      marginTop: 16,
       borderRadius: 16,
-      shadowColor: '#FB923C',
+      overflow: 'hidden',
+      shadowColor: '#C2410C',
       shadowOffset: {
         width: 0,
-        height: 6,
+        height: 7,
       },
-      shadowOpacity: 0.20,
-      shadowRadius: 10,
-      elevation: 6,
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+
+    primaryButtonGradient: {
+      flex: 1,
+      minHeight: 47,
+      paddingHorizontal: 20,
+      borderRadius: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '900',
+    },
+
+    buttonArrow: {
+      position: 'absolute',
+      right: 19,
+      color: '#FFFFFF',
+      fontSize: 21,
+      fontWeight: '700',
     },
   });

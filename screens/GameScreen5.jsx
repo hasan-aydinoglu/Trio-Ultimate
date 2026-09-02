@@ -28,19 +28,7 @@ const tableNumbers = [
   1, 8, 6, 7, 2, 4, 6,
 ];
 
-const blueCards = [
-  20,
-  24,
-  27,
-  30,
-  32,
-  36,
-  40,
-  44,
-  45,
-  48,
-  50,
-];
+const TARGET_COUNT = 11;
 
 const players = [
   {
@@ -56,15 +44,344 @@ const players = [
 ];
 
 const shuffleArray = (array) => {
-  return [...array].sort(() => Math.random() - 0.5);
+  const shuffled = [
+    ...array,
+  ];
+
+  for (
+    let index =
+      shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1)
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex],
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
+/*
+ * Game Type 5'in mevcut Check Blue Cards
+ * formüllerini tek yerde tutar.
+ *
+ * Oyun mekaniği değişmez:
+ * a + b + c
+ * a × b + c
+ * a × b - c
+ * (a + b) × c
+ * (a - b) × c
+ */
+const getGameFiveResults = (
+  numbers
+) => {
+  const [a, b, c] = numbers;
+
+  return [
+    a + b + c,
+    a * b + c,
+    a * b - c,
+    (a + b) * c,
+    (a - b) * c,
+  ];
+};
+
+const getThreeNumberPermutations = (
+  values
+) => {
+  const [a, b, c] = values;
+
+  return [
+    [a, b, c],
+    [a, c, b],
+    [b, a, c],
+    [b, c, a],
+    [c, a, b],
+    [c, b, a],
+  ];
+};
+
+/*
+ * O anki kart destesindeki gerçek üçlü
+ * kombinasyonlardan üretilebilen target
+ * sayılarını oluşturur.
+ *
+ * Önceki oyunun zorluk seviyesini korumak
+ * için ana hedef aralığı 20-50'dir.
+ */
+const createSolvableTargets = (
+  cardDeck,
+  targetCount = TARGET_COUNT
+) => {
+  const cardCounts =
+    cardDeck.reduce(
+      (counts, value) => {
+        counts[value] =
+          (counts[value] || 0) + 1;
+
+        return counts;
+      },
+      {}
+    );
+
+  const uniqueValues =
+    Object.keys(
+      cardCounts
+    ).map(Number);
+
+  const possibleTargets =
+    new Set();
+
+  const hasRequiredCards = (
+    values
+  ) => {
+    const required =
+      values.reduce(
+        (counts, value) => {
+          counts[value] =
+            (counts[value] || 0) + 1;
+
+          return counts;
+        },
+        {}
+      );
+
+    return Object.entries(
+      required
+    ).every(
+      ([value, count]) =>
+        (cardCounts[value] || 0) >=
+        count
+    );
+  };
+
+  const addTarget = (
+    value,
+    minValue = 20,
+    maxValue = 50
+  ) => {
+    if (
+      Number.isFinite(value) &&
+      Number.isInteger(value) &&
+      value >= minValue &&
+      value <= maxValue
+    ) {
+      possibleTargets.add(
+        value
+      );
+    }
+  };
+
+  for (
+    let firstIndex = 0;
+    firstIndex <
+    uniqueValues.length;
+    firstIndex += 1
+  ) {
+    for (
+      let secondIndex =
+        firstIndex;
+      secondIndex <
+      uniqueValues.length;
+      secondIndex += 1
+    ) {
+      for (
+        let thirdIndex =
+          secondIndex;
+        thirdIndex <
+        uniqueValues.length;
+        thirdIndex += 1
+      ) {
+        const values = [
+          uniqueValues[
+            firstIndex
+          ],
+          uniqueValues[
+            secondIndex
+          ],
+          uniqueValues[
+            thirdIndex
+          ],
+        ];
+
+        if (
+          !hasRequiredCards(
+            values
+          )
+        ) {
+          continue;
+        }
+
+        const permutations =
+          getThreeNumberPermutations(
+            values
+          );
+
+        permutations.forEach(
+          (permutation) => {
+            getGameFiveResults(
+              permutation
+            ).forEach(
+              (result) =>
+                addTarget(
+                  result
+                )
+            );
+          }
+        );
+      }
+    }
+  }
+
+  let targetPool =
+    Array.from(
+      possibleTargets
+    );
+
+  /*
+   * Normalde 20-50 aralığında yeterli
+   * sonuç bulunur. Her ihtimale karşı,
+   * sayı azsa aynı gerçek kombinasyonlardan
+   * 10-75 aralığında ek hedef üret.
+   */
+  if (
+    targetPool.length <
+    targetCount
+  ) {
+    const expandedTargets =
+      new Set(
+        targetPool
+      );
+
+    for (
+      let firstIndex = 0;
+      firstIndex <
+      uniqueValues.length;
+      firstIndex += 1
+    ) {
+      for (
+        let secondIndex =
+          firstIndex;
+        secondIndex <
+        uniqueValues.length;
+        secondIndex += 1
+      ) {
+        for (
+          let thirdIndex =
+            secondIndex;
+          thirdIndex <
+            uniqueValues.length;
+          thirdIndex += 1
+        ) {
+          const values = [
+            uniqueValues[
+              firstIndex
+            ],
+            uniqueValues[
+              secondIndex
+            ],
+            uniqueValues[
+              thirdIndex
+            ],
+          ];
+
+          if (
+            !hasRequiredCards(
+              values
+            )
+          ) {
+            continue;
+          }
+
+          getThreeNumberPermutations(
+            values
+          ).forEach(
+            (permutation) => {
+              getGameFiveResults(
+                permutation
+              ).forEach(
+                (result) => {
+                  if (
+                    Number.isFinite(
+                      result
+                    ) &&
+                    Number.isInteger(
+                      result
+                    ) &&
+                    result >= 10 &&
+                    result <= 75
+                  ) {
+                    expandedTargets.add(
+                      result
+                    );
+                  }
+                }
+              );
+            }
+          );
+        }
+      }
+    }
+
+    targetPool =
+      Array.from(
+        expandedTargets
+      );
+  }
+
+  return shuffleArray(
+    targetPool
+  ).slice(
+    0,
+    targetCount
+  );
+};
+
+const createNewGameSetup = () => {
+  const newCards =
+    shuffleArray(
+      tableNumbers
+    );
+
+  return {
+    cards: newCards,
+    targets:
+      createSolvableTargets(
+        newCards
+      ),
+  };
 };
 
 export default function GameScreen5({
   navigation,
   route,
 }) {
-  const [cards, setCards] = useState(() =>
-    shuffleArray(tableNumbers)
+  const [
+    initialGameSetup,
+  ] = useState(
+    () => createNewGameSetup()
+  );
+
+  const [cards, setCards] = useState(
+    initialGameSetup.cards
+  );
+
+  const [
+    targetCards,
+    setTargetCards,
+  ] = useState(
+    initialGameSetup.targets
   );
 
   const [openedCards, setOpenedCards] = useState([]);
@@ -337,40 +654,259 @@ export default function GameScreen5({
     loadLoggedInPlayerData();
   }, []);
 
-  const getPlayerPhoto = (playerId) => {
-    if (playerId === 1 && profileImage) {
-      return profileImage;
+  const getPlayerUserId = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const directUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (directUserId) {
+      return directUserId;
     }
 
-    const player = routePlayers.find(
-      (item) => item.id === playerId
-    );
+    if (
+      playerId === 1 &&
+      currentUser?.uid
+    ) {
+      return currentUser.uid;
+    }
 
-    return (
+    const invitedBy =
+      route?.params?.invitedBy;
+
+    const acceptedBy =
+      route?.params?.acceptedBy;
+
+    if (
+      playerId === 2 &&
+      route?.params?.isOnline ===
+        true &&
+      currentUser?.uid &&
+      invitedBy &&
+      acceptedBy
+    ) {
+      return currentUser.uid ===
+        invitedBy
+        ? acceptedBy
+        : invitedBy;
+    }
+
+    return null;
+  };
+
+  const getPlayerPhoto = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const routePhoto =
       player?.photo ||
       player?.image ||
       player?.avatar ||
       player?.avatarUrl ||
       player?.profileImage ||
       player?.photoURL ||
-      null
+      player?.profilePhoto ||
+      null;
+
+    if (routePhoto) {
+      return routePhoto;
+    }
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    if (
+      playerId === 1 &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    return null;
+  };
+
+  const getPlayerName = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        `Player ${playerId}`
+      );
+    }
+
+    if (playerId === 1) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        'Player 1'
+      );
+    }
+
+    return (
+      player?.username ||
+      player?.name ||
+      player?.fullName ||
+      player?.displayName ||
+      player?.email ||
+      `Player ${playerId}`
     );
   };
 
-  const getPlayerName = (playerId) => {
-    if (playerId === 1) {
-      return loggedInPlayerName;
+  const openPlayerProfile = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (!playerUserId) {
+      Alert.alert(
+        'Profile unavailable',
+        'This player profile is not available in this match.'
+      );
+
+      return;
     }
 
-    const player = routePlayers.find(
-      (item) => item.id === playerId
-    );
+    if (
+      currentUser?.uid ===
+      playerUserId
+    ) {
+      navigation.navigate(
+        'TabNavigator',
+        {
+          screen: 'Profile',
+        }
+      );
 
-    return (
-      player?.name ||
-      player?.username ||
-      player?.displayName ||
-      `Player ${playerId}`
+      return;
+    }
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const playerPhoto =
+      getPlayerPhoto(
+        playerId
+      );
+
+    navigation.navigate(
+      'UserProfileScreen',
+      {
+        userId:
+          playerUserId,
+
+        uid:
+          playerUserId,
+
+        profileUserId:
+          playerUserId,
+
+        selectedUserId:
+          playerUserId,
+
+        user: {
+          ...(player || {}),
+
+          uid:
+            playerUserId,
+
+          userId:
+            playerUserId,
+
+          name:
+            getPlayerName(
+              playerId
+            ),
+
+          username:
+            player?.username ||
+            player?.name ||
+            getPlayerName(
+              playerId
+            ),
+
+          photo:
+            playerPhoto,
+
+          image:
+            playerPhoto,
+
+          avatar:
+            playerPhoto,
+
+          profileImage:
+            playerPhoto,
+
+          photoURL:
+            playerPhoto,
+        },
+      }
     );
   };
 
@@ -388,36 +924,48 @@ export default function GameScreen5({
           isActive && isDarkMode && styles.darkActivePlayerCard,
         ]}
       >
-        <LinearGradient
-          colors={
-            isActive
-              ? ['#7b1fa2', '#ce93d8']
-              : [
-                  'rgba(255,255,255,0.10)',
-                  'rgba(255,255,255,0.02)',
-                ]
+        <TouchableOpacity
+          onPress={() =>
+            openPlayerProfile(
+              playerId
+            )
           }
-          style={styles.avatarGlow}
+          activeOpacity={0.78}
+          style={
+            styles.profileButton
+          }
         >
-          {photo ? (
-            <Image
-              source={{ uri: photo }}
-              style={styles.profileImage}
-            />
-          ) : (
-            <View
-              style={styles.defaultAvatar}
-            >
-              <Text
-                style={
-                  styles.defaultAvatarText
-                }
+          <LinearGradient
+            colors={
+              isActive
+                ? ['#FF9AC8', '#F43F8C', '#BE185D']
+                : [
+                    'rgba(255,255,255,0.10)',
+                    'rgba(255,255,255,0.02)',
+                  ]
+            }
+            style={styles.avatarGlow}
+          >
+            {photo ? (
+              <Image
+                source={{ uri: photo }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <View
+                style={styles.defaultAvatar}
               >
-                P{playerId}
-              </Text>
-            </View>
-          )}
-        </LinearGradient>
+                <Text
+                  style={
+                    styles.defaultAvatarText
+                  }
+                >
+                  P{playerId}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
 
         <Text style={styles.playerName}>
           {getPlayerName(playerId)}
@@ -459,16 +1007,13 @@ export default function GameScreen5({
       (index) => cards[index]
     );
 
-    const possibleResults = [
-      nums[0] + nums[1] + nums[2],
-      nums[0] * nums[1] + nums[2],
-      nums[0] * nums[1] - nums[2],
-      (nums[0] + nums[1]) * nums[2],
-      (nums[0] - nums[1]) * nums[2],
-    ];
+    const possibleResults =
+      getGameFiveResults(
+        nums
+      );
 
     const matchedBlueCard =
-      blueCards.find(
+      targetCards.find(
         (card) =>
           possibleResults.includes(card) &&
           !wonBlueCards.includes(card)
@@ -513,8 +1058,15 @@ export default function GameScreen5({
           text: 'Reset',
           style: 'destructive',
           onPress: () => {
+            const newGameSetup =
+              createNewGameSetup();
+
             setCards(
-              shuffleArray(tableNumbers)
+              newGameSetup.cards
+            );
+
+            setTargetCards(
+              newGameSetup.targets
             );
 
             setOpenedCards([]);
@@ -553,7 +1105,7 @@ export default function GameScreen5({
           <View style={[styles.rulesCard, isDarkMode && styles.darkGlassPanel]}>
             {[
               ['01', 'This mode is played by 2 players'],
-              ['02', 'Blue target cards are shown at the top'],
+              ['02', 'A new solvable target set is created for every game'],
               ['03', 'Each player chooses exactly 3 hidden cards'],
               ['04', 'Use addition, multiplication or subtraction'],
               ['05', 'A matching result wins that blue card'],
@@ -570,7 +1122,23 @@ export default function GameScreen5({
 
           <TouchableOpacity
             style={styles.startButton}
-            onPress={() => setShowRules(false)}
+            onPress={() => {
+              const newGameSetup =
+                createNewGameSetup();
+
+              setCards(
+                newGameSetup.cards
+              );
+
+              setTargetCards(
+                newGameSetup.targets
+              );
+
+              setOpenedCards([]);
+              setWonBlueCards([]);
+              setPlayerTurn(1);
+              setShowRules(false);
+            }}
             activeOpacity={0.86}
           >
             <LinearGradient
@@ -632,7 +1200,7 @@ export default function GameScreen5({
             <View>
               <Text style={styles.sectionTitle}>BLUE TARGETS</Text>
               <Text style={styles.sectionSubtitle}>
-                Match one result to win a card
+                New solvable targets every game
               </Text>
             </View>
 
@@ -645,28 +1213,70 @@ export default function GameScreen5({
           </View>
 
           <View style={styles.blueCardContainer}>
-            {blueCards.map((card) => {
-              const isWon = wonBlueCards.includes(card);
+            {targetCards.map((card) => {
+              const isWon =
+                wonBlueCards.includes(
+                  card
+                );
 
               return (
                 <View
                   key={card}
                   style={[
                     styles.blueCard,
-                    isWon && styles.blueCardWon,
+                    isWon &&
+                      styles.blueCardWon,
                   ]}
                 >
                   <LinearGradient
                     colors={
                       isWon
-                        ? ['#4ADE80', '#16A34A']
-                        : ['#38BDF8', '#2563EB', '#1D4ED8']
+                        ? [
+                            '#7A0D3D',
+                            '#9D174D',
+                            '#BE185D',
+                          ]
+                        : [
+                            '#FF9AC8',
+                            '#F43F8C',
+                            '#BE185D',
+                          ]
                     }
-                    style={styles.blueCardGradient}
+                    start={{
+                      x: 0,
+                      y: 0,
+                    }}
+                    end={{
+                      x: 1,
+                      y: 1,
+                    }}
+                    style={
+                      styles.blueCardGradient
+                    }
                   >
-                    <Text style={styles.blueText}>
-                      {isWon ? '✓' : card}
+                    <Text
+                      style={
+                        styles.blueText
+                      }
+                    >
+                      {card}
                     </Text>
+
+                    {isWon && (
+                      <View
+                        style={
+                          styles.targetWonBadge
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.targetWonBadgeText
+                          }
+                        >
+                          ✓
+                        </Text>
+                      </View>
+                    )}
                   </LinearGradient>
                 </View>
               );
@@ -748,7 +1358,7 @@ export default function GameScreen5({
             end={{ x: 1, y: 1 }}
             style={styles.primaryButtonGradient}
           >
-            <Text style={styles.buttonText}>Check Blue Cards</Text>
+            <Text style={styles.buttonText}>Check Cards</Text>
             <Text style={styles.buttonArrow}>→</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -981,6 +1591,12 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
 
+  profileButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+  },
+
   avatarGlow: {
     width: 42,
     height: 42,
@@ -1129,29 +1745,64 @@ const styles = StyleSheet.create({
     margin: 3,
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#1D4ED8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
+    shadowColor: '#F43F8C',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.24,
     shadowRadius: 7,
     elevation: 5,
   },
 
   blueCardWon: {
-    shadowColor: '#16A34A',
+    shadowColor: '#FFD0E4',
+    shadowOpacity: 0.34,
   },
 
   blueCardGradient: {
     flex: 1,
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.30)',
+    borderColor:
+      'rgba(255,255,255,0.34)',
     borderRadius: 14,
   },
 
   blueText: {
     color: '#FFFFFF',
     fontSize: 12,
+    fontWeight: '900',
+    textShadowColor:
+      'rgba(90,8,45,0.22)',
+    textShadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    textShadowRadius: 2,
+  },
+
+  targetWonBadge: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:
+      'rgba(255,255,255,0.24)',
+    borderWidth: 1,
+    borderColor:
+      'rgba(255,255,255,0.36)',
+  },
+
+  targetWonBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 7,
     fontWeight: '900',
   },
 

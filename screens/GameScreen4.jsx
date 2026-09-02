@@ -28,6 +28,59 @@ const tableData = [
   [1, 8, 6, 7, 2, 4, 6],
 ];
 
+/*
+ * Her yeni oyunda aynı 49 sayıyı farklı
+ * konumlara karıştırır.
+ *
+ * Sayı havuzu değişmediği için mevcut
+ * BLUE TARGET sonuçlarının çözümleri
+ * bulunmaya devam eder.
+ */
+const createShuffledTable = () => {
+  const shuffledValues =
+    tableData
+      .flat()
+      .slice();
+
+  for (
+    let index =
+      shuffledValues.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1)
+      );
+
+    [
+      shuffledValues[index],
+      shuffledValues[randomIndex],
+    ] = [
+      shuffledValues[randomIndex],
+      shuffledValues[index],
+    ];
+  }
+
+  const shuffledTable = [];
+
+  for (
+    let rowIndex = 0;
+    rowIndex < 7;
+    rowIndex += 1
+  ) {
+    shuffledTable.push(
+      shuffledValues.slice(
+        rowIndex * 7,
+        rowIndex * 7 + 7
+      )
+    );
+  }
+
+  return shuffledTable;
+};
+
 const cellColors = [
   [
     '#e67e22',
@@ -127,6 +180,9 @@ export default function GameScreen4({
   route,
 }) {
   const [selectedCells, setSelectedCells] = useState([]);
+  const [boardData, setBoardData] = useState(
+    () => createShuffledTable()
+  );
   const [targetNumber, setTargetNumber] = useState(null);
   const [mode, setMode] = useState('doubleMinus');
   const [playerTurn, setPlayerTurn] = useState(1);
@@ -411,23 +467,55 @@ export default function GameScreen4({
   }, []);
 
   const getPlayerPhoto = (playerId) => {
-    if (playerId === 1 && profileImage) {
-      return profileImage;
-    }
-
     const player = routePlayers.find(
       (item) => item.id === playerId
     );
 
-    return (
+    const routePhoto =
       player?.photo ||
       player?.image ||
       player?.avatar ||
       player?.avatarUrl ||
       player?.profileImage ||
       player?.photoURL ||
-      null
-    );
+      null;
+
+    /*
+     * Online oyunda App.js / invite akışından
+     * gelen gerçek oyuncu profil fotoğrafını
+     * öncelikli kullan.
+     */
+    if (routePhoto) {
+      return routePhoto;
+    }
+
+    /*
+     * Route bilgisinde fotoğraf yoksa ve
+     * oyuncu giriş yapan kullanıcıysa kendi
+     * Firebase profil fotoğrafını fallback
+     * olarak kullan.
+     */
+    if (
+      player?.uid ===
+        auth.currentUser?.uid &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    /*
+     * Offline/local oyunda mevcut davranışı
+     * koru: Player 1 giriş yapan kullanıcıdır.
+     */
+    if (
+      route?.params?.isOnline !== true &&
+      playerId === 1 &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    return null;
   };
 
   const getPlayerName = (playerId) => {
@@ -617,6 +705,9 @@ export default function GameScreen4({
           style: 'destructive',
           onPress: () => {
             setSelectedCells([]);
+            setBoardData(
+              createShuffledTable()
+            );
             setTargetNumber(null);
             setPlayerTurn(1);
             setMode('doubleMinus');
@@ -926,9 +1017,9 @@ export default function GameScreen4({
         >
           <LinearGradient
             colors={[
-              '#0EA5E9',
-              '#2563EB',
-              '#1D4ED8',
+              '#5EEAD4',
+              '#14B8A6',
+              '#0F766E',
             ]}
             start={{
               x: 0,
@@ -1007,7 +1098,7 @@ export default function GameScreen4({
           </View>
 
           <View style={styles.table}>
-            {tableData.map((row, rowIndex) => (
+            {boardData.map((row, rowIndex) => (
               <View
                 key={rowIndex}
                 style={styles.row}
@@ -1553,7 +1644,7 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#0284C7',
+    shadowColor: '#0F766E',
     shadowOffset: {
       width: 0,
       height: 7,
@@ -1573,14 +1664,14 @@ const styles = StyleSheet.create({
   },
 
   targetTitle: {
-    color: '#DBEAFE',
+    color: '#D1FAE5',
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1.8,
   },
 
   targetSubtitle: {
-    color: '#FFFFFF',
+    color: '#F0FDFA',
     fontSize: 13,
     marginTop: 5,
     fontWeight: '700',
@@ -1591,10 +1682,10 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 16,
     backgroundColor:
-      'rgba(255,255,255,0.22)',
+      'rgba(240,253,250,0.18)',
     borderWidth: 2,
     borderColor:
-      'rgba(255,255,255,0.50)',
+      'rgba(255,255,255,0.42)',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -32,6 +32,220 @@ const tableData = [
   [1, 8, 6, 7, 2, 4, 6],
 ];
 
+const shuffleArray = (items) => {
+  const shuffled = [
+    ...items,
+  ];
+
+  for (
+    let index =
+      shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1)
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex],
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
+const createShuffledTable = () => {
+  const shuffledValues =
+    shuffleArray(
+      tableData.flat()
+    );
+
+  const shuffledTable = [];
+
+  for (
+    let rowIndex = 0;
+    rowIndex <
+    tableData.length;
+    rowIndex += 1
+  ) {
+    shuffledTable.push(
+      shuffledValues.slice(
+        rowIndex *
+          tableData[0].length,
+        (rowIndex + 1) *
+          tableData[0].length
+      )
+    );
+  }
+
+  return shuffledTable;
+};
+
+/*
+ * Game Type 2 için yalnızca mevcut
+ * tabloda gerçekten çözülebilen hedefleri
+ * üretir.
+ *
+ * checkResult içindeki formüllerle aynı:
+ * (a ± b) × c
+ * (a ± b) ÷ c
+ * ve üç sayının diğer eşleşmeleri.
+ *
+ * Mevcut Generate Number davranışını
+ * korumak için hedefler 1-50 aralığında
+ * tam sayı olarak tutulur.
+ */
+const createSolvableNumberPool = (
+  boardData
+) => {
+  const values =
+    boardData.flat();
+
+  const possibleTargets =
+    new Set();
+
+  const addTarget = (
+    value
+  ) => {
+    if (
+      Number.isFinite(value) &&
+      Number.isInteger(value) &&
+      value >= 1 &&
+      value <= 50
+    ) {
+      possibleTargets.add(
+        value
+      );
+    }
+  };
+
+  for (
+    let firstIndex = 0;
+    firstIndex <
+    values.length;
+    firstIndex += 1
+  ) {
+    for (
+      let secondIndex = 0;
+      secondIndex <
+      values.length;
+      secondIndex += 1
+    ) {
+      if (
+        secondIndex ===
+        firstIndex
+      ) {
+        continue;
+      }
+
+      for (
+        let thirdIndex = 0;
+        thirdIndex <
+        values.length;
+        thirdIndex += 1
+      ) {
+        if (
+          thirdIndex ===
+            firstIndex ||
+          thirdIndex ===
+            secondIndex
+        ) {
+          continue;
+        }
+
+        const a =
+          values[firstIndex];
+
+        const b =
+          values[secondIndex];
+
+        const c =
+          values[thirdIndex];
+
+        addTarget(
+          (a + b) * c
+        );
+
+        addTarget(
+          (a - b) * c
+        );
+
+        addTarget(
+          (a + c) * b
+        );
+
+        addTarget(
+          (a - c) * b
+        );
+
+        addTarget(
+          (b + c) * a
+        );
+
+        addTarget(
+          (b - c) * a
+        );
+
+        if (c !== 0) {
+          addTarget(
+            (a + b) / c
+          );
+
+          addTarget(
+            (a - b) / c
+          );
+        }
+
+        if (b !== 0) {
+          addTarget(
+            (a + c) / b
+          );
+
+          addTarget(
+            (a - c) / b
+          );
+        }
+
+        if (a !== 0) {
+          addTarget(
+            (b + c) / a
+          );
+
+          addTarget(
+            (b - c) / a
+          );
+        }
+      }
+    }
+  }
+
+  return shuffleArray(
+    Array.from(
+      possibleTargets
+    )
+  );
+};
+
+const createNewGameSetup = () => {
+  const newTable =
+    createShuffledTable();
+
+  return {
+    table: newTable,
+    numberPool:
+      createSolvableNumberPool(
+        newTable
+      ),
+  };
+};
+
 const cellColors = [
   [
     '#e67e22',
@@ -134,6 +348,26 @@ const GameScreen2 = ({
     randomNumber,
     setRandomNumber,
   ] = useState(null);
+
+  const [
+    initialGameSetup,
+  ] = useState(
+    () => createNewGameSetup()
+  );
+
+  const [
+    currentTableData,
+    setCurrentTableData,
+  ] = useState(
+    initialGameSetup.table
+  );
+
+  const [
+    numberPool,
+    setNumberPool,
+  ] = useState(
+    initialGameSetup.numberPool
+  );
 
   const [
     showRules,
@@ -527,32 +761,228 @@ const GameScreen2 = ({
   const getPlayerPhoto = (
     playerId
   ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const routePhoto =
+      player?.photo ||
+      player?.image ||
+      player?.avatar ||
+      player?.avatarUrl ||
+      player?.profileImage ||
+      player?.photoURL ||
+      player?.profilePhoto ||
+      null;
+
+    /*
+     * Online maçta dört oyuncunun da
+     * routePlayers üzerinden gelen gerçek
+     * fotoğrafını öncelikli kullan.
+     */
+    if (routePhoto) {
+      return routePhoto;
+    }
+
+    const playerUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
     if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId &&
+      profileImage
+    ) {
+      return profileImage;
+    }
+
+    /*
+     * Offline/local oyunda Player 1 için
+     * mevcut davranışı koru.
+     */
+    if (
+      route?.params?.isOnline !==
+        true &&
       playerId === 1 &&
       profileImage
     ) {
       return profileImage;
     }
 
+    return null;
+  };
+
+  const getPlayerName = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
     const player =
       routePlayers.find(
         (item) =>
           item.id === playerId
       );
 
+    const playerUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (
+      playerUserId &&
+      currentUser?.uid ===
+        playerUserId
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        `Player ${playerId}`
+      );
+    }
+
+    if (
+      route?.params?.isOnline !==
+        true &&
+      playerId === 1
+    ) {
+      return (
+        loggedInPlayerName ||
+        player?.username ||
+        player?.name ||
+        player?.displayName ||
+        'Player 1'
+      );
+    }
+
     return (
-      player?.photo ||
-      player?.image ||
-      player?.avatar ||
-      null
+      player?.username ||
+      player?.name ||
+      player?.fullName ||
+      player?.displayName ||
+      player?.email ||
+      `Player ${playerId}`
     );
   };
 
-  const getPlayerName = (
+  const getPlayerUserId = (
     playerId
   ) => {
-    if (playerId === 1) {
-      return loggedInPlayerName;
+    const currentUser =
+      auth.currentUser;
+
+    const player =
+      routePlayers.find(
+        (item) =>
+          item.id === playerId
+      );
+
+    const directUserId =
+      player?.uid ||
+      player?.userId ||
+      player?.firebaseUid ||
+      player?.authUid ||
+      player?.user?.uid ||
+      player?.user?.userId ||
+      player?.profile?.uid ||
+      null;
+
+    if (directUserId) {
+      return directUserId;
+    }
+
+    const invitedBy =
+      route?.params?.invitedBy;
+
+    const acceptedBy =
+      route?.params?.acceptedBy;
+
+    /*
+     * Eski iki kişilik invite akışıyla
+     * uyumluluğu koru.
+     */
+    if (
+      route?.params?.isOnline ===
+        true
+    ) {
+      if (
+        playerId === 1 &&
+        invitedBy
+      ) {
+        return invitedBy;
+      }
+
+      if (
+        playerId === 2 &&
+        acceptedBy
+      ) {
+        return acceptedBy;
+      }
+    }
+
+    if (
+      route?.params?.isOnline !==
+        true &&
+      playerId === 1 &&
+      currentUser?.uid
+    ) {
+      return currentUser.uid;
+    }
+
+    return null;
+  };
+
+  const openPlayerProfile = (
+    playerId
+  ) => {
+    const currentUser =
+      auth.currentUser;
+
+    const playerUserId =
+      getPlayerUserId(
+        playerId
+      );
+
+    if (!playerUserId) {
+      Alert.alert(
+        'Profile unavailable',
+        'This player profile is not available in this match.'
+      );
+
+      return;
+    }
+
+    if (
+      currentUser?.uid ===
+      playerUserId
+    ) {
+      navigation.navigate(
+        'TabNavigator',
+        {
+          screen: 'Profile',
+        }
+      );
+
+      return;
     }
 
     const player =
@@ -561,9 +991,63 @@ const GameScreen2 = ({
           item.id === playerId
       );
 
-    return (
-      player?.name ||
-      `Player ${playerId}`
+    const playerPhoto =
+      getPlayerPhoto(
+        playerId
+      );
+
+    navigation.navigate(
+      'UserProfileScreen',
+      {
+        userId:
+          playerUserId,
+
+        uid:
+          playerUserId,
+
+        profileUserId:
+          playerUserId,
+
+        selectedUserId:
+          playerUserId,
+
+        user: {
+          ...(player || {}),
+
+          uid:
+            playerUserId,
+
+          userId:
+            playerUserId,
+
+          name:
+            getPlayerName(
+              playerId
+            ),
+
+          username:
+            player?.username ||
+            player?.name ||
+            getPlayerName(
+              playerId
+            ),
+
+          photo:
+            playerPhoto,
+
+          image:
+            playerPhoto,
+
+          avatar:
+            playerPhoto,
+
+          profileImage:
+            playerPhoto,
+
+          photoURL:
+            playerPhoto,
+        },
+      }
     );
   };
 
@@ -579,41 +1063,53 @@ const GameScreen2 = ({
           styles.playerCard
         }
       >
-        <LinearGradient
-          colors={
-            isDarkMode
-              ? ['#8F2D9F', '#4D238A']
-              : ['#D946EF', '#7C3AED']
+        <TouchableOpacity
+          onPress={() =>
+            openPlayerProfile(
+              playerId
+            )
           }
+          activeOpacity={0.78}
           style={
-            styles.avatarGlow
+            styles.profileButton
           }
         >
-          {photo ? (
-            <Image
-              source={{
-                uri: photo,
-              }}
-              style={
-                styles.profileImage
-              }
-            />
-          ) : (
-            <View
-              style={
-                styles.defaultAvatar
-              }
-            >
-              <Text
+          <LinearGradient
+            colors={
+              isDarkMode
+                ? ['#8F2D9F', '#4D238A']
+                : ['#D946EF', '#7C3AED']
+            }
+            style={
+              styles.avatarGlow
+            }
+          >
+            {photo ? (
+              <Image
+                source={{
+                  uri: photo,
+                }}
                 style={
-                  styles.defaultAvatarText
+                  styles.profileImage
+                }
+              />
+            ) : (
+              <View
+                style={
+                  styles.defaultAvatar
                 }
               >
-                P{playerId}
-              </Text>
-            </View>
-          )}
-        </LinearGradient>
+                <Text
+                  style={
+                    styles.defaultAvatarText
+                  }
+                >
+                  P{playerId}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
 
         <Text
           numberOfLines={1}
@@ -802,12 +1298,43 @@ const GameScreen2 = ({
 
   const generateRandomNumber =
     () => {
+      let activePool =
+        numberPool;
+
+      if (
+        activePool.length === 0
+      ) {
+        activePool =
+          createSolvableNumberPool(
+            currentTableData
+          );
+
+        setNumberPool(
+          activePool
+        );
+      }
+
+      if (
+        activePool.length === 0
+      ) {
+        Alert.alert(
+          'No target available',
+          'Please start a new game to generate a new board.'
+        );
+
+        return;
+      }
+
       const number =
-        Math.floor(
-          Math.random() * 50
-        ) + 1;
+        activePool[0];
+
+      setNumberPool(
+        activePool.slice(1)
+      );
 
       setRandomNumber(number);
+
+      setSelectedCells([]);
 
       setTimeout(() => {
         setRandomNumber(null);
@@ -929,9 +1456,24 @@ const GameScreen2 = ({
             style={
               styles.startButton
             }
-            onPress={() =>
-              setShowRules(false)
-            }
+            onPress={() => {
+              const newGameSetup =
+                createNewGameSetup();
+
+              setCurrentTableData(
+                newGameSetup.table
+              );
+
+              setNumberPool(
+                newGameSetup.numberPool
+              );
+
+              setRandomNumber(null);
+
+              setSelectedCells([]);
+
+              setShowRules(false);
+            }}
             activeOpacity={0.86}
           >
             <LinearGradient
@@ -1172,7 +1714,7 @@ const GameScreen2 = ({
               styles.table
             }
           >
-            {tableData.map(
+            {currentTableData.map(
               (
                 row,
                 rowIndex
@@ -1579,6 +2121,12 @@ const styles =
       borderRadius: 17,
       backgroundColor:
         'rgba(255,255,255,0.06)',
+    },
+
+    profileButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
     },
 
     avatarGlow: {
