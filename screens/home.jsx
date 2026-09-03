@@ -20,22 +20,13 @@ import {
 } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-
 import { auth } from '../firebase';
 
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signInWithCredential,
-  GoogleAuthProvider,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const Home = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -78,18 +69,6 @@ const Home = ({ navigation }) => {
 
   const lineScale =
     useRef(new Animated.Value(0)).current;
-
-  const [
-    request,
-    response,
-    promptAsync,
-  ] = Google.useIdTokenAuthRequest({
-    iosClientId:
-      '299604098277-4jl88m3ucgs47hrqk5ij3jng1vheg78e.apps.googleusercontent.com',
-
-    webClientId:
-      '299604098277-bm08castn3kjbi5dotgglqvim77tv10j.apps.googleusercontent.com',
-  });
 
   useEffect(() => {
     const unsubscribe =
@@ -263,55 +242,6 @@ const Home = ({ navigation }) => {
     });
   };
 
-  useEffect(() => {
-    if (response?.type !== 'success') {
-      return;
-    }
-
-    const completeGoogleSignIn =
-      async () => {
-        const idToken =
-          response.authentication?.idToken ||
-          response.params?.id_token;
-
-        if (!idToken) {
-          setIsSigningIn(false);
-
-          Alert.alert(
-            'Google Error',
-            'Google ID token alınamadı.'
-          );
-
-          return;
-        }
-
-        try {
-          setIsSigningIn(true);
-
-          const credential =
-            GoogleAuthProvider.credential(
-              idToken
-            );
-
-          await signInWithCredential(
-            auth,
-            credential
-          );
-
-          playLoginSuccessAnimation();
-        } catch (error) {
-          setIsSigningIn(false);
-
-          Alert.alert(
-            'Google Login Error',
-            error.message
-          );
-        }
-      };
-
-    completeGoogleSignIn();
-  }, [response]);
-
   const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert(
@@ -382,48 +312,6 @@ const Home = ({ navigation }) => {
 
       Alert.alert('Password Reset Error', message);
     }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (isSigningIn) {
-      return;
-    }
-
-    try {
-      setIsSigningIn(true);
-
-      console.log(
-        'Google button pressed'
-      );
-
-      const result =
-        await promptAsync();
-
-      console.log(
-        'Google result:',
-        result
-      );
-
-      if (
-        result?.type !== 'success'
-      ) {
-        setIsSigningIn(false);
-      }
-    } catch (error) {
-      setIsSigningIn(false);
-
-      Alert.alert(
-        'Google Error',
-        error.message
-      );
-    }
-  };
-
-  const handleFacebookSignIn = () => {
-    Alert.alert(
-      'Facebook Login',
-      'Facebook login için önce Meta Developer App ID eklememiz gerekiyor.'
-    );
   };
 
   return (
@@ -600,70 +488,6 @@ const Home = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <Text
-              style={styles.orText}
-            >
-              Or
-            </Text>
-
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                styles.googleButton,
-                isSigningIn &&
-                  styles.buttonDisabled,
-              ]}
-              onPress={
-                handleGoogleSignIn
-              }
-              activeOpacity={0.8}
-              disabled={
-                isSigningIn ||
-                !request
-              }
-            >
-              <Ionicons
-                name="logo-google"
-                size={20}
-                color="#FFFFFF"
-              />
-
-              <Text
-                style={
-                  styles.socialButtonText
-                }
-              >
-                Sign in with Google
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                styles.facebookButton,
-              ]}
-              onPress={
-                handleFacebookSignIn
-              }
-              activeOpacity={0.8}
-              disabled={
-                isSigningIn
-              }
-            >
-              <Ionicons
-                name="logo-facebook"
-                size={20}
-                color="#FFFFFF"
-              />
-
-              <Text
-                style={
-                  styles.socialButtonText
-                }
-              >
-                Sign in with Facebook
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -933,39 +757,6 @@ const styles =
 
     signUpLink: {
       color: '#38D67A',
-      fontWeight: '700',
-    },
-
-    orText: {
-      textAlign: 'center',
-      marginVertical: 12,
-      color: '#FFFFFF',
-    },
-
-    socialButton: {
-      flexDirection: 'row',
-      justifyContent:
-        'center',
-      alignItems: 'center',
-      padding: 14,
-      borderRadius: 12,
-      marginTop: 10,
-      borderWidth: 1,
-    },
-
-    googleButton: {
-      backgroundColor: '#DB4437',
-      borderColor: '#DB4437',
-    },
-
-    facebookButton: {
-      backgroundColor: '#1877F2',
-      borderColor: '#1877F2',
-    },
-
-    socialButtonText: {
-      color: '#FFFFFF',
-      marginLeft: 8,
       fontWeight: '700',
     },
 
