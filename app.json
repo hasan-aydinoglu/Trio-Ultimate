@@ -11,9 +11,7 @@
     "userInterfaceStyle": "light",
 
     "splash": {
-      "image": "./assets/trio-splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#00c6ff"
+      "backgroundColor": "#01040B"
     },
 
     "assetBundlePatterns": [
@@ -21,13 +19,13 @@
     ],
 
     "ios": {
-  "bundleIdentifier": "com.hasanaydinoglu.trio",
-  "icon": "./assets/trio-logo.png",
-  "supportsTablet": false,
-  "requireFullScreen": true,
-  "infoPlist": {
-    "ITSAppUsesNonExemptEncryption": false
-  }
+      "bundleIdentifier": "com.hasanaydinoglu.trio",
+      "icon": "./assets/trio-logo.png",
+      "supportsTablet": false,
+      "requireFullScreen": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
 
     "android": {
