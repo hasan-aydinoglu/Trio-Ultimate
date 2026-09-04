@@ -5,33 +5,42 @@
     "scheme": "trio",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+
+    "icon": "./assets/trio-logo.png",
+
     "userInterfaceStyle": "light",
+
     "splash": {
       "image": "./assets/trio-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#00c6ff"
     },
+
     "assetBundlePatterns": [
       "**/*"
     ],
+
     "ios": {
-      "bundleIdentifier": "com.trio.app",
-      "supportsTablet": false,
-      "requireFullScreen": true,
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+  "bundleIdentifier": "com.hasanaydinoglu.trio",
+  "icon": "./assets/trio-logo.png",
+  "supportsTablet": false,
+  "requireFullScreen": true,
+  "infoPlist": {
+    "ITSAppUsesNonExemptEncryption": false
+  }
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
       [
         "expo-screen-orientation",
@@ -52,11 +61,13 @@
       "@react-native-community/datetimepicker",
       "expo-web-browser"
     ],
+
     "extra": {
       "eas": {
         "projectId": "0cfcb8eb-e263-4553-8fee-82028477c406"
       }
     },
+
     "owner": "trio-games"
   }
 }
