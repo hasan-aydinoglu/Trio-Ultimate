@@ -10,10 +10,6 @@
 
     "userInterfaceStyle": "light",
 
-    "splash": {
-      "backgroundColor": "#01040B"
-    },
-
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -29,6 +25,7 @@
     },
 
     "android": {
+      "package": "com.hasanaydinoglu.trio",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -40,6 +37,12 @@
     },
 
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#01040B"
+        }
+      ],
       [
         "expo-screen-orientation",
         {
