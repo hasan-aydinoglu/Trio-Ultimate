@@ -26,9 +26,10 @@
 
     "android": {
       "package": "com.hasanaydinoglu.trio",
+      "icon": "./assets/trio-logo.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/trio-logo.png",
+        "backgroundColor": "#01040B"
       }
     },
 
